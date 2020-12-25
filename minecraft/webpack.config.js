@@ -8,12 +8,12 @@ module.exports = {
   devtool: 'inline-source-map',
   entry: path.join(__dirname, './src/index.ts'),
   resolve: {
-    extensions: [ '.tsx', '.ts', '.js' ],
+    extensions: ['.tsx', '.ts', '.js'],
   },
   output: {
     path: path.join(__dirname, './dist'),
     filename: 'bundle.js',
-    publicPath: '/',
+    publicPath: './',
   },
   module: {
     rules: [
@@ -22,11 +22,11 @@ module.exports = {
         use: 'ts-loader',
         exclude: /node_modules/,
       },
-      { 
+      {
         test: /\.(sc|sa|c)ss$/,
         use: [
-          MiniCssExtractPlugin.loader,'css-loader', 'sass-loader'
-        ]
+          MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader',
+        ],
       },
     ],
   },
