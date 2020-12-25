@@ -1,0 +1,5 @@
+/minecraft/node_modules
+/minecraft/package-lock.json
+/minecraft/dist
+
+.idea
