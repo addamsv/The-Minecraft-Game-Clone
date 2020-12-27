@@ -5,19 +5,19 @@ export default class MovingControl {
     this.scene = scene;
   }
 
-  moveForward() {
+  // moveForward() {
 
-  }
+  // }
 
-  moveLeft() {
-    
-  }
+  // moveLeft() {
 
-  moveBackward() {
-    
-  }
+  // }
 
-  moveRight() {
-    
-  }
-} 
+  // moveBackward() {
+
+  // }
+
+  // moveRight() {
+
+  // }
+}

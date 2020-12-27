@@ -2,6 +2,8 @@ const path = require('path');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const CopyPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   mode: 'development',
@@ -28,6 +30,14 @@ module.exports = {
           MiniCssExtractPlugin.loader, 'css-loader', 'sass-loader',
         ],
       },
+      {
+        test: /\.(png|jpe?g|gif)$/i,
+        use: [
+          {
+            loader: 'file-loader',
+          },
+        ],
+      },
     ],
   },
   plugins: [
@@ -35,9 +45,15 @@ module.exports = {
       template: path.join(__dirname, './src/index.html'),
     }),
     new MiniCssExtractPlugin({ filename: 'index.css' }),
+    new CopyPlugin({
+      patterns: [
+        { from: "./src/assets/", to: "assets/" },
+      ],
+    }),
+    new CleanWebpackPlugin(),
   ],
   devServer: {
-    contentBase: './src/public',
+    contentBase: './src/',
     port: 3000,
   },
 };

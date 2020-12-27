@@ -1,51 +1,32 @@
-import MainMenu from '../views/mainMenu';
-import MovingControl from './modules/movingControl';
 import Game from '../models/game';
-
-interface Listen extends Event{
-  which: Number;
-}
+import MainMenu from '../views/mainMenu';
+import MainMenuControl from './modules/mainMenuControl';
+import KeysControl from './modules/keysControl';
+import AnimationFrame from './modules/animationFrame';
 
 class PlayerController {
-  mainMenu: any;
+  game: Game;
 
-  game: any;
+  mainMenu: MainMenu;
 
-  movingControl: any;
+  mainMenuControl: MainMenuControl;
+
+  keysControl: KeysControl;
+
+  animationFrame: AnimationFrame;
 
   constructor() {
+    this.game = new Game();
+    this.game.createScene();
+    this.game.generateWorld();
+
     this.mainMenu = new MainMenu();
-    this.game = Game.createScene();
-    Game.generateWorld(this.game);
-    this.movingControl = new MovingControl(this.game);
-  }
+    this.mainMenuControl = new MainMenuControl(this.game);
 
-  createKeyboardControls() {
-    document.addEventListener('keydown', this.initEvents);
-  }
+    this.keysControl = new KeysControl(this.game);
+    this.keysControl.createKeyboardControls();
 
-  initEvents(event: Listen) {
-    const { which } = event;
-
-    switch (which) {
-      case 87: {
-        this.movingControl.moveForward();
-        break;
-      }
-      case 65: {
-        this.movingControl.moveLeft();
-        break;
-      }
-      case 83: {
-        this.movingControl.moveBackward();
-        break;
-      }
-      case 68: {
-        this.movingControl.moveRight();
-        break;
-      }
-      default: break;
-    }
+    this.animationFrame = new AnimationFrame(this.game);
   }
 }
 

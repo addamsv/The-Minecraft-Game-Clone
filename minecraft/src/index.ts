@@ -1,4 +1,4 @@
 import PlayerController from './conltollers/playerController';
 import './index.scss';
 
-new PlayerController().createKeyboardControls();
+const app = new PlayerController();
