@@ -3,7 +3,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start-ts": "node -r ts-node/register ./bin/www.ts",
+    "tsserver": "node -r ts-node/register ./bin/www.ts",
     "start": "node ./dist/bin/www.js",
     "build": "tsc",
     "postinstall": "npm run build"
