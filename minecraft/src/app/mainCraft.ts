@@ -1,22 +1,20 @@
 import MainView from '../views/mainView';
-import GameInit from '../models/modules/gameInit';
+import MainModel from '../models/mainModel';
 import MainController from '../conltollers/mainController';
 
 class MainCraft {
   mainView: MainView;
 
-  game: GameInit;
+  mainModel: MainModel;
 
   mainController: MainController;
 
   constructor() {
-    this.game = new GameInit();
-    this.game.createScene();
-    this.game.generateWorld();
+    this.mainModel = new MainModel();
 
     this.mainView = new MainView();
 
-    this.mainController = new MainController(this.mainView.mainMenu, this.game);
+    this.mainController = new MainController(this.mainView.mainMenu, this.mainModel.game);
   }
 }
 

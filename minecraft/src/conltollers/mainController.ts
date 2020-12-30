@@ -13,6 +13,8 @@ class MainController {
   animationFrame: AnimationFrame;
 
   constructor(view: MainMenuInterface, game: GameInterface) {
+    game.createScene();
+    game.generateWorld();
     this.mainMenuControl = new MainMenuControl(view, game);
     this.keysControl = new KeysControl(game);
     this.keysControl.createKeyboardControls();
