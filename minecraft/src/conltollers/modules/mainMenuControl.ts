@@ -1,3 +1,4 @@
+import MainMenuInterface from '../../interfaces/mainMenuInterface';
 import { PointerLockControls } from './pointerLockControls.js';
 import GameInterface from '../../interfaces/gameInterface';
 
@@ -6,16 +7,19 @@ interface Lock extends PointerLockControls {
 }
 
 class MainMenuControl {
+  mainMenu: MainMenuInterface;
+
   game: GameInterface;
 
-  constructor(game: GameInterface) {
+  constructor(mainMenu: MainMenuInterface, game: GameInterface) {
+    this.mainMenu = mainMenu;
     this.game = game;
     this.startGame();
   }
 
   startGame() {
-    const app = document.getElementById('app');
-    const play = document.getElementById('start');
+    const app = this.mainMenu.mainMenuScreen;
+    const play = this.mainMenu.playBtn;
 
     const controls: Lock = new PointerLockControls(this.game.camera, document.body);
     this.game.control = controls;
@@ -25,13 +29,11 @@ class MainMenuControl {
     }, false);
 
     controls.addEventListener('lock', () => {
-      play.classList.toggle('lock');
       app.classList.toggle('lock');
     });
 
     controls.addEventListener('unlock', () => {
       app.classList.toggle('lock');
-      play.classList.toggle('lock');
     });
 
     this.game.scene.add(controls.getObject());

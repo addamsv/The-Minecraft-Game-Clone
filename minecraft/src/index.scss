@@ -2,21 +2,12 @@ body {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  overflow: hidden;
 }
 
-#app {
+.renderer {
   position: absolute;
-  display: flex;
-  width: 100vw;
-  height: 100vh;
-  justify-content: center;
-  align-items: center;
-}
-
-#start {
-  color: white;
-  text-shadow: black 0 0 2px;
-  cursor: pointer;
+  z-index: -1;
 }
 
 .lock {
