@@ -26,7 +26,7 @@ class KeysControl {
       case 68: this.game.right = true; break;
       case 32: {
         if (this.game.jump === true) {
-          this.game.speed.y += 200;
+          this.game.speed.y += 150;
         }
         this.game.jump = false;
         break;
