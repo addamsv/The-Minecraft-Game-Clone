@@ -21,7 +21,7 @@ class PlayerController {
     this.game.generateWorld();
 
     this.mainMenu = new MainMenu();
-    this.mainMenuControl = new MainMenuControl(this.game);
+    this.mainMenuControl = new MainMenuControl(this.mainMenu, this.game);
 
     this.keysControl = new KeysControl(this.game);
     this.keysControl.createKeyboardControls();

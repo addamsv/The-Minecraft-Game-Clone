@@ -31,6 +31,7 @@ class Game {
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.domElement.classList.add('renderer');
     document.body.appendChild(this.renderer.domElement);
 
     this.scene.background = new THREE.Color(0x94D1CB);
@@ -58,7 +59,7 @@ class Game {
 
     this.collision = [];
 
-    const loader = new THREE.TextureLoader().setPath('./assets/textures/grass/');
+    const loader = new THREE.TextureLoader().setPath('./assets/textures/blocks/');
     const materialArray = [
       new THREE.MeshBasicMaterial({ map: loader.load('grass_side.png') }),
       new THREE.MeshBasicMaterial({ map: loader.load('grass_side.png') }),
