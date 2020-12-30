@@ -1,6 +1,6 @@
 import MainView from '../views/mainView';
 import MainModel from '../models/mainModel';
-import MainController from '../conltollers/mainController';
+import MainController from '../controllers/mainController';
 
 class MainCraft {
   mainView: MainView;
