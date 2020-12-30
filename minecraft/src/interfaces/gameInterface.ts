@@ -1,5 +1,5 @@
 import { PointerLockControls } from '../conltollers/modules/pointerLockControls.js';
-import Game from '../models/game';
+import Game from '../models/modules/gameInit';
 
 interface GameInterface extends Game {
   forward?: boolean;

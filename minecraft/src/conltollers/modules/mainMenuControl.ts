@@ -26,7 +26,7 @@ class MainMenuControl {
 
     play.addEventListener('click', () => {
       controls.lock();
-    }, false);
+    });
 
     controls.addEventListener('lock', () => {
       app.classList.toggle('lock');

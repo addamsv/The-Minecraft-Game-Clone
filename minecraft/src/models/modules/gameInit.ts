@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import * as SimplexNoise from 'simplex-noise';
 
-class Game {
+class GameInit {
   camera: THREE.PerspectiveCamera;
 
   scene: THREE.Scene;
@@ -92,4 +92,4 @@ class Game {
   }
 }
 
-export default Game;
+export default GameInit;
