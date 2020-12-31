@@ -9,7 +9,7 @@ class MainCraft {
   constructor() {
     this.mainModel = new MainModel();
 
-    this.mainController = new MainController(this.mainModel.game);
+    this.mainController = new MainController();
   }
 }
 

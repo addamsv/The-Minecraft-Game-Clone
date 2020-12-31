@@ -1,6 +1,6 @@
 import MainMenu from './mainMenu';
 
-class MainView {
+class MenuView {
   mainMenu: MainMenu;
 
   constructor() {
@@ -8,4 +8,4 @@ class MainView {
   }
 }
 
-export default MainView;
+export default MenuView;

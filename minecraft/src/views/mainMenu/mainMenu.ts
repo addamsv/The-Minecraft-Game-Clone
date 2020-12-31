@@ -1,6 +1,4 @@
-import MainMenuInterface from '../../interfaces/mainMenuInterface';
-
-class MainMenu implements MainMenuInterface {
+class MainMenu {
   mainMenuScreen: HTMLDivElement;
 
   playBtn: HTMLButtonElement;
