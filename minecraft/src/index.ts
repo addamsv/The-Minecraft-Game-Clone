@@ -1,4 +1,4 @@
-import PlayerController from './conltollers/playerController';
+import MainCraft from './app/mainCraft';
 import './index.scss';
 
-const app = new PlayerController();
+const app = new MainCraft();

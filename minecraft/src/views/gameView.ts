@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import * as SimplexNoise from 'simplex-noise';
+import { PointerLockControls } from '../controllers/modules/pointerLockControls.js';
 
-class Game {
+class GameView {
   camera: THREE.PerspectiveCamera;
 
   scene: THREE.Scene;
@@ -18,6 +19,26 @@ class Game {
 
   collision: Array<THREE.Mesh>;
 
+  forward: boolean;
+
+  left: boolean;
+
+  backward: boolean;
+
+  right: boolean;
+
+  jump: boolean;
+
+  control: PointerLockControls;
+
+  constructor() {
+    this.forward = false;
+    this.left = false;
+    this.backward = false;
+    this.right = false;
+    this.jump = false;
+  }
+
   createScene() {
     this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
     this.camera.position.y = 300;
@@ -28,7 +49,6 @@ class Game {
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.domElement.classList.add('renderer');
-    document.body.appendChild(this.renderer.domElement);
 
     this.scene.background = new THREE.Color(0x94D1CB);
     // this.scene.background = new THREE.CubeTextureLoader()
@@ -90,6 +110,56 @@ class Game {
 
     this.collision.push(instanceChunk);
   }
+
+  animationFrame() {
+    this.jump = false;
+    requestAnimationFrame(this.animationFrame.bind(this));
+    const time = performance.now();
+    if (this.control.isLocked === true) {
+      this.raycaster.ray.origin.copy(this.camera.position);
+      this.raycaster.ray.origin.y -= 15;
+      const intersections = this.raycaster.intersectObjects(this.collision);
+      const onObject = intersections.length > 0;
+
+      const delta = (time - this.time) / 1000;
+      this.speed.x -= this.speed.x * 10.0 * delta;
+      this.speed.z -= this.speed.z * 10.0 * delta;
+      this.speed.y -= 9.8 * 50.0 * delta;
+      this.direction.z = Number(this.forward) - Number(this.backward);
+      this.direction.x = Number(this.right) - Number(this.left);
+
+      this.direction.normalize();
+      if (this.forward || this.backward) {
+        this.speed.z -= this.direction.z * 400.0 * delta;
+      }
+      if (this.left || this.right) {
+        this.speed.x -= this.direction.x * 400.0 * delta;
+      }
+
+      if (onObject) {
+        this.speed.y = Math.max(0, this.speed.y);
+        this.jump = true;
+      }
+
+      const ray = new THREE.Vector3();
+      const { x, y, z } = this.camera.position;
+      ray.x = x; ray.y = y - 10; ray.z = z;
+      this.raycaster.ray.origin.copy(ray);
+      const wallCheck = this.raycaster.intersectObjects(this.collision);
+
+      if (wallCheck.length) {
+        this.speed.z = 0;
+        this.speed.x = 0;
+        this.speed.y += 30;
+      }
+
+      this.control.moveRight(-this.speed.x * delta);
+      this.control.moveForward(-this.speed.z * delta);
+      this.camera.position.y += (this.speed.y * delta);
+    }
+    this.time = time;
+    this.renderer.render(this.scene, this.camera);
+  }
 }
 
-export default Game;
+export default GameView;
