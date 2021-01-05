@@ -2,8 +2,8 @@ const path = require('path');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const CopyPlugin = require("copy-webpack-plugin");
+// const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   mode: 'development',
@@ -15,7 +15,7 @@ module.exports = {
   output: {
     path: path.join(__dirname, './dist'),
     filename: 'bundle.js',
-    publicPath: './',
+    publicPath: '',
   },
   module: {
     rules: [
@@ -47,13 +47,13 @@ module.exports = {
     new MiniCssExtractPlugin({ filename: 'index.css' }),
     new CopyPlugin({
       patterns: [
-        { from: "./src/assets/", to: "assets/" },
+        { from: './src/assets/', to: 'assets/' },
       ],
     }),
-    new CleanWebpackPlugin(),
+    // new CleanWebpackPlugin(),
   ],
   devServer: {
-    contentBase: './src/',
+    contentBase: './src/public',
     port: 3000,
   },
 };

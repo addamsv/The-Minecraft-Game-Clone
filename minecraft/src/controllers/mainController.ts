@@ -22,6 +22,7 @@ class MainController {
     this.gameStart = false;
     this.gameView = new GameView();
     this.gameView.createScene();
+    this.gameView.generateWorld();
     this.prepareToStartGame();
   }
 
@@ -35,7 +36,8 @@ class MainController {
     play.addEventListener('click', () => {
       if (!this.gameStart) {
         this.createKeyboardControls();
-        this.gameView.generateWorld();
+        // this.gameView.generateWorld();
+        document.body.appendChild(this.gameView.stats.dom);
         document.body.appendChild(this.gameView.renderer.domElement);
         this.gameView.animationFrame();
         this.gameStart = true;
