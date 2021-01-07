@@ -1,3 +1,4 @@
+import { MainModelInterface, MainModel } from '../models/mainModel';
 import MenuView from '../views/menuView';
 import GameView from '../views/gameView';
 import { PointerLockControls } from './modules/pointerLockControls.js';
@@ -9,7 +10,6 @@ interface Lock extends PointerLockControls {
 interface CustomEvent extends Event {
   which: number;
 }
-
 class MainController {
   menuView: MenuView;
 
@@ -17,12 +17,13 @@ class MainController {
 
   gameStart: boolean;
 
+  model: MainModelInterface;
+
   constructor() {
+    this.model = new MainModel();
     this.menuView = new MenuView();
-    this.gameStart = false;
-    this.gameView = new GameView();
-    this.gameView.createScene();
-    this.gameView.generateWorld();
+    this.gameStart = false; // should be within the model (isGameStart) - state;
+    this.gameView = new GameView(this.model);
     this.prepareToStartGame();
   }
 
@@ -36,7 +37,6 @@ class MainController {
     play.addEventListener('click', () => {
       if (!this.gameStart) {
         this.createKeyboardControls();
-        // this.gameView.generateWorld();
         document.body.appendChild(this.gameView.stats.dom);
         document.body.appendChild(this.gameView.renderer.domElement);
         this.gameView.animationFrame();

@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import * as SimplexNoise from 'simplex-noise';
+import MainModelInterface from '../models/mainModelInterface';
 import Stats from '../controllers/modules/stats.js';
 import { PointerLockControls } from '../controllers/modules/pointerLockControls.js';
 
@@ -51,7 +52,11 @@ class GameView {
 
   meshes: Array<Array<THREE.Mesh>>;
 
-  constructor() {
+  model: MainModelInterface;
+
+  constructor(model: MainModelInterface) {
+    this.model = model;
+    this.model.sendCoordinates(3, 4);
     this.forward = false;
     this.left = false;
     this.backward = false;
@@ -61,6 +66,8 @@ class GameView {
     this.meshes = [];
     this.renderDistance = 5;
     this.chunkSize = 25;
+    this.createScene();
+    this.generateWorld();
   }
 
   createScene() {
@@ -229,11 +236,10 @@ class GameView {
       // add new chunks to map and to this.meshes array
       let index = 0;
       for (let x = -this.renderDistance + newX; x <= this.renderDistance + newX; x += 1) {
-        setTimeout(() => {
-          const chunk = this.loadChunk(x, newZ - this.renderDistance);
-          this.meshes[index].unshift(chunk);
-          index += 1;
-        }, 0);
+        const chunk = this.loadChunk(x, newZ - this.renderDistance);
+        this.meshes[index].unshift(chunk);
+        index += 1;
+        //  setTimeout(() => {}, 0);
       }
     }
 
@@ -251,11 +257,10 @@ class GameView {
       // add new chunks to map and to this.meshes array
       let index = 0;
       for (let x = -this.renderDistance + newX; x <= this.renderDistance + newX; x += 1) {
-        setTimeout(() => {
-          const chunk = this.loadChunk(x, newZ + this.renderDistance);
-          this.meshes[index].push(chunk);
-          index += 1;
-        }, 0);
+        const chunk = this.loadChunk(x, newZ + this.renderDistance);
+        this.meshes[index].push(chunk);
+        index += 1;
+        // setTimeout(() => {}, 0);
       }
     }
   }
