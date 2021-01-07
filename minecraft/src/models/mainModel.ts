@@ -1,11 +1,15 @@
-import ServerRequest from './modules/serverRequest';
+import MainModelInterface from './mainModelInterface';
 
-class MainModel {
-  serverRequest: ServerRequest;
+class MainModel implements MainModelInterface {
+  public sendCoordinates(x: number, z: number) {
+    this.getCoordinates(x, z);
+  }
 
-  constructor() {
-    this.serverRequest = new ServerRequest();
+  private a: string;
+
+  private getCoordinates(x: number, z: number) {
+    console.log(`${this.a} ${x}:${z}`);
   }
 }
 
-export default MainModel;
+export { MainModelInterface, MainModel };
