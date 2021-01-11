@@ -1,0 +1,288 @@
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Simple Web-Socket Client</title>
+        <style type="text/css">
+
+        #chat-container {
+            width: 290px;
+            position: absolute;
+            bottom: 5px;
+            right: 45px;
+            background: #efefff44;
+            padding: 0px 0px 5px 0px; 
+            border-radius: 5px 5px 5px 5px;
+            -moz-border-radius: 4px 4px 4px 4px;
+            -webkit-border-radius: 4px 4px 4px 4px;
+            box-shadow: 0px 16px 16px #0005;
+
+        }
+
+        input#sock-msg {
+            width: 94%;
+            padding: 19px 19px;
+            margin:  14px 14px;
+            font-size: 1em;
+        }
+
+        textarea#sock-msg {
+            outline: none;
+            resize: none;
+            width: 94%;
+            height: 40px;
+            padding: 15px 15px;
+            margin: 5px 8px;
+            border: 1px solid #CCCCCC;
+            border-radius: 3px;
+            font-family: Arial, sans-serif;
+            font-size: 13px;
+            font-style: normal;
+            font-variant: normal;
+            color: #556D;
+            line-height: 14px;
+        }
+
+        #scroll-container {
+            height: 350px;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        #sock-container { 
+
+            display: table;
+            resize: none;
+            width: 100%;
+            background: #aaa1;
+            height: 350px;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        #sock-info {
+            display: table-cell;
+            vertical-align: bottom;
+            border: 0px solid #CCCCCC;
+            border-right-color: #CCCCCC;
+            border-bottom-color: #CCCCCC;
+            background: #fff;
+            width: 100%;
+        }
+
+
+
+        #scroll-container {
+            height: 350px;
+            max-height: 350px;
+            overflow-y: auto;
+        }
+
+        #scroll-container {
+            scrollbar-face-color: #367CD2;
+            scrollbar-shadow-color: #FFFFFF;
+            scrollbar-highlight-color: #FFFFFF;
+            scrollbar-3dlight-color: #FFFFFF;
+            scrollbar-darkshadow-color: #FFFFFF;
+            scrollbar-track-color: #FFFFFF;
+            scrollbar-arrow-color: #FFFFFF;
+        }
+
+        #scroll-container::-webkit-scrollbar-thumb {
+            background-color: #fff;
+            outline: 0px solid #fff;
+            border-radius: 10px;
+            background: #eee; 
+            -webkit-box-shadow: inset 0 0 0 rgba(0,0,0,0.5); 
+        }
+
+        #scroll-container::-webkit-scrollbar-track {
+            -webkit-border-radius: 10px;
+            border-radius: 10px;
+        }
+
+        #scroll-container::-webkit-scrollbar {
+            width: 0.7em;
+        }
+
+        .someone-sock-info {
+            font-family: tahoma;
+            font-size: 0.8em;
+            line-height: 1.5em;
+            margin: 0.1em 6em 1.2em 1.1em;
+            padding: 4px 10px 4px 16px;
+            -moz-border-radius: 15px 15px 15px 0px;
+            -moz-transition: background-color .2s ease-in-out;
+            -webkit-border-radius: 15px 15px 15px 0px;
+            -webkit-transition: background-color .2s ease-in-out;
+            background: #fff;
+            background-size: 6% 100%;
+            border-radius: 15px 15px 15px 0px;
+            box-shadow: 2px 2px 5px #0005;
+            color: #888c;
+            float: left;
+            clear: left;
+            font-weight: normal;
+            transition: background-color .2s ease-in-out;
+            max-width: 65%;
+        }
+        .user-sock-info {
+            font-family: tahoma;
+            font-size: 0.8em;
+            line-height: 1.5em;
+            margin: 0.1em 1em 1.2em 6em;
+            padding: 4px 10px 4px 16px;
+            -moz-border-radius: 15px 15px 0px 15px;
+            -moz-transition: background-color .2s ease-in-out;
+            -webkit-border-radius: 15px 15px 0px 15px;
+            -webkit-transition: background-color .2s ease-in-out;
+            background: #eee8;
+            background-size: 6% 100%;
+            border-radius: 15px 15px 0px 15px;
+            box-shadow: 2px 2px 5px #0005;
+            color: #888c;
+            float: right;
+            clear: right;
+            font-weight: normal;
+            transition: background-color .2s ease-in-out;
+            max-width: 65%;
+        }
+        .messInfo {
+            font-size: 0.3em;
+        }
+        .info {
+            font-family: tahoma;
+            font-size: 0.8em;
+            color: red;
+            margin: 0.1em 4em 0.1em 4em;
+            padding: 12px 10px 12px 16px;
+            float: left;
+            clear: left;
+            vertical-align: bottom;
+            background: #fff;
+            height: 15px;
+            width: 70%;
+        }
+    </style>
+</head>
+<body>
+    <div id='chat-container'>
+        <div id='scroll-container'>
+            <div id="sock-container">
+                <div id="sock-info"></div>
+            </div> 
+        </div>
+        <textarea id='sock-msg' placeholder="Введите сообщение и нажмите Enter"  ></textarea>
+    </div>
+    <script type="text/javascript">
+        "use strict";
+
+        class MCWebSocket {
+            constructor(userName) {
+                this.USER_NAME = userName;
+                this.HOST = location.origin.replace(/^http/, 'ws');
+                this.ws = null;
+                this.TEXTAREA_OBJ = document.getElementById('sock-msg');
+                this.SCROLL_CONTAINER = document.getElementById('scroll-container');
+                this.DATA_TO_APPEND = document.getElementById('sock-info');
+            }
+            init() {
+                this.ws = new WebSocket(this.HOST);
+                this.ws.onopen = this.connectionOpen.bind(this); 
+                this.ws.onmessage = this.messageReceived.bind(this); 
+                this.ws.onerror = this.connectionError.bind(this);
+                this.ws.onclose = this.connectionClose.bind(this);
+
+                this.sendMessageListener();
+            };
+
+            sendMessageListener() {
+                const CONTEXT = this;
+                this.TEXTAREA_OBJ.onkeydown = function(event) {
+                    if (event.keyCode == 13) {
+                        CONTEXT.ws.send(`{"userName": "${CONTEXT.USER_NAME}", "userMessage": "${CONTEXT.TEXTAREA_OBJ.value}"}`);
+                    }
+                };    
+            }
+
+            connectionError() {
+                alert("arror...");
+            }
+
+            connectionOpen() {
+                this.ws.send(`{"userName": "${this.USER_NAME}", "userMessage": "new web user has connected"}`);
+            }
+
+            connectionClose() {
+                this.ws.close();
+                this.DATA_TO_APPEND.innerHTML += "<div class='info'> connection closed </div>";
+                this.SCROLL_CONTAINER.scrollTop = this.SCROLL_CONTAINER.scrollHeight;
+            }
+
+            messageReceived(message) {
+                const mess = JSON.parse(message.data);
+                const userName = mess.userName || 'User';
+                this.appendMessage(this.getHTMLMessageContainer(userName, mess.userMessage));
+                this.scrollMessagesContainerToTop();
+                this.removeMessageFromInputField();
+            }
+
+            appendMessage(nodeToAppend) {
+                this.DATA_TO_APPEND.appendChild(nodeToAppend);
+                while (this.DATA_TO_APPEND.childNodes.length > 100) {
+                    this.DATA_TO_APPEND.removeChild(this.DATA_TO_APPEND.firstChild);
+                }
+            }
+
+            scrollMessagesContainerToTop() {
+                this.SCROLL_CONTAINER.scrollTop = this.SCROLL_CONTAINER.scrollHeight;
+            }
+
+            removeMessageFromInputField() {
+                this.TEXTAREA_OBJ.value = '';
+            }
+
+            getHTMLMessageContainer(user, textMessage) {
+                const TIME = '12:10:22';
+                const CONTAINER = document.createElement('div');
+                const USER_INFO_CONTAINER = document.createElement('div');
+
+                USER_INFO_CONTAINER.innerHTML = (this.isItYours(user) ? '' : user) + " " + TIME;
+                CONTAINER.className = this.isItYours(user) ? 'user-sock-info' : 'someone-sock-info';
+                USER_INFO_CONTAINER.className = 'messInfo';
+
+                CONTAINER.innerHTML = textMessage;
+                CONTAINER.appendChild(USER_INFO_CONTAINER);
+                
+                return CONTAINER;
+            }
+
+            isItYours(user) {
+                return this.USER_NAME === user;
+            }
+        }
+
+        function auth(login, password) {
+            async function postData(url = '', data = {}) {
+                // Default options are marked with *
+                const response = await fetch(url, {
+                    method: 'POST', // *GET, POST, PUT, DELETE, etc.
+                    mode: 'cors', // no-cors, *cors, same-origin
+                    cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
+                    credentials: 'same-origin', // include, *same-origin, omit
+                    headers: {
+                    'Content-Type': 'application/json'
+                    // 'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    redirect: 'follow', // manual, *follow, error
+                    referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
+                    body: JSON.stringify(data) // body data type must match "Content-Type" header
+                });
+                return response.json(); // parses JSON response into native JavaScript objects
+            }
+            postData('https://rs-clone-server.herokuapp.com/players/auth/', {login:login,password:password}).then(data => new MCWebSocket(data.name).init());
+        }
+
+        // auth("serega", "123");
+    </script>
+</body>
+</html>

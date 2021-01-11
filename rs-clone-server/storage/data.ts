@@ -1,18 +1,13 @@
 import { promises as fsp } from 'fs';
-
-type ItemType = {
-  id: string;
-  title: string;
-  complete: boolean;
-}
+import { ItemType } from '../types/item';
 
 const fileName = 'items.json';
 
-const filePath = __dirname+'/'+fileName;
+const filePath = `${__dirname}/${fileName}`;
 
 const readItemList = async (): Promise<ItemType[]> => {
   let list: ItemType[] = [];
-  
+
   try {
     const contents = await fsp.readFile(filePath, 'utf8');
 
@@ -27,7 +22,7 @@ const readItemList = async (): Promise<ItemType[]> => {
       throw err;
     }
 
-    console.warn(`there was error: ${err.message}`)
+    console.warn(`there was an error: ${err.message}`);
   }
 
   return list;
@@ -41,9 +36,7 @@ const writeItemList = async (list: ItemType[]): Promise<ItemType[]> => {
   return list;
 };
 
-const listAll = async () => {
-  return readItemList();
-};
+const listAll = async () => readItemList();
 
 const getById = async (id: string): Promise<ItemType | undefined> => {
   const list = await readItemList();
@@ -92,5 +85,5 @@ export {
   getById,
   create,
   update,
-  remove
-}
+  remove,
+};
