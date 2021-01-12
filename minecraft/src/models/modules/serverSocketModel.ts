@@ -1,15 +1,15 @@
 import ServerSocketModelInterface from './ServerSocketModelInterface';
 
 class ServerSocketModel implements ServerSocketModelInterface {
-  USER_NAME: String;
+  private USER_NAME: String;
 
-  TEXTAREA_OBJ: HTMLElement;
+  private TEXTAREA_OBJ: HTMLElement;
 
-  SCROLL_CONTAINER: HTMLElement;
+  private SCROLL_CONTAINER: HTMLElement;
 
-  DATA_TO_APPEND: HTMLElement;
+  private DATA_TO_APPEND: HTMLElement;
 
-  ws: WebSocket;
+  private ws: WebSocket;
 
   constructor(userName: String) {
     this.USER_NAME = userName;
@@ -19,7 +19,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
     this.DATA_TO_APPEND = document.getElementById('sock-info');
   }
 
-  init() {
+  public init() {
     this.ws = new WebSocket('ws://rs-clone-server.herokuapp.com/');
     this.ws.onopen = this.connectionOpen.bind(this);
     this.ws.onmessage = this.messageReceived.bind(this);
@@ -29,11 +29,11 @@ class ServerSocketModel implements ServerSocketModelInterface {
     this.sendMessageListener();
   }
 
-  sendMessage(value: String) {
+  public sendMessage(value: String) {
     this.ws.send(`{"userName": "${this.USER_NAME}", "userMessage": "${value}"}`);
   }
 
-  sendMessageListener() {
+  private sendMessageListener() {
     const CONTEXT = this;
     this.TEXTAREA_OBJ.onkeydown = (event: any) => {
       if (event.keyCode === 13) {
@@ -42,23 +42,23 @@ class ServerSocketModel implements ServerSocketModelInterface {
     };
   }
 
-  connectionError() {
+  private connectionError() {
     this.appendMessage(this.getHTMLMessageContainer('system', 'LAN: error'));
     this.scrollMessagesContainerToTop();
     this.removeMessageFromInputField();
   }
 
-  connectionOpen() {
+  private connectionOpen() {
     this.ws.send(`{"userName": "${this.USER_NAME}", "userMessage": "new web user has connected"}`);
   }
 
-  connectionClose() {
+  private connectionClose() {
     this.ws.close();
     this.DATA_TO_APPEND.innerHTML += "<div class='info'> connection closed </div>";
     this.SCROLL_CONTAINER.scrollTop = this.SCROLL_CONTAINER.scrollHeight;
   }
 
-  messageReceived(message: any) {
+  private messageReceived(message: any) {
     const mess = JSON.parse(message.data);
     const userName = mess.userName || 'User';
 
@@ -67,26 +67,26 @@ class ServerSocketModel implements ServerSocketModelInterface {
     this.removeMessageFromInputField();
   }
 
-  isItYours(user: String) {
+  private isItYours(user: String) {
     return this.USER_NAME === user;
   }
 
-  appendMessage(nodeToAppend: HTMLElement) {
+  private appendMessage(nodeToAppend: HTMLElement) {
     this.DATA_TO_APPEND.appendChild(nodeToAppend);
     while (this.DATA_TO_APPEND.childNodes.length > 100) {
       this.DATA_TO_APPEND.removeChild(this.DATA_TO_APPEND.firstChild);
     }
   }
 
-  scrollMessagesContainerToTop() {
+  private scrollMessagesContainerToTop() {
     this.SCROLL_CONTAINER.scrollTop = this.SCROLL_CONTAINER.scrollHeight;
   }
 
-  removeMessageFromInputField() {
+  private removeMessageFromInputField() {
     (<HTMLTextAreaElement>(this.TEXTAREA_OBJ)).value = '';
   }
 
-  getHTMLMessageContainer(user: String, textMessage: string) {
+  private getHTMLMessageContainer(user: String, textMessage: string) {
     const TIME = '12:10:22';
     const CONTAINER: HTMLDivElement = document.createElement('div');
     const USER_INFO_CONTAINER = document.createElement('div');
