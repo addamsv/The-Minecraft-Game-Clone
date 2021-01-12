@@ -1,15 +1,10 @@
+import { MainModelInterface, MainModel } from '../models/mainModel';
 import MenuView from '../views/menuView';
 import GameView from '../views/gameView';
-import { PointerLockControls } from './modules/pointerLockControls.js';
-
-interface Lock extends PointerLockControls {
-  addEventListener?: Function,
-}
 
 interface CustomEvent extends Event {
   which: number;
 }
-
 class MainController {
   menuView: MenuView;
 
@@ -17,12 +12,13 @@ class MainController {
 
   gameStart: boolean;
 
+  model: MainModelInterface;
+
   constructor() {
-    this.menuView = new MenuView();
-    this.gameStart = false;
-    this.gameView = new GameView();
-    this.gameView.createScene();
-    this.gameView.generateWorld();
+    this.model = new MainModel();
+    this.gameStart = false; // should be within the model (isGameStart) - state;
+    this.menuView = new MenuView(this.model);
+    this.gameView = new GameView(this.model);
     this.prepareToStartGame();
   }
 
@@ -30,13 +26,18 @@ class MainController {
     const app = this.menuView.mainMenu.mainMenuScreen;
     const play = this.menuView.mainMenu.playBtn;
 
-    const controls: Lock = new PointerLockControls(this.gameView.camera, document.body);
-    this.gameView.control = controls;
+    const { login, password } = this.menuView.authForm;
+    const register = this.menuView.authForm.sendBtn;
+
+    register.addEventListener('click', () => {
+      this.model.auth(login.value, password.value);
+    });
+
+    const controls = this.gameView.control;
 
     play.addEventListener('click', () => {
       if (!this.gameStart) {
         this.createKeyboardControls();
-        // this.gameView.generateWorld();
         document.body.appendChild(this.gameView.stats.dom);
         document.body.appendChild(this.gameView.renderer.domElement);
         this.gameView.animationFrame();
@@ -46,14 +47,16 @@ class MainController {
     });
 
     controls.addEventListener('lock', () => {
-      app.classList.toggle('lock');
+      this.menuView.authForm.toggleAuthForm();
+      app.classList.toggle('hide');
     });
 
     controls.addEventListener('unlock', () => {
-      app.classList.toggle('lock');
+      this.menuView.authForm.toggleAuthForm();
+      app.classList.toggle('hide');
     });
 
-    this.gameView.scene.add(controls.getObject());
+    // this.gameView.scene.add(controls.getObject());
   }
 
   createKeyboardControls() {
@@ -72,6 +75,10 @@ class MainController {
           this.gameView.speed.y += 150;
         }
         this.gameView.jump = false;
+        break;
+      }
+      case 84: {
+        this.menuView.chat.toggleChat();
         break;
       }
       default: break;

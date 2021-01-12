@@ -15,16 +15,16 @@ module.exports = {
     '@typescript-eslint',
   ],
   rules: {
-    "import/extensions": [
-       "error",
-       "ignorePackages",
-       {
-         "ts": "never",
-       }
-    ]
- },
+    'import/extensions': [
+      'error',
+      'ignorePackages',
+      {
+        ts: 'never',
+      },
+    ],
+  },
   settings: {
-    "import/resolver": {
+    'import/resolver': {
       typescript: {}, // this loads <rootdir>/tsconfig.json to eslint
     },
   },

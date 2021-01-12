@@ -1,4 +1,4 @@
 import './index.scss';
-import MainCraft from './app/mainCraft';
+import MineCraft from './app/mineCraft';
 
-const app = new MainCraft();
+new MineCraft().start();
