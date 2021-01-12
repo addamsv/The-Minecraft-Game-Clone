@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import * as SimplexNoise from 'simplex-noise';
 import PointerLock from '../controllers/modules/pointerLock';
+import PointerLockInterface from '../controllers/modules/pointerLockInterface';
 import MainModelInterface from '../models/mainModelInterface';
 import Stats from '../controllers/modules/stats.js';
 
@@ -42,7 +43,7 @@ class GameView {
 
   jump: boolean;
 
-  control: PointerLock;
+  control: PointerLockInterface;
 
   perlin: SimplexNoise;
 
@@ -56,7 +57,7 @@ class GameView {
 
   constructor(model: MainModelInterface) {
     this.model = model;
-    this.model.sendCoordinates(3, 4);
+    this.model.sendHeroCoordinates('3', '4');
     this.forward = false;
     this.left = false;
     this.backward = false;
