@@ -1,8 +1,9 @@
 import * as THREE from 'three';
 import * as SimplexNoise from 'simplex-noise';
+import PointerLock from '../controllers/modules/pointerLock';
+import PointerLockInterface from '../controllers/modules/pointerLockInterface';
 import MainModelInterface from '../models/mainModelInterface';
 import Stats from '../controllers/modules/stats.js';
-import { PointerLockControls } from '../controllers/modules/pointerLockControls.js';
 
 const x1Geometry = new THREE.PlaneGeometry(10, 10);
 x1Geometry.faceVertexUvs[0][0][0].y = 0.5;
@@ -84,7 +85,7 @@ class GameView {
 
   jump: boolean;
 
-  control: PointerLockControls;
+  control: PointerLockInterface;
 
   perlin: SimplexNoise;
 
@@ -98,7 +99,7 @@ class GameView {
 
   constructor(model: MainModelInterface) {
     this.model = model;
-    this.model.sendCoordinates(3, 4);
+    this.model.sendHeroCoordinates('3', '4');
     this.forward = false;
     this.left = false;
     this.backward = false;
@@ -114,6 +115,7 @@ class GameView {
 
   createScene() {
     this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
+    this.control = new PointerLock(this.camera, document.body);
 
     this.scene = new THREE.Scene();
     this.scene.fog = new THREE.FogExp2(0xffffff, 0.001);
@@ -347,7 +349,7 @@ class GameView {
       this.currentChunk.z = newChunkZ;
       console.log(this.currentChunk);
     }
-    if (this.control.isLocked === true) {
+    if (this.control.isLocked) {
       const delta = (time - this.time) / 1000;
       this.speed.x -= this.speed.x * 10.0 * delta;
       this.speed.z -= this.speed.z * 10.0 * delta;
