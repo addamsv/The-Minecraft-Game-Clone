@@ -1,8 +1,8 @@
 import * as THREE from 'three';
 import * as SimplexNoise from 'simplex-noise';
+import PointerLock from '../controllers/modules/pointerLock';
 import MainModelInterface from '../models/mainModelInterface';
 import Stats from '../controllers/modules/stats.js';
-import { PointerLockControls } from '../controllers/modules/pointerLockControls.js';
 
 class GameView {
   stats: any;
@@ -42,7 +42,7 @@ class GameView {
 
   jump: boolean;
 
-  control: PointerLockControls;
+  control: PointerLock;
 
   perlin: SimplexNoise;
 
@@ -64,14 +64,15 @@ class GameView {
     this.jump = false;
     this.perlin = new SimplexNoise();
     this.meshes = [];
-    this.renderDistance = 5;
-    this.chunkSize = 25;
+    this.renderDistance = 8;
+    this.chunkSize = 16;
     this.createScene();
     this.generateWorld();
   }
 
   createScene() {
     this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
+    this.control = new PointerLock(this.camera, document.body);
 
     this.scene = new THREE.Scene();
     this.scene.fog = new THREE.FogExp2(0xffffff, 0.001);
@@ -132,41 +133,6 @@ class GameView {
     const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
     directionalLight.position.set(1, 1, 0.5).normalize();
     this.scene.add(directionalLight);
-
-    // const loader = new THREE.TextureLoader().setPath('./assets/textures/blocks/');
-    // const materialArray = [
-    //   new THREE.MeshBasicMaterial({ map: loader.load('grass_side.png') }),
-    //   new THREE.MeshBasicMaterial({ map: loader.load('grass_side.png') }),
-    //   new THREE.MeshBasicMaterial({ map: loader.load('grass_top.png') }),
-    //   new THREE.MeshBasicMaterial({ map: loader.load('dirt.png') }),
-    //   new THREE.MeshBasicMaterial({ map: loader.load('grass_side.png') }),
-    //   new THREE.MeshBasicMaterial({ map: loader.load('grass_side.png') }),
-    // ];
-
-    // const chunkSize = 10;
-    // const renderDistance = 500;
-    // const geometry = new THREE.BoxGeometry(chunkSize, chunkSize, chunkSize);
-    // const simplex = new SimplexNoise();
-    // const instanceChunk = new THREE.InstancedMesh(geometry, materialArray,
-    //   chunkSize * chunkSize * renderDistance);
-
-    // let count = 0;
-
-    // for (let x = -renderDistance; x < renderDistance; x += chunkSize) {
-    //   for (let z = -renderDistance; z < renderDistance; z += chunkSize) {
-    //     const y = 200 + Math.round(Math.round(simplex.noise2D(x / 500, z / 500) * 200)
-    //       / chunkSize) * chunkSize;
-
-    //     const matrix = new THREE.Matrix4().makeTranslation(x, y, z);
-
-    //     instanceChunk.setMatrixAt(count, matrix);
-    //     count += 1;
-    //   }
-    // }
-
-    // this.scene.add(instanceChunk);
-
-    // this.collision.push(instanceChunk);
   }
 
   generateChunks() {
@@ -382,7 +348,7 @@ class GameView {
       this.currentChunk.z = newChunkZ;
       console.log(this.currentChunk);
     }
-    if (this.control.isLocked === true) {
+    if (this.control.isLocked) {
       this.raycaster.ray.origin.copy(this.camera.position);
       this.raycaster.ray.origin.y -= 15;
       const intersections = this.raycaster.intersectObjects(this.collision);
