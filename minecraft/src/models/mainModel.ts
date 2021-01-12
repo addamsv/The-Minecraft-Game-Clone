@@ -11,10 +11,13 @@ class MainModel implements MainModelInterface {
   constructor() {
     this.response = null;
     this.rsServerSocket = null;
+    this.a = 'coordinates';
   }
 
-  public sendCoordinates(x: number, z: number) {
-    this.getCoordinates(x, z);
+  public sendHeroCoordinates(x: String, z: String) {
+    if (this.rsServerSocket) {
+      this.rsServerSocket.sendCoordinates(x, z);
+    }
   }
 
   public auth(login: String, password: String) {
@@ -25,10 +28,6 @@ class MainModel implements MainModelInterface {
         this.rsServerSocket = new ServerSocketModel(respData.name);
         this.rsServerSocket.init();
       });
-  }
-
-  private getCoordinates(x: number, z: number) {
-    console.log(`${this.a} ${x}:${z}`);
   }
 
   private async authorize(data = {}) {
