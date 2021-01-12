@@ -5,6 +5,11 @@ interface PointerLockInterface {
   moveRight(distance: number): void;
   lock(): void;
   unlock(): void;
+  /*
+  * @override
+  */
+  addEventListener(eventName: string, functionName: any): void;
+  isLocked: boolean;
 }
 
 export default PointerLockInterface;
