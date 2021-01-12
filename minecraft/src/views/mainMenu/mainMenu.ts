@@ -235,7 +235,7 @@ class MainMenu {
       </div>
       <textarea id='sock-msg' placeholder="Please Enter Your Message"></textarea>
     </div>
-
+`;
   }
 }
 
