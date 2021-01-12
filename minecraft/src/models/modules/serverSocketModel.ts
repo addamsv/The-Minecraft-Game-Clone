@@ -29,10 +29,17 @@ class ServerSocketModel implements ServerSocketModelInterface {
     this.sendMessageListener();
   }
 
-  public sendMessage(value: String) {
+  public sendCoordinates(x: String, z: String) {
+    this.ws.send(`{"mesType": "game", xCoordinate": ${x}", "zCoordinate": "${z}"}`);
+  }
+
+  private sendMessage(value: String) {
     this.ws.send(`{"userName": "${this.USER_NAME}", "userMessage": "${value}"}`);
   }
 
+  /*
+  *   @private
+  */
   private sendMessageListener() {
     const CONTEXT = this;
     this.TEXTAREA_OBJ.onkeydown = (event: any) => {
@@ -60,6 +67,12 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private messageReceived(message: any) {
     const mess = JSON.parse(message.data);
+    if (!mess) {
+      return;
+    }
+    if (mess.mesType === 'game') {
+      console.log(mess);
+    }
     const userName = mess.userName || 'User';
 
     this.appendMessage(this.getHTMLMessageContainer(userName, mess.userMessage));
