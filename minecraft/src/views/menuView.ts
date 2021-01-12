@@ -1,10 +1,11 @@
 import MainMenu from './mainMenu';
+import MainModelInterface from '../models/mainModelInterface';
 
 class MenuView {
   mainMenu: MainMenu;
 
-  constructor() {
-    this.mainMenu = new MainMenu();
+  constructor(model: MainModelInterface) {
+    this.mainMenu = new MainMenu(model);
   }
 }
 
