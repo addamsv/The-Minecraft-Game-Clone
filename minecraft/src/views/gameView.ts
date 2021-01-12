@@ -5,6 +5,48 @@ import PointerLockInterface from '../controllers/modules/pointerLockInterface';
 import MainModelInterface from '../models/mainModelInterface';
 import Stats from '../controllers/modules/stats.js';
 
+const x1Geometry = new THREE.PlaneGeometry(10, 10);
+x1Geometry.faceVertexUvs[0][0][0].y = 0.5;
+x1Geometry.faceVertexUvs[0][0][2].y = 0.5;
+x1Geometry.faceVertexUvs[0][1][2].y = 0.5;
+x1Geometry.rotateY(Math.PI / 2);
+x1Geometry.translate(5, 0, 0);
+
+const x2Geometry = new THREE.PlaneGeometry(10, 10);
+x2Geometry.faceVertexUvs[0][0][0].y = 0.5;
+x2Geometry.faceVertexUvs[0][0][2].y = 0.5;
+x2Geometry.faceVertexUvs[0][1][2].y = 0.5;
+x2Geometry.rotateY(-Math.PI / 2);
+x2Geometry.translate(-5, 0, 0);
+
+const y1Geometry = new THREE.PlaneGeometry(10, 10);
+y1Geometry.faceVertexUvs[0][0][1].y = 0.5;
+y1Geometry.faceVertexUvs[0][1][0].y = 0.5;
+y1Geometry.faceVertexUvs[0][1][1].y = 0.5;
+y1Geometry.rotateX(-Math.PI / 2);
+y1Geometry.translate(0, 5, 0);
+
+// const y2Geometry = new THREE.PlaneGeometry(10, 10);
+// y2Geometry.faceVertexUvs[0][0][1].y = 0.5;
+// y2Geometry.faceVertexUvs[0][1][0].y = 0.5;
+// y2Geometry.faceVertexUvs[0][1][1].y = 0.5;
+// y2Geometry.rotateX(-Math.PI / 2);
+// y2Geometry.rotateY(Math.PI / 2);
+// y2Geometry.translate(0, 5, 0);
+
+const z1Geometry = new THREE.PlaneGeometry(10, 10);
+z1Geometry.faceVertexUvs[0][0][0].y = 0.5;
+z1Geometry.faceVertexUvs[0][0][2].y = 0.5;
+z1Geometry.faceVertexUvs[0][1][2].y = 0.5;
+z1Geometry.translate(0, 0, 5);
+
+const z2Geometry = new THREE.PlaneGeometry(10, 10);
+z2Geometry.faceVertexUvs[0][0][0].y = 0.5;
+z2Geometry.faceVertexUvs[0][0][2].y = 0.5;
+z2Geometry.faceVertexUvs[0][1][2].y = 0.5;
+// z2Geometry.rotateY(Math.PI);
+z2Geometry.translate(0, 0, -5);
+
 class GameView {
   stats: any;
 
@@ -108,7 +150,7 @@ class GameView {
 
     this.raycaster = new THREE.Raycaster(
       new THREE.Vector3(),
-      new THREE.Vector3(0, -1, 0), 0, 10,
+      new THREE.Vector3(0, -1, 0), 0, 20,
     );
 
     this.time = performance.now();
@@ -241,48 +283,6 @@ class GameView {
 
     const matrix = new THREE.Matrix4();
 
-    const x1Geometry = new THREE.PlaneGeometry(10, 10);
-    x1Geometry.faceVertexUvs[0][0][0].y = 0.5;
-    x1Geometry.faceVertexUvs[0][0][2].y = 0.5;
-    x1Geometry.faceVertexUvs[0][1][2].y = 0.5;
-    x1Geometry.rotateY(Math.PI / 2);
-    x1Geometry.translate(5, 0, 0);
-
-    const x2Geometry = new THREE.PlaneGeometry(10, 10);
-    x2Geometry.faceVertexUvs[0][0][0].y = 0.5;
-    x2Geometry.faceVertexUvs[0][0][2].y = 0.5;
-    x2Geometry.faceVertexUvs[0][1][2].y = 0.5;
-    x2Geometry.rotateY(-Math.PI / 2);
-    x2Geometry.translate(-5, 0, 0);
-
-    const y1Geometry = new THREE.PlaneGeometry(10, 10);
-    y1Geometry.faceVertexUvs[0][0][1].y = 0.5;
-    y1Geometry.faceVertexUvs[0][1][0].y = 0.5;
-    y1Geometry.faceVertexUvs[0][1][1].y = 0.5;
-    y1Geometry.rotateX(-Math.PI / 2);
-    y1Geometry.translate(0, 5, 0);
-
-    // const y2Geometry = new THREE.PlaneGeometry(10, 10);
-    // y2Geometry.faceVertexUvs[0][0][1].y = 0.5;
-    // y2Geometry.faceVertexUvs[0][1][0].y = 0.5;
-    // y2Geometry.faceVertexUvs[0][1][1].y = 0.5;
-    // y2Geometry.rotateX(-Math.PI / 2);
-    // y2Geometry.rotateY(Math.PI / 2);
-    // y2Geometry.translate(0, 5, 0);
-
-    const z1Geometry = new THREE.PlaneGeometry(10, 10);
-    z1Geometry.faceVertexUvs[0][0][0].y = 0.5;
-    z1Geometry.faceVertexUvs[0][0][2].y = 0.5;
-    z1Geometry.faceVertexUvs[0][1][2].y = 0.5;
-    z1Geometry.translate(0, 0, 5);
-
-    const z2Geometry = new THREE.PlaneGeometry(10, 10);
-    z2Geometry.faceVertexUvs[0][0][0].y = 0.5;
-    z2Geometry.faceVertexUvs[0][0][2].y = 0.5;
-    z2Geometry.faceVertexUvs[0][1][2].y = 0.5;
-    // z2Geometry.rotateY(Math.PI);
-    z2Geometry.translate(0, 0, -5);
-
     const geometry = new THREE.Geometry();
 
     for (let x = 0; x < this.chunkSize; x += 1) {
@@ -350,11 +350,6 @@ class GameView {
       console.log(this.currentChunk);
     }
     if (this.control.isLocked) {
-      this.raycaster.ray.origin.copy(this.camera.position);
-      this.raycaster.ray.origin.y -= 15;
-      const intersections = this.raycaster.intersectObjects(this.collision);
-      const onObject = intersections.length > 0;
-
       const delta = (time - this.time) / 1000;
       this.speed.x -= this.speed.x * 10.0 * delta;
       this.speed.z -= this.speed.z * 10.0 * delta;
@@ -370,21 +365,17 @@ class GameView {
         this.speed.x -= this.direction.x * 400.0 * delta;
       }
 
-      if (onObject) {
+      // falling
+      this.raycaster.ray.origin.copy(this.camera.position);
+      const falling = this.raycaster.intersectObjects(this.collision);
+      if (falling.length) {
         this.speed.y = Math.max(0, this.speed.y);
         this.jump = true;
-      }
-
-      const ray = new THREE.Vector3();
-      const { x, y, z } = this.camera.position;
-      ray.x = x; ray.y = y - 10; ray.z = z;
-      this.raycaster.ray.origin.copy(ray);
-      const wallCheck = this.raycaster.intersectObjects(this.collision);
-
-      if (wallCheck.length) {
-        this.speed.z = 0;
-        this.speed.x = 0;
-        this.speed.y += 20;
+        if (falling[0].distance < 15) {
+          this.speed.z = 0;
+          this.speed.x = 0;
+          this.speed.y += 20;
+        }
       }
 
       // if player fall down under textures

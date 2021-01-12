@@ -5,7 +5,6 @@ import GameView from '../views/gameView';
 interface CustomEvent extends Event {
   which: number;
 }
-
 class MainController {
   menuView: MenuView;
 
