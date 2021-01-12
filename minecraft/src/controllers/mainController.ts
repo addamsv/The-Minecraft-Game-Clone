@@ -21,8 +21,8 @@ class MainController {
 
   constructor() {
     this.model = new MainModel();
-    this.menuView = new MenuView();
     this.gameStart = false; // should be within the model (isGameStart) - state;
+    this.menuView = new MenuView(this.model);
     this.gameView = new GameView(this.model);
     this.prepareToStartGame();
   }
