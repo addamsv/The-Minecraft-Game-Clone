@@ -30,7 +30,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
   }
 
   public sendCoordinates(x: String, z: String) {
-    this.ws.send(`{"mesType": "game", xCoordinate": ${x}", "zCoordinate": "${z}"}`);
+    this.ws.send(`{"mesType": "game", "xCoordinate": "${x}", "zCoordinate": "${z}"}`);
   }
 
   private sendMessage(value: String) {

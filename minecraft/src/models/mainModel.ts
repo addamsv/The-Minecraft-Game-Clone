@@ -8,7 +8,10 @@ class MainModel implements MainModelInterface {
 
   private response: Promise<Response>;
 
+  public handshake: boolean;
+
   constructor() {
+    this.handshake = false;
     this.response = null;
     this.rsServerSocket = null;
     this.a = 'coordinates';
@@ -27,6 +30,7 @@ class MainModel implements MainModelInterface {
         console.log(respData.name);
         this.rsServerSocket = new ServerSocketModel(respData.name);
         this.rsServerSocket.init();
+        setTimeout(() => { this.handshake = true; }, 2000); // wait for handshakes, need refactor
       });
   }
 
