@@ -39,13 +39,22 @@ class MainController {
       this.menuView.authForm.toggle();
     });
 
+    const controls = this.gameView.control;
+
     register.addEventListener('click', () => {
       this.model.auth(login.value, password.value);
       this.menuView.authForm.toggle();
+      this.menuView.mainMenu.toggle();
       // start server game here
+      if (!this.gameStart) {
+        this.createKeyboardControls();
+        document.body.appendChild(this.gameView.stats.dom);
+        document.body.appendChild(this.gameView.renderer.domElement);
+        this.gameView.animationFrame();
+        this.gameStart = true;
+      }
+      controls.lock();
     });
-
-    const controls = this.gameView.control;
 
     play.addEventListener('click', () => {
       if (!this.gameStart) {
