@@ -32,7 +32,7 @@ class Chat {
     document.body.appendChild(this.container);
   }
 
-  toggleChat() {
+  toggle() {
     this.container.classList.toggle('hide');
   }
 }

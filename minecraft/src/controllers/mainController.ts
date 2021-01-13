@@ -12,25 +12,37 @@ class MainController {
 
   gameStart: boolean;
 
+  gamePause: boolean;
+
+  openChat: boolean;
+
   model: MainModelInterface;
 
   constructor() {
     this.model = new MainModel();
     this.gameStart = false; // should be within the model (isGameStart) - state;
+    this.gamePause = true;
+    this.openChat = false;
     this.menuView = new MenuView(this.model);
     this.gameView = new GameView(this.model);
     this.prepareToStartGame();
   }
 
   prepareToStartGame() {
-    const app = this.menuView.mainMenu.mainMenuScreen;
     const play = this.menuView.mainMenu.playBtn;
-
+    const server = this.menuView.mainMenu.serverBtn;
     const { login, password } = this.menuView.authForm;
     const register = this.menuView.authForm.sendBtn;
 
+    server.addEventListener('click', () => {
+      this.menuView.mainMenu.toggle();
+      this.menuView.authForm.toggle();
+    });
+
     register.addEventListener('click', () => {
       this.model.auth(login.value, password.value);
+      this.menuView.authForm.toggle();
+      // start server game here
     });
 
     const controls = this.gameView.control;
@@ -47,16 +59,17 @@ class MainController {
     });
 
     controls.addEventListener('lock', () => {
-      this.menuView.authForm.toggleAuthForm();
-      app.classList.toggle('hide');
+      if (this.gamePause) {
+        this.menuView.mainMenu.toggle();
+      }
+      this.gamePause = false;
     });
-
     controls.addEventListener('unlock', () => {
-      this.menuView.authForm.toggleAuthForm();
-      app.classList.toggle('hide');
+      if (!this.openChat) {
+        this.gamePause = true;
+        this.menuView.mainMenu.toggle();
+      }
     });
-
-    // this.gameView.scene.add(controls.getObject());
   }
 
   createKeyboardControls() {
@@ -78,7 +91,13 @@ class MainController {
         break;
       }
       case 84: {
-        this.menuView.chat.toggleChat();
+        this.openChat = !this.openChat;
+        if (this.openChat) {
+          this.gameView.control.unlock();
+        } else {
+          this.gameView.control.lock();
+        }
+        this.menuView.chat.toggle();
         break;
       }
       default: break;

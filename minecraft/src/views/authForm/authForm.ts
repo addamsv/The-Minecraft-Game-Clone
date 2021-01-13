@@ -14,10 +14,10 @@ class AuthForm {
     this.password = document.createElement('input');
     this.sendBtn = document.createElement('button');
 
-    this.authScreen.classList.add('auth-screen');
+    this.authScreen.classList.add('auth-screen', 'hide');
     inputs.classList.add('inputs');
 
-    this.sendBtn.textContent = 'Register';
+    this.sendBtn.textContent = 'Sign Up';
     this.login.placeholder = 'Login';
     this.password.placeholder = 'Password';
 
@@ -26,7 +26,7 @@ class AuthForm {
     document.body.appendChild(this.authScreen);
   }
 
-  toggleAuthForm() {
+  toggle() {
     this.authScreen.classList.toggle('hide');
   }
 }

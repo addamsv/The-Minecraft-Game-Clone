@@ -97,6 +97,8 @@ class GameView {
 
   model: MainModelInterface;
 
+  light: THREE.PointLight;
+
   constructor(model: MainModelInterface) {
     this.model = model;
     this.model.sendHeroCoordinates('3', '4');
@@ -119,13 +121,16 @@ class GameView {
 
     this.scene = new THREE.Scene();
     this.scene.fog = new THREE.FogExp2(0xffffff, 0.001);
+    // this.scene.fog = new THREE.FogExp2(0x000000, 0.001);
 
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.shadowMap.enabled = true;
     this.renderer.domElement.classList.add('renderer');
 
     this.scene.background = new THREE.Color(0x87CEEB);
+    // this.scene.background = new THREE.Color(0x000000);
   }
 
   generateHeight(length: number, xChunk: number, zChunk: number) {
@@ -171,11 +176,17 @@ class GameView {
     this.generateChunks();
 
     const ambientLight = new THREE.AmbientLight(0xcccccc);
+    // const ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
     this.scene.add(ambientLight);
 
     const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
     directionalLight.position.set(1, 1, 0.5).normalize();
     this.scene.add(directionalLight);
+
+    // this.light = new THREE.PointLight(0xffffff, 2);
+    // this.light.castShadow = true;
+    // this.light.shadow.camera.far = 100;
+    // this.scene.add(this.light);
   }
 
   generateChunks() {
@@ -324,6 +335,7 @@ class GameView {
       bufferGeometry,
       new THREE.MeshLambertMaterial({ map: texture, vertexColors: true, side: THREE.DoubleSide }),
     );
+    mesh.receiveShadow = true;
     this.scene.add(mesh);
 
     mesh.position.setX(xChunk * this.chunkSize * 10);
@@ -387,6 +399,9 @@ class GameView {
       this.control.moveRight(-this.speed.x * delta);
       this.control.moveForward(-this.speed.z * delta);
       this.camera.position.y += (this.speed.y * delta);
+      // this.light.position.x = this.camera.position.x;
+      // this.light.position.y = this.camera.position.y;
+      // this.light.position.z = this.camera.position.z;
     }
     this.time = time;
     this.renderer.render(this.scene, this.camera);
