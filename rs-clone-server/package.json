@@ -3,8 +3,8 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "lint": "eslint -c .eslintrc.js --ext .ts ./src --fix",
-    "tsserver": "node -r ts-node/register bin/www.ts",
+    "lint": "eslint -c .eslintrc.js --ext .ts ./ --fix",
+    "ts": "node -r ts-node/register bin/www.ts",
     "start": "node dist/bin/www.js",
     "build": "tsc",
     "postinstall": "npm run build"
@@ -17,8 +17,10 @@
     "express": "^4.16.4",
     "http-errors": "~1.6.3",
     "jsonwebtoken": "^8.5.1",
+    "knex": "^0.21.15",
     "mongodb": "^3.6.3",
     "morgan": "~1.9.1",
+    "pg": "^8.5.1",
     "pug": "2.0.0-beta11",
     "uuid": "^8.3.2",
     "ws": "^7.4.2"

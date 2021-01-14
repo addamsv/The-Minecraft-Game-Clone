@@ -4,7 +4,7 @@ import appConfig from '../app-config';
 
 const getMongoInstance = async () => {
   const client = await MongoClient.connect(
-    appConfig.getUrl(),
+    appConfig.MONGO_DB_URL,
     { useNewUrlParser: true, useUnifiedTopology: true },
   );
 

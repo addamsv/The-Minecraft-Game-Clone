@@ -2,7 +2,8 @@ import { v4 as uuid } from 'uuid';
 import { Router } from 'express';
 import * as jwt from 'jsonwebtoken';
 import * as bodyParser from 'body-parser';
-import * as storage from '../storage/mongo';
+// import * as storage from '../storage/mongo';
+import * as pg from '../storage/postgre';
 import appConfig from '../app-config';
 
 const router = Router();
@@ -15,16 +16,16 @@ router.use(bodyParser.json());
 router.post('/sign/', async (req, res) => {
   const { body } = req;
 
-  const items = await storage.listAll();
+  const items = await pg.listAll();
 
   const isLoginExist = Object.keys(items).some((element) => items[element].login === body.login);
 
   if (!isLoginExist) {
     body.id = uuid();
 
-    const newBody = await storage.create(body);
+    const newBody = await pg.create(body);
 
-    newBody.token = jwt.sign({ id: body.id }, appConfig.tokenKey, { expiresIn: '30d' });
+    newBody.token = jwt.sign({ id: body.id }, appConfig.TOKEN_KEY, { expiresIn: '30d' });
     newBody.statusCode = 200;
     newBody.name = body.login;
 
@@ -51,7 +52,7 @@ router.post('/auth/', async (req, res) => {
   jti — (JWT id) идентификатор токена
   */
   if (req.headers.authorization) {
-    jwt.verify(req.headers.authorization.split(' ')[1], appConfig.tokenKey, async (err, payload) => {
+    jwt.verify(req.headers.authorization.split(' ')[1], appConfig.TOKEN_KEY, async (err, payload) => {
       /*
       * if token exist but NOT ok
       */
@@ -65,7 +66,7 @@ router.post('/auth/', async (req, res) => {
         * if token ok
         */
         // eslint-disable-next-line dot-notation
-        const item = await storage.getById(payload['id']);
+        const item = await pg.getById(payload['id']);
         if (item) {
           res.json({
             statusCode: 200,
@@ -93,7 +94,7 @@ router.post('/auth/', async (req, res) => {
     * if login and pass within the body
     */
     if (req.body.login && req.body.password) {
-      const items = await storage.listAll();
+      const items = await pg.listAll();
       isAuthorized = Object.keys(items).some((element) => {
         if (
           items[element].login === req.body.login
@@ -111,7 +112,7 @@ router.post('/auth/', async (req, res) => {
         statusCode: 200,
         message: 'User is Authorized',
         name: req.body.login,
-        token: jwt.sign({ id }, appConfig.tokenKey, { expiresIn: '30d' }),
+        token: jwt.sign({ id }, appConfig.TOKEN_KEY, { expiresIn: '30d' }),
       });
     } else {
       res.json({
@@ -123,13 +124,13 @@ router.post('/auth/', async (req, res) => {
 });
 
 router.get('/', async (req, res) => {
-  const list = await storage.listAll();
+  const list = await pg.listAll();
 
   res.json(list);
 });
 
 router.get('/:id', async (req, res) => {
-  const item = await storage.getById(req.params.id);
+  const item = await pg.getById(req.params.id);
 
   res.status(item ? 200 : 404).json(item ?? { statusCode: 404 });
 });
@@ -141,14 +142,14 @@ router.post('/', async (req, res) => {
 
   body.id = id;
 
-  const newBody = await storage.create(body);
+  const newBody = await pg.create(body);
   res.json(newBody);
 });
 
 router.put('/:id', async (req, res) => {
   const { body } = req;
 
-  const newBody = await storage.update({
+  const newBody = await pg.update({
     ...body,
     id: req.params.id,
   });
@@ -157,7 +158,7 @@ router.put('/:id', async (req, res) => {
 });
 
 router.delete('/:id', async (req, res) => {
-  await storage.remove(req.params.id);
+  await pg.remove(req.params.id);
 
   res.status(204).json(null);
 });

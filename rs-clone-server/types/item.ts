@@ -1,5 +1,5 @@
 export type ItemType = {
   id: string;
-  title: string;
-  complete: boolean;
+  password: string;
+  login: string;
 }
