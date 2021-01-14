@@ -3,6 +3,7 @@ import * as SimplexNoise from 'simplex-noise';
 import PointerLock from '../controllers/modules/pointerLock';
 import PointerLockInterface from '../controllers/modules/pointerLockInterface';
 import MainModelInterface from '../models/mainModelInterface';
+import cameraConfig from '../configs/cameraConfig';
 import Stats from '../controllers/modules/stats.js';
 
 const x1Geometry = new THREE.PlaneGeometry(10, 10);
@@ -111,7 +112,6 @@ class GameView {
 
   constructor(model: MainModelInterface) {
     this.model = model;
-    // this.model.sendHeroCoordinates('3', '4');
     this.forward = false;
     this.left = false;
     this.backward = false;
@@ -127,7 +127,12 @@ class GameView {
   }
 
   createScene() {
-    this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
+    this.camera = new THREE.PerspectiveCamera(
+      Number(cameraConfig.fov.cur),
+      window.innerWidth / window.innerHeight,
+      1,
+      Number(cameraConfig.far.cur),
+    );
     this.control = new PointerLock(this.camera, document.body);
 
     this.scene = new THREE.Scene();
@@ -364,7 +369,7 @@ class GameView {
 
       // ambient
       this.scene.remove(this.ambientLight);
-      this.ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
+      this.ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
       this.scene.add(this.ambientLight);
 
       this.scene.remove(this.directionalLight);
@@ -421,7 +426,7 @@ class GameView {
       this.updateChunks(newChunkX, newChunkZ);
       this.currentChunk.x = newChunkX;
       this.currentChunk.z = newChunkZ;
-      console.log(this.currentChunk);
+      // console.log(this.currentChunk);
     }
     if (this.control.isLocked) {
       const delta = (time - this.time) / 1000;

@@ -12,48 +12,48 @@ $texture-path: "../../assets/textures/blocks/";
   align-items: center;
 
   .btns-wrapper {
-    width: 60%;
-    height: 56%;
+    width: 80vw;
+    height: 24vw;
     background-color: rgba(255, 255, 255, 0.288);
     display: flex;
     flex-wrap: wrap;
     justify-content: space-evenly;
     align-items: center;
 
-    .input-wrapper {
-      width: 88%;
-      height: 15%;
-      display: flex;
-      justify-content: space-between;
+    // .input-wrapper {
+    //   width: 88%;
+    //   height: 15%;
+    //   display: flex;
+    //   justify-content: space-between;
 
-      .input {
-        box-sizing: border-box;
-        padding: 2vw;
-        margin: 0;
-        border: none;
-        outline: none;
-        width: 34vw;
-        height: 100%;
-        color: $grass-green;
-        font-family: "Press Start 2P", cursive;
-      }
+    //   .input {
+    //     box-sizing: border-box;
+    //     padding: 2vw;
+    //     margin: 0;
+    //     border: none;
+    //     outline: none;
+    //     width: 34vw;
+    //     height: 100%;
+    //     color: $grass-green;
+    //     font-family: "Press Start 2P", cursive;
+    //   }
 
-      .input-btn {
-        width: 15vw;
-        height: 100%;
-        border: none;
-        outline: none;
-        color: $grass-green;
-        font-family: "Press Start 2P", cursive;
-        font-size: 1.4vw;
-        background-color: white;
-      }
+    //   .input-btn {
+    //     width: 15vw;
+    //     height: 100%;
+    //     border: none;
+    //     outline: none;
+    //     color: $grass-green;
+    //     font-family: "Press Start 2P", cursive;
+    //     font-size: 1.4vw;
+    //     background-color: white;
+    //   }
 
-      .input-btn:hover {
-        color: white;
-        background-color: $grass-green;
-      }
-    }
+    //   .input-btn:hover {
+    //     color: white;
+    //     background-color: $grass-green;
+    //   }
+    // }
 
     .main-menu-btn {
       outline: none;
@@ -72,8 +72,13 @@ $texture-path: "../../assets/textures/blocks/";
       background-size: 100%;
     }
 
-    .settings-btn {
+    .server-btn {
       background: url($texture-path + "oak_planks.jpg") no-repeat;
+      background-size: 100%;
+    }
+
+    .settings-btn {
+      background: url($texture-path + "bench_side.png") no-repeat;
       background-size: 100%;
     }
 
@@ -88,9 +93,15 @@ $texture-path: "../../assets/textures/blocks/";
       background-size: 100%;
     }
 
-    .settings-btn:hover {
+    .server-btn:hover {
       cursor: pointer;
       background: url($texture-path + "oak_top.png") no-repeat;
+      background-size: 100%;
+    }
+
+    .settings-btn:hover {
+      cursor: pointer;
+      background: url($texture-path + "bench_top.png") no-repeat;
       background-size: 100%;
     }
 
