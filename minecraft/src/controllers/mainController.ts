@@ -2,7 +2,7 @@ import { MainModelInterface, MainModel } from '../models/mainModel';
 import MenuView from '../views/menuView';
 import GameView from '../views/gameView';
 
-interface CustomEvent extends Event {
+interface PlayerEvent extends Event {
   which: number;
 }
 class MainController {
@@ -33,6 +33,10 @@ class MainController {
     const server = this.menuView.mainMenu.serverBtn;
     const { login, password } = this.menuView.authForm;
     const register = this.menuView.authForm.sendBtn;
+    const settings = this.menuView.mainMenu.settingsBtn;
+    const okButton = this.menuView.settingsMenu.okBtn;
+    const { quitBtn } = this.menuView.mainMenu;
+    const { yesBtn, noBtn } = this.menuView.quitConfirm;
 
     server.addEventListener('click', () => {
       this.menuView.mainMenu.toggle();
@@ -79,6 +83,39 @@ class MainController {
         this.menuView.mainMenu.toggle();
       }
     });
+
+    settings.addEventListener('click', () => {
+      this.switchMenu();
+    });
+
+    okButton.addEventListener('click', () => {
+      this.switchMenu();
+    });
+
+    quitBtn.addEventListener('click', () => {
+      this.menuView.quitConfirm.toggle();
+      this.menuView.mainMenu.toggle();
+    });
+
+    yesBtn.addEventListener('click', () => {
+      window.close();
+    });
+
+    noBtn.addEventListener('click', () => {
+      this.menuView.quitConfirm.toggle();
+      this.menuView.mainMenu.toggle();
+    });
+
+    document.body.addEventListener('camera', (event: CustomEvent) => {
+      this.gameView.camera.far = Number(event.detail.far);
+      this.gameView.camera.fov = Number(event.detail.fov);
+      this.gameView.camera.updateProjectionMatrix();
+    });
+  }
+
+  switchMenu() {
+    this.menuView.mainMenu.toggle();
+    this.menuView.settingsMenu.toggle();
   }
 
   createKeyboardControls() {
@@ -86,7 +123,7 @@ class MainController {
     document.addEventListener('keyup', this.onKeyUp.bind(this));
   }
 
-  onKeyDown(event: CustomEvent) {
+  onKeyDown(event: PlayerEvent) {
     switch (event.which) {
       case 87: this.gameView.forward = true; break;
       case 65: this.gameView.left = true; break;
@@ -113,7 +150,7 @@ class MainController {
     }
   }
 
-  onKeyUp(event: CustomEvent) {
+  onKeyUp(event: PlayerEvent) {
     switch (event.which) {
       case 87: this.gameView.forward = false; break;
       case 65: this.gameView.left = false; break;

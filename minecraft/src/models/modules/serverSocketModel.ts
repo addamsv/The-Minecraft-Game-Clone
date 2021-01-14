@@ -72,12 +72,18 @@ class ServerSocketModel implements ServerSocketModelInterface {
     }
     if (mess.mesType === 'game') {
       console.log(mess);
-    }
-    const userName = mess.userName || 'User';
+    } else {
+      const userName = mess.userName || 'User';
 
-    this.appendMessage(this.getHTMLMessageContainer(userName, mess.userMessage));
-    this.scrollMessagesContainerToTop();
-    this.removeMessageFromInputField();
+      this.appendMessage(this.getHTMLMessageContainer(userName, mess.userMessage));
+      this.scrollMessagesContainerToTop();
+      this.removeMessageFromInputField();
+    }
+    // const userName = mess.userName || 'User';
+
+    // this.appendMessage(this.getHTMLMessageContainer(userName, mess.userMessage));
+    // this.scrollMessagesContainerToTop();
+    // this.removeMessageFromInputField();
   }
 
   private isItYours(user: String) {
