@@ -30,16 +30,17 @@ class ServerSocketModel implements ServerSocketModelInterface {
   }
 
   public sendCoordinates(x: String, z: String) {
-    this.ws.send(`{"userName": "xxx", "mesType": "game", "xCoordinate": "${x}", "zCoordinate": "${z}"}`);
-  }
-
-  private sendMessage(value: String) {
-    this.ws.send(`{"userName": "${this.USER_NAME}", "userMessage": "${value}"}`);
+    this.ws.send(`{"userName": "${this.USER_NAME}", "mesType": "game", "xCoordinate": "${x}", "zCoordinate": "${z}"}`);
   }
 
   /*
   *   @private
   */
+
+  private sendMessage(value: String) {
+    this.ws.send(`{"userName": "${this.USER_NAME}", "userMessage": "${value}"}`);
+  }
+
   private sendMessageListener() {
     const CONTEXT = this;
     this.TEXTAREA_OBJ.onkeydown = (event: any) => {
@@ -67,17 +68,20 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private messageReceived(message: any) {
     const mess = JSON.parse(message.data);
+
     if (!mess) {
       return;
     }
-    if (mess.mesType === 'game') {
-      console.log(mess);
-    }
-    const userName = mess.userName || 'User';
 
-    this.appendMessage(this.getHTMLMessageContainer(userName, mess.userMessage));
-    this.scrollMessagesContainerToTop();
-    this.removeMessageFromInputField();
+    switch (mess.mesType) {
+      case 'game':
+        console.log(mess);
+        break;
+      default:
+        this.appendMessage(this.getHTMLMessageContainer(mess.userName || 'User', mess.userMessage));
+        this.scrollMessagesContainerToTop();
+        this.removeMessageFromInputField();
+    }
   }
 
   private isItYours(user: String) {

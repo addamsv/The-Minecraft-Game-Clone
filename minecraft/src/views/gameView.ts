@@ -3,6 +3,7 @@ import * as SimplexNoise from 'simplex-noise';
 import PointerLock from '../controllers/modules/pointerLock';
 import PointerLockInterface from '../controllers/modules/pointerLockInterface';
 import MainModelInterface from '../models/mainModelInterface';
+import cameraConfig from '../configs/cameraConfig';
 import Stats from '../controllers/modules/stats.js';
 
 const x1Geometry = new THREE.PlaneGeometry(10, 10);
@@ -97,9 +98,20 @@ class GameView {
 
   model: MainModelInterface;
 
+  lastPing: number;
+
+  ambientLight: THREE.AmbientLight;
+
+  directionalLight: THREE.DirectionalLight;
+
+  pointLight: THREE.PointLight;
+
+  night: boolean;
+
+  lastChange: number;
+
   constructor(model: MainModelInterface) {
     this.model = model;
-    this.model.sendHeroCoordinates('3', '4');
     this.forward = false;
     this.left = false;
     this.backward = false;
@@ -111,21 +123,25 @@ class GameView {
     this.chunkSize = 16;
     this.createScene();
     this.generateWorld();
+    this.night = false;
   }
 
   createScene() {
-    this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 1, 1000);
+    this.camera = new THREE.PerspectiveCamera(
+      Number(cameraConfig.fov.cur),
+      window.innerWidth / window.innerHeight,
+      1,
+      Number(cameraConfig.far.cur),
+    );
     this.control = new PointerLock(this.camera, document.body);
 
     this.scene = new THREE.Scene();
-    this.scene.fog = new THREE.FogExp2(0xffffff, 0.001);
 
     this.renderer = new THREE.WebGLRenderer();
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.shadowMap.enabled = true;
     this.renderer.domElement.classList.add('renderer');
-
-    this.scene.background = new THREE.Color(0x87CEEB);
   }
 
   generateHeight(length: number, xChunk: number, zChunk: number) {
@@ -170,12 +186,22 @@ class GameView {
 
     this.generateChunks();
 
-    const ambientLight = new THREE.AmbientLight(0xcccccc);
-    this.scene.add(ambientLight);
+    // set day fog
+    this.scene.fog = new THREE.FogExp2(0xffffff, 0.001);
+    // set day sky
+    this.scene.background = new THREE.Color(0x87CEEB);
+    // set day light
+    this.ambientLight = new THREE.AmbientLight(0xcccccc);
+    this.scene.add(this.ambientLight);
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 2);
-    directionalLight.position.set(1, 1, 0.5).normalize();
-    this.scene.add(directionalLight);
+    this.directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+    this.directionalLight.position.set(1, 1, 0.5).normalize();
+    this.scene.add(this.directionalLight);
+
+    // set night light
+    this.pointLight = new THREE.PointLight(0xffffff, 2);
+    this.pointLight.castShadow = true;
+    this.pointLight.shadow.camera.far = 100;
   }
 
   generateChunks() {
@@ -324,6 +350,7 @@ class GameView {
       bufferGeometry,
       new THREE.MeshLambertMaterial({ map: texture, vertexColors: true, side: THREE.DoubleSide }),
     );
+    mesh.receiveShadow = true;
     this.scene.add(mesh);
 
     mesh.position.setX(xChunk * this.chunkSize * 10);
@@ -333,10 +360,62 @@ class GameView {
     return mesh;
   }
 
+  changeLight() {
+    this.night = !this.night;
+    if (this.night) {
+      // sky
+      this.scene.fog = new THREE.FogExp2(0x000000, 0.001);
+      this.scene.background = new THREE.Color(0x000000);
+
+      // ambient
+      this.scene.remove(this.ambientLight);
+      this.ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+      this.scene.add(this.ambientLight);
+
+      this.scene.remove(this.directionalLight);
+      this.scene.add(this.pointLight);
+    } else {
+      this.scene.fog = new THREE.FogExp2(0xffffff, 0.001);
+      this.scene.background = new THREE.Color(0x87CEEB);
+
+      this.scene.remove(this.ambientLight);
+      this.ambientLight = new THREE.AmbientLight(0xcccccc);
+      this.scene.add(this.ambientLight);
+
+      this.scene.remove(this.pointLight);
+      this.scene.add(this.directionalLight);
+    }
+  }
+
   animationFrame() {
     this.stats.begin();
     this.jump = false;
     const time = performance.now();
+
+    // how often should send to the server
+    const period = 1000; // in ms
+    // 1000 is every 1 second (by default)
+
+    // send player coordinates to the server
+    const pingTime = Math.trunc(time / period);
+    // @ts-ignore
+    if (this.model.handshake && this.lastPing !== pingTime) {
+      this.lastPing = pingTime;
+      this.model.sendHeroCoordinates(
+        String(Math.trunc(this.camera.position.x / 10)),
+        String(Math.trunc(this.camera.position.y / 10)),
+      );
+    }
+
+    // check time to update light
+    const dayLength = 20000; // in ms
+    const dayTime = Math.trunc(time / dayLength);
+    if (dayTime && dayTime !== this.lastChange) {
+      this.lastChange = dayTime;
+      this.changeLight();
+    }
+
+    // check position to update map
     let newChunkX = this.camera.position.x / 10 / this.chunkSize;
     let newChunkZ = this.camera.position.z / 10 / this.chunkSize;
     if (newChunkX < 0) newChunkX -= 1;
@@ -347,7 +426,7 @@ class GameView {
       this.updateChunks(newChunkX, newChunkZ);
       this.currentChunk.x = newChunkX;
       this.currentChunk.z = newChunkZ;
-      console.log(this.currentChunk);
+      // console.log(this.currentChunk);
     }
     if (this.control.isLocked) {
       const delta = (time - this.time) / 1000;
@@ -387,6 +466,11 @@ class GameView {
       this.control.moveRight(-this.speed.x * delta);
       this.control.moveForward(-this.speed.z * delta);
       this.camera.position.y += (this.speed.y * delta);
+
+      // pointLight follow camera
+      this.pointLight.position.x = this.camera.position.x;
+      this.pointLight.position.y = this.camera.position.y;
+      this.pointLight.position.z = this.camera.position.z;
     }
     this.time = time;
     this.renderer.render(this.scene, this.camera);
