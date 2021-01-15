@@ -23,7 +23,7 @@ class MainMenu {
     this.playBtn.classList.add('main-menu-btn', 'play-btn');
     this.settingsBtn.classList.add('main-menu-btn', 'settings-btn');
     this.quitBtn.classList.add('main-menu-btn', 'quit-btn');
-    
+
     btnsWrapper.append(this.playBtn, this.settingsBtn, this.quitBtn);
     this.mainMenuScreen.appendChild(btnsWrapper);
     document.body.appendChild(this.mainMenuScreen);
