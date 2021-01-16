@@ -51,6 +51,7 @@ class MainController {
       this.menuView.mainMenu.toggle();
       // start server game here
       if (!this.gameStart) {
+        this.gameView.generateWorld();
         this.createKeyboardControls();
         document.body.appendChild(this.gameView.stats.dom);
         document.body.appendChild(this.gameView.renderer.domElement);
@@ -62,6 +63,7 @@ class MainController {
 
     play.addEventListener('click', () => {
       if (!this.gameStart) {
+        this.gameView.generateWorld();
         this.createKeyboardControls();
         document.body.appendChild(this.gameView.stats.dom);
         document.body.appendChild(this.gameView.renderer.domElement);
