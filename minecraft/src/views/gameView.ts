@@ -1,64 +1,20 @@
 import * as THREE from 'three';
 import * as SimplexNoise from 'simplex-noise';
+// eslint-disable-next-line import/no-webpack-loader-syntax, import/no-unresolved
+import MapWorker from 'worker-loader!./worker';
 import PointerLock from '../controllers/modules/pointerLock';
 import PointerLockInterface from '../controllers/modules/pointerLockInterface';
 import MainModelInterface from '../models/mainModelInterface';
 import cameraConfig from '../configs/cameraConfig';
 import Stats from '../controllers/modules/stats.js';
 
-const x1Geometry = new THREE.PlaneGeometry(10, 10);
-x1Geometry.faceVertexUvs[0][0][0].y = 0.5;
-x1Geometry.faceVertexUvs[0][0][2].y = 0.5;
-x1Geometry.faceVertexUvs[0][1][2].y = 0.5;
-x1Geometry.rotateY(Math.PI / 2);
-x1Geometry.translate(5, 0, 0);
-
-const x2Geometry = new THREE.PlaneGeometry(10, 10);
-x2Geometry.faceVertexUvs[0][0][0].y = 0.5;
-x2Geometry.faceVertexUvs[0][0][2].y = 0.5;
-x2Geometry.faceVertexUvs[0][1][2].y = 0.5;
-x2Geometry.rotateY(-Math.PI / 2);
-x2Geometry.translate(-5, 0, 0);
-
-const y1Geometry = new THREE.PlaneGeometry(10, 10);
-y1Geometry.faceVertexUvs[0][0][1].y = 0.5;
-y1Geometry.faceVertexUvs[0][1][0].y = 0.5;
-y1Geometry.faceVertexUvs[0][1][1].y = 0.5;
-y1Geometry.rotateX(-Math.PI / 2);
-y1Geometry.translate(0, 5, 0);
-
-// const y2Geometry = new THREE.PlaneGeometry(10, 10);
-// y2Geometry.faceVertexUvs[0][0][1].y = 0.5;
-// y2Geometry.faceVertexUvs[0][1][0].y = 0.5;
-// y2Geometry.faceVertexUvs[0][1][1].y = 0.5;
-// y2Geometry.rotateX(-Math.PI / 2);
-// y2Geometry.rotateY(Math.PI / 2);
-// y2Geometry.translate(0, 5, 0);
-
-const z1Geometry = new THREE.PlaneGeometry(10, 10);
-z1Geometry.faceVertexUvs[0][0][0].y = 0.5;
-z1Geometry.faceVertexUvs[0][0][2].y = 0.5;
-z1Geometry.faceVertexUvs[0][1][2].y = 0.5;
-z1Geometry.translate(0, 0, 5);
-
-const z2Geometry = new THREE.PlaneGeometry(10, 10);
-z2Geometry.faceVertexUvs[0][0][0].y = 0.5;
-z2Geometry.faceVertexUvs[0][0][2].y = 0.5;
-z2Geometry.faceVertexUvs[0][1][2].y = 0.5;
-// z2Geometry.rotateY(Math.PI);
-z2Geometry.translate(0, 0, -5);
-
 class GameView {
   stats: any;
-
-  data: Array<number>;
 
   currentChunk: {
     x: number,
     z: number,
   }
-
-  xNextChunk: number;
 
   camera: THREE.PerspectiveCamera;
 
@@ -73,8 +29,6 @@ class GameView {
   speed: THREE.Vector3;
 
   direction: THREE.Vector3;
-
-  collision: Array<THREE.Mesh>;
 
   forward: boolean;
 
@@ -94,7 +48,7 @@ class GameView {
 
   chunkSize: number;
 
-  meshes: Array<Array<THREE.Mesh>>;
+  meshes: any;
 
   model: MainModelInterface;
 
@@ -110,6 +64,12 @@ class GameView {
 
   lastChange: number;
 
+  worker: Worker;
+
+  workerInterval: any;
+
+  mapSeed: string;
+
   constructor(model: MainModelInterface) {
     this.model = model;
     this.forward = false;
@@ -118,11 +78,10 @@ class GameView {
     this.right = false;
     this.jump = false;
     this.perlin = new SimplexNoise();
-    this.meshes = [];
+    this.meshes = {};
     this.renderDistance = 8;
     this.chunkSize = 16;
     this.createScene();
-    this.generateWorld();
     this.night = false;
   }
 
@@ -144,22 +103,6 @@ class GameView {
     this.renderer.domElement.classList.add('renderer');
   }
 
-  generateHeight(length: number, xChunk: number, zChunk: number) {
-    const xFrom = xChunk * length;
-    const zFrom = zChunk * length;
-    const data: Array<number> = [];
-    const accuracy = 60;
-    const unflatness = 30;
-    let index = 0;
-    for (let x = xFrom; x < xFrom + length; x += 1) {
-      for (let z = zFrom; z < zFrom + length; z += 1) {
-        data[index] = this.perlin.noise2D(x / accuracy, z / accuracy) * unflatness;
-        index += 1;
-      }
-    }
-    this.data = data;
-  }
-
   generateWorld() {
     this.stats = Stats();
     this.stats.showPanel(0);
@@ -173,8 +116,6 @@ class GameView {
     this.speed = new THREE.Vector3();
     this.direction = new THREE.Vector3();
 
-    this.collision = [];
-
     this.camera.position.y = 200;
     this.camera.position.x = (this.chunkSize / 2) * 10;
     this.camera.position.z = (this.chunkSize / 2) * 10;
@@ -184,7 +125,57 @@ class GameView {
       z: 0,
     };
 
-    this.generateChunks();
+    this.worker = new MapWorker();
+
+    const texture = new THREE.TextureLoader().load('../assets/textures/atlas.png');
+    texture.magFilter = THREE.NearestFilter;
+    texture.minFilter = THREE.LinearMipmapLinearFilter;
+
+    const material = new THREE.MeshLambertMaterial(
+      { map: texture, vertexColors: true, side: THREE.DoubleSide },
+    );
+
+    this.worker.onmessage = (event: any) => {
+      if (event.data.map) {
+        this.mapSeed = event.data.seed;
+      }
+      const { geometry, xChunk, zChunk } = event.data;
+      if (!this.meshes[`${xChunk}:${zChunk}`]) {
+        this.meshes[`${xChunk}:${zChunk}`] = {
+          obj: null,
+          hasObj: false,
+          markForRemoval: false,
+          x: xChunk,
+          z: zChunk,
+        };
+      }
+      const meshMemo = this.meshes[`${xChunk}:${zChunk}`];
+
+      if (event.data.add) {
+        const bufferGeometry = new THREE.BufferGeometry().fromGeometry(geometry);
+
+        const mesh = new THREE.Mesh(bufferGeometry, material);
+        mesh.receiveShadow = true;
+        mesh.position.setX(xChunk * this.chunkSize * 10);
+        mesh.position.setZ(zChunk * this.chunkSize * 10);
+
+        meshMemo.obj = mesh;
+        meshMemo.hasObj = true;
+        if (!meshMemo.markForRemoval) {
+          this.scene.add(mesh);
+        }
+        meshMemo.markForRemoval = false;
+      }
+      if (event.data.remove) {
+        meshMemo.markForRemoval = true;
+        if (meshMemo.hasObj) {
+          this.scene.remove(meshMemo.obj);
+          meshMemo.markForRemoval = false;
+        }
+      }
+    };
+
+    this.worker.postMessage({ xChunk: 0, zChunk: 0, load: true });
 
     // set day fog
     this.scene.fog = new THREE.FogExp2(0xffffff, 0.001);
@@ -202,162 +193,6 @@ class GameView {
     this.pointLight = new THREE.PointLight(0xffffff, 2);
     this.pointLight.castShadow = true;
     this.pointLight.shadow.camera.far = 100;
-  }
-
-  generateChunks() {
-    for (let i = -this.renderDistance; i <= this.renderDistance; i += 1) {
-      const line: Array<THREE.Mesh> = [];
-      for (let j = -this.renderDistance; j <= this.renderDistance; j += 1) {
-        line.push(this.loadChunk(i, j));
-      }
-      this.meshes.push(line);
-    }
-  }
-
-  updateChunks(newX: number, newZ: number) {
-    // moving left
-    if ((newX - this.currentChunk.x) < 0 && !(newZ - this.currentChunk.z)) {
-      // removing old chunks
-      this.meshes[this.meshes.length - 1].forEach((mesh) => {
-        setTimeout(() => {
-          this.scene.remove(mesh);
-          mesh.geometry.dispose();
-        }, 0);
-      });
-      this.meshes.pop();
-
-      // add new chunks to map and to this.meshes array
-      const leftLineOfChunks: Array<THREE.Mesh> = [];
-      for (let z = -this.renderDistance + newZ; z <= this.renderDistance + newZ; z += 1) {
-        setTimeout(() => {
-          leftLineOfChunks.push(this.loadChunk(newX - this.renderDistance, z));
-        }, 0);
-      }
-      this.meshes.unshift(leftLineOfChunks);
-    }
-
-    // moving right
-    if ((newX - this.currentChunk.x) > 0 && !(newZ - this.currentChunk.z)) {
-      // removing old chunks
-      this.meshes[0].forEach((mesh) => {
-        setTimeout(() => {
-          this.scene.remove(mesh);
-          mesh.geometry.dispose();
-        }, 0);
-      });
-      this.meshes.shift();
-
-      // add new chunks to map and to this.meshes array
-      const rightLineOfChunks: Array<THREE.Mesh> = [];
-      for (let z = -this.renderDistance + newZ; z <= this.renderDistance + newZ; z += 1) {
-        setTimeout(() => {
-          rightLineOfChunks.push(this.loadChunk(newX + this.renderDistance, z));
-        }, 0);
-      }
-      this.meshes.push(rightLineOfChunks);
-    }
-
-    // moving up
-    if (!(newX - this.currentChunk.x) && (newZ - this.currentChunk.z) < 0) {
-      // removing old chunks
-      this.meshes.forEach((line) => {
-        setTimeout(() => {
-          this.scene.remove(line[line.length - 1]);
-          line[line.length - 1].geometry.dispose();
-          line.pop();
-        }, 0);
-      });
-
-      // add new chunks to map and to this.meshes array
-      let index = 0;
-      for (let x = -this.renderDistance + newX; x <= this.renderDistance + newX; x += 1) {
-        const chunk = this.loadChunk(x, newZ - this.renderDistance);
-        this.meshes[index].unshift(chunk);
-        index += 1;
-        //  setTimeout(() => {}, 0);
-      }
-    }
-
-    // moving down
-    if (!(newX - this.currentChunk.x) && (newZ - this.currentChunk.z) > 0) {
-      // removing old chunks
-      this.meshes.forEach((line) => {
-        setTimeout(() => {
-          this.scene.remove(line[0]);
-          line[0].geometry.dispose();
-          line.shift();
-        }, 0);
-      });
-
-      // add new chunks to map and to this.meshes array
-      let index = 0;
-      for (let x = -this.renderDistance + newX; x <= this.renderDistance + newX; x += 1) {
-        const chunk = this.loadChunk(x, newZ + this.renderDistance);
-        this.meshes[index].push(chunk);
-        index += 1;
-        // setTimeout(() => {}, 0);
-      }
-    }
-  }
-
-  getY(x: number, z:number) {
-    return Math.trunc(this.data[x * this.chunkSize + z] / 5) || 0;
-  }
-
-  loadChunk(xChunk: number, zChunk: number) {
-    this.generateHeight(this.chunkSize, xChunk, zChunk);
-
-    const matrix = new THREE.Matrix4();
-
-    const geometry = new THREE.Geometry();
-
-    for (let x = 0; x < this.chunkSize; x += 1) {
-      for (let z = 0; z < this.chunkSize; z += 1) {
-        const y = Math.trunc(this.data[x * this.chunkSize + z] / 5) || 0;
-
-        matrix.makeTranslation(
-          x * 10,
-          y * 10,
-          z * 10,
-        );
-
-        geometry.merge(y1Geometry, matrix);
-
-        if ((this.getY(x + 1, z) !== y && this.getY(x + 1, z) !== y + 1)
-        || x === this.chunkSize - 1) {
-          geometry.merge(x1Geometry, matrix);
-        }
-        if ((this.getY(x - 1, z) !== y && this.getY(x - 1, z) !== y + 1) || x === 0) {
-          geometry.merge(x2Geometry, matrix);
-        }
-        if ((this.getY(x, z + 1) !== y && this.getY(x, z + 1) !== y + 1)
-        || z === this.chunkSize - 1) {
-          geometry.merge(z1Geometry, matrix);
-        }
-        if ((this.getY(x, z - 1) !== y && this.getY(x, z - 1) !== y + 1) || z === 0) {
-          geometry.merge(z2Geometry, matrix);
-        }
-      }
-    }
-
-    const bufferGeometry = new THREE.BufferGeometry().fromGeometry(geometry);
-
-    const texture = new THREE.TextureLoader().load('../assets/textures/atlas.png');
-    texture.magFilter = THREE.NearestFilter;
-    texture.minFilter = THREE.LinearMipmapLinearFilter;
-
-    const mesh = new THREE.Mesh(
-      bufferGeometry,
-      new THREE.MeshLambertMaterial({ map: texture, vertexColors: true, side: THREE.DoubleSide }),
-    );
-    mesh.receiveShadow = true;
-    this.scene.add(mesh);
-
-    mesh.position.setX(xChunk * this.chunkSize * 10);
-    mesh.position.setZ(zChunk * this.chunkSize * 10);
-    this.collision.push(mesh);
-
-    return mesh;
   }
 
   changeLight() {
@@ -394,13 +229,15 @@ class GameView {
 
     // how often should send to the server
     const period = 1000; // in ms
-    // 1000 is every 1 second (by default)
 
     // send player coordinates to the server
     const pingTime = Math.trunc(time / period);
-    // @ts-ignore
     if (this.model.handshake && this.lastPing !== pingTime) {
       this.lastPing = pingTime;
+
+      // need to send 1 time, REFACTOR
+      this.model.sendMap(this.mapSeed);
+
       this.model.sendHeroCoordinates(
         String(Math.trunc(this.camera.position.x / 10)),
         String(Math.trunc(this.camera.position.y / 10)),
@@ -423,10 +260,17 @@ class GameView {
     newChunkX = Math.trunc(newChunkX);
     newChunkZ = Math.trunc(newChunkZ);
     if (newChunkX !== this.currentChunk.x || newChunkZ !== this.currentChunk.z) {
-      this.updateChunks(newChunkX, newChunkZ);
+      this.worker.postMessage(
+        {
+          oldChunkX: this.currentChunk.x,
+          oldChunkZ: this.currentChunk.z,
+          newChunkX,
+          newChunkZ,
+          update: true,
+        },
+      );
       this.currentChunk.x = newChunkX;
       this.currentChunk.z = newChunkZ;
-      // console.log(this.currentChunk);
     }
     if (this.control.isLocked) {
       const delta = (time - this.time) / 1000;
@@ -446,7 +290,7 @@ class GameView {
 
       // falling
       this.raycaster.ray.origin.copy(this.camera.position);
-      const falling = this.raycaster.intersectObjects(this.collision);
+      const falling = this.raycaster.intersectObjects(this.scene.children);
       if (falling.length) {
         this.speed.y = Math.max(0, this.speed.y);
         this.jump = true;

@@ -9,12 +9,17 @@ module.exports = {
   mode: 'development',
   devtool: 'inline-source-map',
   entry: path.join(__dirname, './src/index.ts'),
+  // entry: {
+  //   bundle: path.join(__dirname, './src/index.ts'),
+  //   worker: path.join(__dirname, './src/views/mapWorker'),
+  // },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
   },
   output: {
     path: path.join(__dirname, './dist'),
     filename: 'bundle.js',
+    // filename: '[name].js',
     publicPath: '',
   },
   module: {
@@ -37,6 +42,10 @@ module.exports = {
             loader: 'file-loader',
           },
         ],
+      },
+      {
+        test: /\.worker\.js$/,
+        use: { loader: 'worker-loader' },
       },
     ],
   },

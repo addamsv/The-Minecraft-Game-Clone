@@ -4,22 +4,29 @@ import { ServerSocketModelInterface, ServerSocketModel } from './modules/serverS
 class MainModel implements MainModelInterface {
   private rsServerSocket: ServerSocketModelInterface;
 
-  private a: string;
-
   private response: Promise<Response>;
 
-  public handshake: boolean;
+  private gameMapSeed: String;
+
+  public handshake: Boolean;
 
   constructor() {
     this.handshake = false;
     this.response = null;
     this.rsServerSocket = null;
-    this.a = 'coordinates';
   }
 
   public sendHeroCoordinates(x: String, z: String) {
     if (this.rsServerSocket) {
       this.rsServerSocket.sendCoordinates(x, z);
+    }
+  }
+
+  public sendMap(seed: String) {
+    this.gameMapSeed = seed;
+    console.log(seed, 'in model');
+    if (this.rsServerSocket) {
+      this.rsServerSocket.sendMap(seed);
     }
   }
 

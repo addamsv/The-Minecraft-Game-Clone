@@ -29,8 +29,12 @@ class ServerSocketModel implements ServerSocketModelInterface {
     this.sendMessageListener();
   }
 
+  public sendMap(seed: String) {
+    this.ws.send(`{"userName": "${this.USER_NAME}", "mesType": "map", "seed": "${seed}"}`);
+  }
+
   public sendCoordinates(x: String, z: String) {
-    this.ws.send(`{"mesType": "game", "xCoordinate": "${x}", "zCoordinate": "${z}"}`);
+    this.ws.send(`{"userName": "${this.USER_NAME}", "mesType": "game", "xCoordinate": "${x}", "zCoordinate": "${z}"}`);
   }
 
   private sendMessage(value: String) {
@@ -70,20 +74,16 @@ class ServerSocketModel implements ServerSocketModelInterface {
     if (!mess) {
       return;
     }
-    if (mess.mesType === 'game') {
-      console.log(mess);
-    } else {
-      const userName = mess.userName || 'User';
-
-      this.appendMessage(this.getHTMLMessageContainer(userName, mess.userMessage));
-      this.scrollMessagesContainerToTop();
-      this.removeMessageFromInputField();
+    switch (mess.mesType) {
+      case 'game': console.log(mess); break;
+      case 'map': console.log(mess); break;
+      default: {
+        this.appendMessage(this.getHTMLMessageContainer(mess.userName || 'User', mess.userMessage));
+        this.scrollMessagesContainerToTop();
+        this.removeMessageFromInputField();
+        break;
+      }
     }
-    // const userName = mess.userName || 'User';
-
-    // this.appendMessage(this.getHTMLMessageContainer(userName, mess.userMessage));
-    // this.scrollMessagesContainerToTop();
-    // this.removeMessageFromInputField();
   }
 
   private isItYours(user: String) {
