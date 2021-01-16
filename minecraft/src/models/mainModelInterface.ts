@@ -7,6 +7,8 @@ interface MainModelInterface {
 
   sendMap(seed: String): void;
 
+  checkStrings(name: string, password: string, type: string): void;
+
   sendHeroCoordinates(x: String, z: String): void;
 }
 

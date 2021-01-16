@@ -2,11 +2,11 @@ import * as THREE from 'three';
 import * as SimplexNoise from 'simplex-noise';
 // eslint-disable-next-line import/no-webpack-loader-syntax, import/no-unresolved
 import MapWorker from 'worker-loader!./worker';
-import PointerLock from '../controllers/modules/pointerLock';
-import PointerLockInterface from '../controllers/modules/pointerLockInterface';
-import MainModelInterface from '../models/mainModelInterface';
+import PointerLock from '../controllers/pointerLock/pointerLock';
+import PointerLockInterface from '../controllers/pointerLock/pointerLockInterface';
+import MainModelInterface from './mainModelInterface';
 import cameraConfig from '../configs/cameraConfig';
-import Stats from '../controllers/modules/stats.js';
+import Stats from '../controllers/pointerLock/stats.js';
 
 class GameView {
   stats: any;

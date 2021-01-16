@@ -30,6 +30,22 @@ class MainModel implements MainModelInterface {
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  public checkStrings(name: string, password: string, type: string) {
+    const regex = /\w{3,12}/;
+    if (!regex.test(name) || !regex.test(password)) {
+      const event = new CustomEvent('servermenu');
+      document.body.dispatchEvent(event);
+    } else {
+      console.log(type);
+      switch (type) {
+        case 'logIn': break;
+        case 'signUp': break;
+        default: break;
+      }
+    }
+  }
+
   public auth(login: String, password: String) {
     this.authorize({ login, password })
       .then((data) => {
