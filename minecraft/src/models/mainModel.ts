@@ -1,5 +1,6 @@
 import MainModelInterface from './mainModelInterface';
 import { ServerSocketModelInterface, ServerSocketModel } from './modules/serverSocketModel';
+import { ServerCRUDModelInterface, ServerCRUDModel } from './modules/serverCRUDModel';
 
 class MainModel implements MainModelInterface {
   private rsServerSocket: ServerSocketModelInterface;
@@ -10,11 +11,16 @@ class MainModel implements MainModelInterface {
 
   public handshake: boolean;
 
+  public serverCRUD: ServerCRUDModelInterface;
+
   constructor() {
     this.handshake = false;
     this.response = null;
     this.rsServerSocket = null;
     this.a = 'coordinates';
+
+    this.serverCRUD = new ServerCRUDModel();
+    console.log(this.serverCRUD.get());
   }
 
   public sendHeroCoordinates(x: String, z: String) {
