@@ -53,11 +53,14 @@ z2Geometry.translate(0, 0, -5);
 class CreateChunk {
   data: Array<number>;
 
+  seed: string;
+
   perlin: Noise;
 
   constructor() {
     this.data = [];
-    this.perlin = new Noise();
+    this.seed = Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+    this.perlin = new Noise(this.seed);
   }
 
   generateHeight(xChunk: number, zChunk: number) {
@@ -129,6 +132,11 @@ thread.addEventListener('message', (event: any) => {
       xChunk,
       zChunk,
       add: true,
+    });
+
+    thread.postMessage({
+      seed: createChunk.seed,
+      map: true,
     });
 
     let chunk = 1;

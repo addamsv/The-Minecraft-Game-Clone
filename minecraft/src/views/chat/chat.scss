@@ -39,13 +39,15 @@ textarea#sock-msg {
   height: 350px;
   max-height: 350px;
   overflow-y: auto;
+  background: none;
 }
 
 #sock-container {
   display: table;
   resize: none;
   width: 100%;
-  background: #aaa1;
+  // background: #aaa1;
+  background: none;
   height: 350px;
   max-height: 350px;
   overflow-y: auto;
@@ -57,7 +59,8 @@ textarea#sock-msg {
   border: 0px solid #cccccc;
   border-right-color: #cccccc;
   border-bottom-color: #cccccc;
-  background: #fff;
+  // background: #fff;
+  background: none;
   width: 100%;
 }
 

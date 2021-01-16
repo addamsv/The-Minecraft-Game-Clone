@@ -68,6 +68,8 @@ class GameView {
 
   workerInterval: any;
 
+  mapSeed: string;
+
   constructor(model: MainModelInterface) {
     this.model = model;
     this.forward = false;
@@ -134,6 +136,9 @@ class GameView {
     );
 
     this.worker.onmessage = (event: any) => {
+      if (event.data.map) {
+        this.mapSeed = event.data.seed;
+      }
       const { geometry, xChunk, zChunk } = event.data;
       if (!this.meshes[`${xChunk}:${zChunk}`]) {
         this.meshes[`${xChunk}:${zChunk}`] = {
@@ -227,9 +232,12 @@ class GameView {
 
     // send player coordinates to the server
     const pingTime = Math.trunc(time / period);
-    // @ts-ignore
     if (this.model.handshake && this.lastPing !== pingTime) {
       this.lastPing = pingTime;
+
+      // need to send 1 time, REFACTOR
+      this.model.sendMap(this.mapSeed);
+
       this.model.sendHeroCoordinates(
         String(Math.trunc(this.camera.position.x / 10)),
         String(Math.trunc(this.camera.position.y / 10)),
@@ -263,7 +271,6 @@ class GameView {
       );
       this.currentChunk.x = newChunkX;
       this.currentChunk.z = newChunkZ;
-      console.log(this.currentChunk);
     }
     if (this.control.isLocked) {
       const delta = (time - this.time) / 1000;
