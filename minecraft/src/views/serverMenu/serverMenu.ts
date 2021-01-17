@@ -17,6 +17,10 @@ class ServerMenu {
 
   backToMainMenu: HTMLButtonElement;
 
+  parseMessage: string;
+
+  failMessage: string;
+
   constructor() {
     this.createMenu();
     this.getChanges();
@@ -35,6 +39,9 @@ class ServerMenu {
     this.or.textContent = languageData.or;
     this.signUp.textContent = languageData.signUp;
     this.backToMainMenu.textContent = languageData.backToMainMenu;
+    this.parseMessage = languageData.parseMessage;
+    this.failMessage = languageData.failMessage;
+    this.errorMessage.textContent = '';
   }
 
   public toggle() {
@@ -79,12 +86,13 @@ class ServerMenu {
 
   private getChanges() {
     this.serverScreen.addEventListener('input-error', () => {
-      this.errorMessage.textContent = 'use only a-zA-Z and 0-9, length should be beetween 3 and 12';
+      this.errorMessage.textContent = this.parseMessage;
     });
     this.serverScreen.addEventListener('success', () => {
       this.successEnter();
     });
     this.serverScreen.addEventListener('fail', () => {
+      this.errorMessage.textContent = this.failMessage;
     });
   }
 

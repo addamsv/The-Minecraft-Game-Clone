@@ -18,13 +18,27 @@ $grass-green: rgb(0, 59, 20);
     padding: 4vw;
     background-color: rgba(255, 255, 255, 0.288);
     display: flex;
-    // flex-wrap: wrap;
     flex-direction: column;
     justify-content: space-evenly;
-    // align-items: center;
+
+    .input-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+
+      .label-input {
+        margin-top: -2vw;
+        align-items: center;
+        font-family: "Press Start 2P", cursive;
+        font-size: 1vw;
+        color: $grass-green;
+        pointer-events: none;
+      }
+    }
   }
 
-  .ok-btn {
+  .ok-btn,
+  .lang-btn {
     height: 4vw;
     width: 60%;
     background-color: rgba(255, 255, 255, 0.514);
@@ -35,6 +49,12 @@ $grass-green: rgb(0, 59, 20);
     font-size: 1.4vw;
   }
 
+  .lang-btn {
+    height: 3vw;
+    width: 100%;
+    font-size: 1vw;
+  }
+
   .ok-btn:hover {
     cursor: pointer;
     background: white;
@@ -43,4 +63,26 @@ $grass-green: rgb(0, 59, 20);
 
 .hide {
   display: none;
+}
+
+input[type="range"] {
+  -webkit-appearance: none;
+  width: 100%;
+  outline: none;
+  background: rgba(255, 255, 255, 0.514);
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 3vw;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  height: 3vw;
+  width: 3vw;
+  background: rgba(255, 255, 255, 0.658);
+  outline: 3px rgba(0, 0, 0, 0.04) solid;
+  cursor: pointer;
+  -webkit-appearance: none;
 }

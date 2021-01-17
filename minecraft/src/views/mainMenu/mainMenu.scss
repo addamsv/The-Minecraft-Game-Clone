@@ -13,12 +13,11 @@ $texture-path: "../../assets/textures/blocks/";
 
   .btns-wrapper {
     width: 80vw;
-    height: 24vw;
+    padding: 4vw;
     background-color: rgba(255, 255, 255, 0.288);
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-evenly;
-    align-items: center;
+    justify-content: space-between;
 
     // .input-wrapper {
     //   width: 88%;
@@ -62,8 +61,8 @@ $texture-path: "../../assets/textures/blocks/";
       font-family: "Press Start 2P", cursive;
       text-shadow: $grass-green 4px 4px 0;
       font-size: 1.8vw;
-      width: 15vw;
-      height: 15vw;
+      width: 17vw;
+      height: 17vw;
       transition: background 300ms;
     }
 

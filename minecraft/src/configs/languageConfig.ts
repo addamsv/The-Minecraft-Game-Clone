@@ -18,7 +18,8 @@ const languageConfig = {
       or: 'or',
       signUp: 'Sign Up',
       backToMainMenu: 'Cansel',
-      errorMessage: 'use only a-z, A-Z and 0-9, the length should be between 3 and 12',
+      parseMessage: 'use only a-z, A-Z and 0-9, the length should be between 3 and 12',
+      failMessage: 'already in use',
     },
     settinsMenu: {
       langBtn: 'English',
@@ -29,7 +30,7 @@ const languageConfig = {
   ru: {
     mainMenu: {
       playBtn: 'Играть',
-      serverBtn: 'Присоединиться к игре',
+      serverBtn: 'Сетевая игра',
       settingsBtn: 'Настройки',
       quitBtn: 'Покинуть игру',
     },
@@ -45,7 +46,8 @@ const languageConfig = {
       or: 'или',
       signUp: 'Зарегистрироваться',
       backToMainMenu: 'Отмена',
-      errorMessage: 'используйте только a-z, A-Z и 0-9, длина должна быть от 3 до 12',
+      parseMessage: 'используйте только a-z, A-Z и 0-9, длина должна быть от 3 до 12',
+      failMessage: 'имя занято',
     },
     settinsMenu: {
       langBtn: 'Русский',
