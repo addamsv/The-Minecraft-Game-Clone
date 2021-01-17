@@ -8,7 +8,7 @@ import MainModelInterface from './mainModelInterface';
 import cameraConfig from '../configs/cameraConfig';
 import Stats from '../controllers/pointerLock/stats.js';
 
-class GameView {
+class GameModel {
   stats: any;
 
   currentChunk: {
@@ -323,4 +323,4 @@ class GameView {
   }
 }
 
-export default GameView;
+export default GameModel;

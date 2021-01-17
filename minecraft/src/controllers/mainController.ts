@@ -1,6 +1,6 @@
 import { MainModelInterface, MainModel } from '../models/mainModel';
 import MenuView from '../views/menuView';
-import GameView from '../models/gameModel';
+import GameModel from '../models/gameModel';
 
 interface PlayerEvent extends Event {
   which: number;
@@ -9,7 +9,7 @@ interface PlayerEvent extends Event {
 class MainController {
   menuView: MenuView;
 
-  gameView: GameView;
+  gameModel: GameModel;
 
   gameStart: boolean;
 
@@ -25,13 +25,13 @@ class MainController {
     this.gamePause = true;
     this.openChat = false;
     this.menuView = new MenuView(this.model);
-    this.gameView = new GameView(this.model);
+    this.gameModel = new GameModel(this.model);
     this.prepareToStartGame();
   }
 
   prepareToStartGame() {
     // pointerLock API controls
-    const controls = this.gameView.control;
+    const controls = this.gameModel.control;
     controls.addEventListener('lock', () => {
       if (this.gamePause) {
         this.menuView.mainMenu.toggle();
@@ -51,11 +51,11 @@ class MainController {
     } = this.menuView.mainMenu;
     playBtn.addEventListener('click', () => {
       if (!this.gameStart) {
-        this.gameView.generateWorld();
+        this.gameModel.generateWorld();
         this.createKeyboardControls();
-        document.body.appendChild(this.gameView.stats.dom);
-        document.body.appendChild(this.gameView.renderer.domElement);
-        this.gameView.animationFrame();
+        document.body.appendChild(this.gameModel.stats.dom);
+        document.body.appendChild(this.gameModel.renderer.domElement);
+        this.gameModel.animationFrame();
         this.gameStart = true;
       }
       controls.lock();
@@ -74,14 +74,27 @@ class MainController {
       nickname, password, logIn, signUp, backToMainMenu,
     } = this.menuView.serverMenu;
     logIn.addEventListener('click', () => {
-      this.model.checkStrings(nickname.value, password.value, 'logIn');
+      this.model.checkStrings(nickname.value, password.value, 'login');
     });
     signUp.addEventListener('click', () => {
-      this.model.checkStrings(nickname.value, password.value, 'signUp');
+      this.model.checkStrings(nickname.value, password.value, 'signup');
     });
     backToMainMenu.addEventListener('click', () => {
       this.menuView.mainMenu.toggle();
       this.menuView.serverMenu.toggle();
+    });
+    document.body.addEventListener('startservergame', () => {
+      this.menuView.mainMenu.toggle();
+      // START SERVER GAME HERE
+      if (!this.gameStart) {
+        this.gameModel.generateWorld();
+        this.createKeyboardControls();
+        document.body.appendChild(this.gameModel.stats.dom);
+        document.body.appendChild(this.gameModel.renderer.domElement);
+        this.gameModel.animationFrame();
+        this.gameStart = true;
+      }
+      controls.lock();
     });
 
     // settingsMenu controls
@@ -90,10 +103,10 @@ class MainController {
       this.menuView.mainMenu.toggle();
       this.menuView.settingsMenu.toggle();
     });
-    document.body.addEventListener('camera', (event: CustomEvent) => {
-      this.gameView.camera.far = Number(event.detail.far);
-      this.gameView.camera.fov = Number(event.detail.fov);
-      this.gameView.camera.updateProjectionMatrix();
+    document.getElementById('settings-screen-id').addEventListener('camera', (event: CustomEvent) => {
+      this.gameModel.camera.far = Number(event.detail.far);
+      this.gameModel.camera.fov = Number(event.detail.fov);
+      this.gameModel.camera.updateProjectionMatrix();
     });
 
     // quitGame controls
@@ -118,23 +131,23 @@ class MainController {
 
   onKeyDown(event: PlayerEvent) {
     switch (event.which) {
-      case 87: this.gameView.forward = true; break;
-      case 65: this.gameView.left = true; break;
-      case 83: this.gameView.backward = true; break;
-      case 68: this.gameView.right = true; break;
+      case 87: this.gameModel.forward = true; break;
+      case 65: this.gameModel.left = true; break;
+      case 83: this.gameModel.backward = true; break;
+      case 68: this.gameModel.right = true; break;
       case 32: {
-        if (this.gameView.jump === true) {
-          this.gameView.speed.y += 150;
+        if (this.gameModel.jump === true) {
+          this.gameModel.speed.y += 150;
         }
-        this.gameView.jump = false;
+        this.gameModel.jump = false;
         break;
       }
       case 84: {
         this.openChat = !this.openChat;
         if (this.openChat) {
-          this.gameView.control.unlock();
+          this.gameModel.control.unlock();
         } else {
-          this.gameView.control.lock();
+          this.gameModel.control.lock();
         }
         this.menuView.chat.toggle();
         break;
@@ -145,10 +158,10 @@ class MainController {
 
   onKeyUp(event: PlayerEvent) {
     switch (event.which) {
-      case 87: this.gameView.forward = false; break;
-      case 65: this.gameView.left = false; break;
-      case 83: this.gameView.backward = false; break;
-      case 68: this.gameView.right = false; break;
+      case 87: this.gameModel.forward = false; break;
+      case 65: this.gameModel.left = false; break;
+      case 83: this.gameModel.backward = false; break;
+      case 68: this.gameModel.right = false; break;
       default: break;
     }
   }

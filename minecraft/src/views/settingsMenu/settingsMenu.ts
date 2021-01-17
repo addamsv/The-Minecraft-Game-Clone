@@ -63,6 +63,7 @@ class SettingsMenu {
 
     fovWrapper.append(this.fovInput, fovLabel, this.fovValue);
 
+    this.settingsMenuScreen.id = 'settings-screen-id';
     this.settingsMenuScreen.classList.add('settings-menu-screen', 'hide');
     settingsWrapper.classList.add('settings-wrapper');
     this.okBtn.classList.add('ok-btn');
@@ -81,7 +82,7 @@ class SettingsMenu {
           fov: this.fovInput.value,
         },
       });
-      document.body.dispatchEvent(event);
+      this.settingsMenuScreen.dispatchEvent(event);
     });
 
     this.fovInput.addEventListener('mousemove', () => {
@@ -92,7 +93,7 @@ class SettingsMenu {
           fov: this.fovInput.value,
         },
       });
-      document.body.dispatchEvent(event);
+      this.settingsMenuScreen.dispatchEvent(event);
     });
   }
 

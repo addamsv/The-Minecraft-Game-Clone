@@ -31,6 +31,7 @@ class ServerMenu {
     this.backToMainMenu = document.createElement('button');
 
     this.serverScreen.classList.add('server-screen', 'hide');
+    this.serverScreen.id = 'server-menu-id';
     serverWrapper.classList.add('server-wrapper');
     this.nickname.classList.add('nickname');
     this.password.classList.add('password');
@@ -61,9 +62,20 @@ class ServerMenu {
   }
 
   getChanges() {
-    document.body.addEventListener('servermenu', () => {
+    this.serverScreen.addEventListener('input-error', () => {
       this.errorMessage.textContent = 'use only a-zA-Z and 0-9, length should be beetween 3 and 12';
     });
+    this.serverScreen.addEventListener('success', () => {
+      this.successEnter();
+    });
+    this.serverScreen.addEventListener('fail', () => {
+    });
+  }
+
+  successEnter() {
+    this.toggle();
+    const event = new CustomEvent('startservergame');
+    document.body.dispatchEvent(event);
   }
 
   toggle() {

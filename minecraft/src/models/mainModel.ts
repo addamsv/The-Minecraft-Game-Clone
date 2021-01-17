@@ -1,6 +1,10 @@
 import MainModelInterface from './mainModelInterface';
 import { ServerSocketModelInterface, ServerSocketModel } from './modules/serverSocketModel';
 
+interface MyResponse extends Response {
+  statusCode: any;
+}
+
 class MainModel implements MainModelInterface {
   private rsServerSocket: ServerSocketModelInterface;
 
@@ -34,13 +38,16 @@ class MainModel implements MainModelInterface {
   public checkStrings(name: string, password: string, type: string) {
     const regex = /\w{3,12}/;
     if (!regex.test(name) || !regex.test(password)) {
-      const event = new CustomEvent('servermenu');
-      document.body.dispatchEvent(event);
+      const event = new CustomEvent('input-error');
+      document.getElementById('server-menu-id').dispatchEvent(event);
     } else {
       console.log(type);
       switch (type) {
-        case 'logIn': break;
-        case 'signUp': break;
+        case 'login': {
+          this.auth(name, password);
+          break;
+        }
+        case 'signup': break;
         default: break;
       }
     }
@@ -48,7 +55,15 @@ class MainModel implements MainModelInterface {
 
   public auth(login: String, password: String) {
     this.authorize({ login, password })
-      .then((data) => {
+      .then((data: MyResponse) => {
+        let event;
+        if (data.statusCode === 200) {
+          event = new CustomEvent('success');
+        } else {
+          event = new CustomEvent('fail');
+        }
+        document.getElementById('server-menu-id').dispatchEvent(event);
+
         const respData: any = data;
         console.log(respData.name);
         this.rsServerSocket = new ServerSocketModel(respData.name);
@@ -69,7 +84,7 @@ class MainModel implements MainModelInterface {
       redirect: 'follow',
       referrerPolicy: 'no-referrer',
       body: JSON.stringify(data),
-    }).then((resData: any) => resData.json());
+    }).then((resData: MyResponse) => resData.json());
     return this.response;
   }
 }
