@@ -64,6 +64,8 @@ class SettingsMenu {
 
     rangeWrapper.classList.add('input-wrapper');
     this.rangeInput.classList.add('range-input');
+    this.rangeLabel.classList.add('label-input');
+    this.rangeValue.classList.add('label-input');
 
     rangeWrapper.append(this.rangeInput, this.rangeLabel, this.rangeValue);
 
@@ -82,6 +84,8 @@ class SettingsMenu {
 
     fovWrapper.classList.add('input-wrapper');
     this.fovInput.classList.add('range-input');
+    this.fovLabel.classList.add('label-input');
+    this.fovValue.classList.add('label-input');
 
     fovWrapper.append(this.fovInput, this.fovLabel, this.fovValue);
 
