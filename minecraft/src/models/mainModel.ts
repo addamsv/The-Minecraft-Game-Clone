@@ -6,11 +6,11 @@ import env from '../configs/environmentVars';
 class MainModel implements MainModelInterface {
   private rsServerSocket: ServerSocketModelInterface;
 
-  private a: string;
-
   private response: Promise<Response>;
 
-  public handshake: boolean;
+  private gameMapSeed: String;
+
+  public handshake: Boolean;
 
   public serverCRUD: ServerCRUDModelInterface;
 
@@ -27,6 +27,14 @@ class MainModel implements MainModelInterface {
   public sendHeroCoordinates(x: String, z: String) {
     if (this.rsServerSocket) {
       this.rsServerSocket.sendCoordinates(x, z);
+    }
+  }
+
+  public sendMap(seed: String) {
+    this.gameMapSeed = seed;
+    console.log(seed, 'in model');
+    if (this.rsServerSocket) {
+      this.rsServerSocket.sendMap(seed);
     }
   }
 

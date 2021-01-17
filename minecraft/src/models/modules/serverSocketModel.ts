@@ -56,6 +56,14 @@ class ServerSocketModel implements ServerSocketModelInterface {
     this.chatMessageListener();
   }
 
+  public sendMap(seed: String) {
+    this.ws.send(`{"userName": "${this.USER_NAME}", "mesType": "map", "seed": "${seed}"}`);
+  }
+
+  public sendCoordinates(x: String, z: String) {
+    this.ws.send(`{"userName": "${this.USER_NAME}", "mesType": "game", "xCoordinate": "${x}", "zCoordinate": "${z}"}`);
+  }
+
   /*
   *   @private
   */
@@ -92,6 +100,26 @@ class ServerSocketModel implements ServerSocketModelInterface {
     }
     if (mess.chatServerMessage) {
       this.chatView.appendMessage('SERVER', mess.chatServerMessage, false);
+//     switch (mess.mesType) {
+//       case 'game': console.log(mess); break;
+//       case 'map': console.log(mess); break;
+//       default: {
+//         this.appendMessage(this.getHTMLMessageContainer(mess.userName || 'User', mess.userMessage));
+//         this.scrollMessagesContainerToTop();
+//         this.removeMessageFromInputField();
+//         break;
+//       }
+//     }
+//   }
+
+//   private isItYours(user: String) {
+//     return this.USER_NAME === user;
+//   }
+
+//   private appendMessage(nodeToAppend: HTMLElement) {
+//     this.DATA_TO_APPEND.appendChild(nodeToAppend);
+//     while (this.DATA_TO_APPEND.childNodes.length > 100) {
+//       this.DATA_TO_APPEND.removeChild(this.DATA_TO_APPEND.firstChild);
     }
   }
 

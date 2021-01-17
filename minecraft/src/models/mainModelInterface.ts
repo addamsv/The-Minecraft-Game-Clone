@@ -1,9 +1,11 @@
 /* eslint-disable no-unused-vars */
 
 interface MainModelInterface {
-  handshake: boolean;
+  handshake: Boolean;
 
   auth(login: String, password: String): void;
+
+  sendMap(seed: String): void;
 
   sendHeroCoordinates(x: String, z: String): void;
 }
