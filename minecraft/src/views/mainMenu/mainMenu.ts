@@ -30,6 +30,7 @@ class MainMenu {
     this.quitBtn.classList.add('main-menu-btn', 'quit-btn');
 
     btnsWrapper.append(this.playBtn, this.serverBtn, this.settingsBtn, this.quitBtn);
+
     this.mainMenuScreen.appendChild(btnsWrapper);
     document.body.appendChild(this.mainMenuScreen);
   }

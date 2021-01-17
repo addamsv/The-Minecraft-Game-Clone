@@ -1,6 +1,6 @@
 /minecraft/node_modules
 /minecraft/package-lock.json
 /minecraft/dist
-
+.DS_Store
 .idea
 .DS_Store
