@@ -40,10 +40,6 @@ class ServerSocketModel implements ServerSocketModelInterface {
     }
   }
 
-  public sendCoordinates(x: String, z: String) {
-    this.ws.send(`{"userName": "${this.USER_NAME}", "mesType": "game", "xCoordinate": "${x}", "zCoordinate": "${z}"}`);
-  }
-
   public init() {
     document.cookie = `X-Authorization=${this.USER_TOKEN}; path=/`;
 
@@ -69,7 +65,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
   */
   private chatMessageListener() {
     const CONTEXT = this;
-    this.TEXTAREA_OBJ.onkeydown = function (event: KeyboardEvent): void {
+    this.TEXTAREA_OBJ.onkeydown = (event: KeyboardEvent) => {
       if (event.keyCode === 13) {
         event.preventDefault();
         CONTEXT.sendMessage((<HTMLTextAreaElement>(CONTEXT.TEXTAREA_OBJ)).value, 'chatMessage');
@@ -84,6 +80,8 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private messageReceived(message: any) {
     const mess = JSON.parse(message.data);
+
+    console.log(message, 'message');
 
     if (mess.setUserName) {
       this.USER_NAME = mess.setUserName;
@@ -100,26 +98,27 @@ class ServerSocketModel implements ServerSocketModelInterface {
     }
     if (mess.chatServerMessage) {
       this.chatView.appendMessage('SERVER', mess.chatServerMessage, false);
-//     switch (mess.mesType) {
-//       case 'game': console.log(mess); break;
-//       case 'map': console.log(mess); break;
-//       default: {
-//         this.appendMessage(this.getHTMLMessageContainer(mess.userName || 'User', mess.userMessage));
-//         this.scrollMessagesContainerToTop();
-//         this.removeMessageFromInputField();
-//         break;
-//       }
-//     }
-//   }
+      //     switch (mess.mesType) {
+      //       case 'game': console.log(mess); break;
+      //       case 'map': console.log(mess); break;
+      //       default: {
+      // this.appendMessage(this.getHTMLMessageContainer(mess.userName
+      // || 'User', mess.userMessage));
+      //         this.scrollMessagesContainerToTop();
+      //         this.removeMessageFromInputField();
+      //         break;
+      //       }
+      //     }
+      //   }
 
-//   private isItYours(user: String) {
-//     return this.USER_NAME === user;
-//   }
+      //   private isItYours(user: String) {
+      //     return this.USER_NAME === user;
+      //   }
 
-//   private appendMessage(nodeToAppend: HTMLElement) {
-//     this.DATA_TO_APPEND.appendChild(nodeToAppend);
-//     while (this.DATA_TO_APPEND.childNodes.length > 100) {
-//       this.DATA_TO_APPEND.removeChild(this.DATA_TO_APPEND.firstChild);
+      //   private appendMessage(nodeToAppend: HTMLElement) {
+      //     this.DATA_TO_APPEND.appendChild(nodeToAppend);
+      //     while (this.DATA_TO_APPEND.childNodes.length > 100) {
+      //       this.DATA_TO_APPEND.removeChild(this.DATA_TO_APPEND.firstChild);
     }
   }
 

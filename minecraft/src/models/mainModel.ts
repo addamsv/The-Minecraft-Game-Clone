@@ -22,7 +22,6 @@ class MainModel implements MainModelInterface {
     this.handshake = false;
     this.response = null;
     this.rsServerSocket = null;
-    this.a = 'coordinates';
 
     this.serverCRUD = new ServerCRUDModel();
     // console.log(this.serverCRUD.get());
@@ -65,6 +64,7 @@ class MainModel implements MainModelInterface {
     this.authorize({ login, password })
       .then((data: MyResponse) => {
         let event;
+        console.log(data);
         if (data.statusCode === 200) {
           event = new CustomEvent('success');
         } else {
