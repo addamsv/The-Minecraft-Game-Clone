@@ -165,6 +165,7 @@
     </style>
 </head>
 <body>
+    <h1>Minecraft</h1>
     <div id='chat-container'>
         <div id='scroll-container'>
             <div id="sock-container">
@@ -176,61 +177,29 @@
     <script type="text/javascript">
         "use strict";
 
-        class MCWebSocket {
-            constructor(userName) {
-                this.USER_NAME = userName;
-                this.HOST = location.origin.replace(/^http/, 'ws');
-                this.ws = null;
+        class ChatView {
+            constructor() {
                 this.TEXTAREA_OBJ = document.getElementById('sock-msg');
                 this.SCROLL_CONTAINER = document.getElementById('scroll-container');
                 this.DATA_TO_APPEND = document.getElementById('sock-info');
             }
-            init() {
-                this.ws = new WebSocket(this.HOST);
-                this.ws.onopen = this.connectionOpen.bind(this); 
-                this.ws.onmessage = this.messageReceived.bind(this); 
-                this.ws.onerror = this.connectionError.bind(this);
-                this.ws.onclose = this.connectionClose.bind(this);
 
-                this.sendMessageListener();
-            };
-
-            sendMessageListener() {
-                const CONTEXT = this;
-                this.TEXTAREA_OBJ.onkeydown = function(event) {
-                    if (event.keyCode == 13) {
-                        CONTEXT.ws.send(`{"userName": "${CONTEXT.USER_NAME}", "userMessage": "${CONTEXT.TEXTAREA_OBJ.value}"}`);
-                    }
-                };    
-            }
-
-            connectionError() {
-                alert("arror...");
-            }
-
-            connectionOpen() {
-                this.ws.send(`{"userName": "${this.USER_NAME}", "userMessage": "new web user has connected"}`);
-            }
-
-            connectionClose() {
-                this.ws.close();
-                this.DATA_TO_APPEND.innerHTML += "<div class='info'> connection closed </div>";
+            appendSysMessage(textMessage) {
+                this.DATA_TO_APPEND.innerHTML += `<div class='info'>${textMessage}</div>`;
                 this.SCROLL_CONTAINER.scrollTop = this.SCROLL_CONTAINER.scrollHeight;
             }
 
-            messageReceived(message) {
-                const mess = JSON.parse(message.data);
-                const userName = mess.userName || 'User';
-                this.appendMessage(this.getHTMLMessageContainer(userName, mess.userMessage));
-                this.scrollMessagesContainerToTop();
-                this.removeMessageFromInputField();
-            }
+            appendMessage(userName, textMessage, areYouMessageOwner) {
+                const NODE = this.getHTMLMessageContainer(userName, textMessage, areYouMessageOwner);
 
-            appendMessage(nodeToAppend) {
-                this.DATA_TO_APPEND.appendChild(nodeToAppend);
+                this.DATA_TO_APPEND.appendChild(NODE);
+
                 while (this.DATA_TO_APPEND.childNodes.length > 100) {
                     this.DATA_TO_APPEND.removeChild(this.DATA_TO_APPEND.firstChild);
                 }
+
+                this.scrollMessagesContainerToTop();
+                this.removeMessageFromInputField();
             }
 
             scrollMessagesContainerToTop() {
@@ -241,13 +210,13 @@
                 this.TEXTAREA_OBJ.value = '';
             }
 
-            getHTMLMessageContainer(user, textMessage) {
-                const TIME = '12:10:22';
+            getHTMLMessageContainer(userName, textMessage, areMessageOwner) {
+                const TIME = new Date().toLocaleTimeString();
                 const CONTAINER = document.createElement('div');
                 const USER_INFO_CONTAINER = document.createElement('div');
 
-                USER_INFO_CONTAINER.innerHTML = (this.isItYours(user) ? '' : user) + " " + TIME;
-                CONTAINER.className = this.isItYours(user) ? 'user-sock-info' : 'someone-sock-info';
+                USER_INFO_CONTAINER.innerHTML = (areMessageOwner ? '' : userName) + " " + TIME;
+                CONTAINER.className = areMessageOwner ? 'user-sock-info' : 'someone-sock-info';
                 USER_INFO_CONTAINER.className = 'messInfo';
 
                 CONTAINER.innerHTML = textMessage;
@@ -255,11 +224,103 @@
                 
                 return CONTAINER;
             }
+        }
 
-            isItYours(user) {
-                return this.USER_NAME === user;
+        class ChatController {    
+        }
+
+        class MCWebSocket {
+            constructor(userToken = "") {
+                // this.headers = new Headers();
+                this.chatView = new ChatView();
+                this.ws = null;
+                this.WS_TOKEN = '';
+                this.USER_NAME = '';
+                this.USER_TOKEN = userToken;
+
+                this.HOST = location.origin.replace(/^http/, 'ws');
+                this.TEXTAREA_OBJ = document.getElementById('sock-msg');
+            }
+            init() {
+                document.cookie = 'X-Authorization=' + this.USER_TOKEN + '; path=/';
+
+                this.ws = new WebSocket(this.HOST);
+                this.ws.onopen = this.connectionOpen.bind(this); 
+                this.ws.onmessage = this.messageReceived.bind(this); 
+                this.ws.onerror = this.connectionError.bind(this);
+                this.ws.onclose = this.connectionClose.bind(this);
+
+                this.chatMessageListener();
+            }
+
+            chatMessageListener() {
+                const CONTEXT = this;
+                this.TEXTAREA_OBJ.onkeydown = function(event) {
+                    if (event.keyCode == 13) {
+                        event.preventDefault();
+                        CONTEXT.sendMessage(CONTEXT.TEXTAREA_OBJ.value, 'chatMessage');
+                        // ws.send(`{"userName": "${CONTEXT.USER_NAME}", "wsToken": "${CONTEXT.WS_TOKEN}", "chatMessage": "${CONTEXT.TEXTAREA_OBJ.value}"}`);
+                    }
+                };    
+            }
+
+            sendMessage(textMessage, type) {
+                switch(type) {
+                    case 'chatMessage':
+                        this.ws.send(`{"userName": "${this.USER_NAME}", "wsToken": "${this.WS_TOKEN}", "chatMessage": "${textMessage}"}`);
+                    break;
+                    case 'gameMessage': break;
+                    case 'sysMessage': break;
+                    default: break;
+                }
+            }
+
+            connectionClose() {
+                this.ws.close();
+                this.chatView.appendSysMessage('connection closed');
+            }
+
+            messageReceived(message) {
+                const mess = JSON.parse(message.data);
+
+                if (mess.setUserName) {
+                    console.log('DOING SETTINGS USER NAME ' + mess.setUserName);
+                    this.USER_NAME = mess.setUserName;
+                }
+                if (mess.setWsToken) {
+                    console.log('DOING SETTINGS WS TOKEN ' + mess.setUserName);
+                    this.WS_TOKEN = mess.setWsToken;
+                }
+                if (mess.chatMessage) {
+                    console.log(mess);
+                    this.chatView.appendMessage(mess.userName, mess.chatMessage, this.areYouMessageOwner(mess.wsToken));
+                }
+                if (mess.chatServerMessage) {
+                    console.log(mess);
+                    this.chatView.appendMessage("SERVER", mess.chatServerMessage, false);
+                }
+            }
+
+            connectionError() {
+                this.chatView.appendSysMessage('connection Error');
+            }
+
+            connectionOpen() {
+                // this.ws.send(`{"userToken": "${this.USER_TOKEN}"}`);
+            }
+
+            areYouMessageOwner(curWsToken) {
+                console.log(curWsToken+this.USER_NAME);
+                if (curWsToken === undefined || this.WS_TOKEN === undefined) {
+                    return  false;
+                }
+                return this.WS_TOKEN === curWsToken;
             }
         }
+
+
+
+
 
         function auth(login, password) {
             async function postData(url = '', data = {}) {
@@ -279,10 +340,15 @@
                 });
                 return response.json(); // parses JSON response into native JavaScript objects
             }
-            postData('https://rs-clone-server.herokuapp.com/players/auth/', {login:login,password:password}).then(data => new MCWebSocket(data.name).init());
+            postData('https://rs-clone-server.herokuapp.com/auth/login', {login:login,password:password}).then(data => {
+            // postData('http://localhost:3001/auth/login', {login:login,password:password}).then(data => {
+                    new MCWebSocket(data.token).init();
+                    console.log(data.token);
+                });
         }
 
-        // auth("serega", "123");
+        auth("User1", "Admin123");
     </script>
 </body>
 </html>
+

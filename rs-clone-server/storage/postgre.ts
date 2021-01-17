@@ -14,6 +14,14 @@ const listAll = async () => {
   return list;
 };
 
+const getLogin = async (userLogin: string) => {
+  const list = await knex(appConfig.collectionName)
+    .select()
+    .where('login', userLogin);
+
+  return list[0];
+};
+
 const getById = async (id: string) => {
   const list = await knex(appConfig.collectionName)
     .select()
@@ -56,6 +64,7 @@ const remove = async (id: string) => {
 export {
   listAll,
   getById,
+  getLogin,
   create,
   update,
   remove,

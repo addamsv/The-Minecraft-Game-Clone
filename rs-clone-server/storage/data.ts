@@ -22,7 +22,7 @@ const readItemList = async (): Promise<ItemType[]> => {
       throw err;
     }
 
-    console.warn(`there was an error: ${err.message}`);
+    // console.warn(`there was an error: ${err.message}`);
   }
 
   return list;
