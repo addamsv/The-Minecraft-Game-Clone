@@ -1,3 +1,5 @@
+import languageConfig from '../../configs/languageConfig';
+
 class ServerMenu {
   serverScreen: HTMLDivElement;
 
@@ -9,6 +11,8 @@ class ServerMenu {
 
   logIn: HTMLButtonElement;
 
+  or: HTMLSpanElement;
+
   signUp: HTMLButtonElement;
 
   backToMainMenu: HTMLButtonElement;
@@ -18,7 +22,26 @@ class ServerMenu {
     this.getChanges();
   }
 
-  createMenu() {
+  public addTextContent(language: string) {
+    let languageData;
+    switch (language) {
+      case 'en': languageData = languageConfig.en.serverMenu; break;
+      case 'ru': languageData = languageConfig.ru.serverMenu; break;
+      default: break;
+    }
+    this.nickname.placeholder = languageData.nickname;
+    this.password.placeholder = languageData.password;
+    this.logIn.textContent = languageData.logIn;
+    this.or.textContent = languageData.or;
+    this.signUp.textContent = languageData.signUp;
+    this.backToMainMenu.textContent = languageData.backToMainMenu;
+  }
+
+  public toggle() {
+    this.serverScreen.classList.toggle('hide');
+  }
+
+  private createMenu() {
     this.serverScreen = document.createElement('div');
     const serverWrapper = document.createElement('div');
     this.nickname = document.createElement('input');
@@ -26,7 +49,7 @@ class ServerMenu {
     this.errorMessage = document.createElement('div');
     const buttonsWrapper = document.createElement('div');
     this.logIn = document.createElement('button');
-    const or = document.createElement('span');
+    this.or = document.createElement('span');
     this.signUp = document.createElement('button');
     this.backToMainMenu = document.createElement('button');
 
@@ -38,18 +61,11 @@ class ServerMenu {
     this.errorMessage.classList.add('error-message');
     buttonsWrapper.classList.add('buttons-wrapper');
     this.logIn.classList.add('server-btn');
-    or.classList.add('or');
+    this.or.classList.add('or');
     this.signUp.classList.add('server-btn');
     this.backToMainMenu.classList.add('server-btn', 'back-to-main-menu');
 
-    this.nickname.placeholder = 'name';
-    this.password.placeholder = 'password';
-    this.logIn.textContent = 'Log In';
-    or.textContent = 'or';
-    this.signUp.textContent = 'Sign Up';
-    this.backToMainMenu.textContent = 'Cansel';
-
-    buttonsWrapper.append(this.logIn, or, this.signUp);
+    buttonsWrapper.append(this.logIn, this.or, this.signUp);
     serverWrapper.append(
       this.nickname,
       this.password,
@@ -61,7 +77,7 @@ class ServerMenu {
     document.body.appendChild(this.serverScreen);
   }
 
-  getChanges() {
+  private getChanges() {
     this.serverScreen.addEventListener('input-error', () => {
       this.errorMessage.textContent = 'use only a-zA-Z and 0-9, length should be beetween 3 and 12';
     });
@@ -72,14 +88,10 @@ class ServerMenu {
     });
   }
 
-  successEnter() {
+  private successEnter() {
     this.toggle();
     const event = new CustomEvent('startservergame');
     document.body.dispatchEvent(event);
-  }
-
-  toggle() {
-    this.serverScreen.classList.toggle('hide');
   }
 }
 

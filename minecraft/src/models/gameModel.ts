@@ -5,7 +5,7 @@ import MapWorker from 'worker-loader!./worker';
 import PointerLock from '../controllers/pointerLock/pointerLock';
 import PointerLockInterface from '../controllers/pointerLock/pointerLockInterface';
 import MainModelInterface from './mainModelInterface';
-import cameraConfig from '../configs/cameraConfig';
+import settingsConfig from '../configs/settingsConfig';
 import Stats from '../controllers/pointerLock/stats.js';
 
 class GameModel {
@@ -87,10 +87,10 @@ class GameModel {
 
   createScene() {
     this.camera = new THREE.PerspectiveCamera(
-      Number(cameraConfig.fov.cur),
+      Number(settingsConfig.fov.cur),
       window.innerWidth / window.innerHeight,
       1,
-      Number(cameraConfig.far.cur),
+      Number(settingsConfig.far.cur),
     );
     this.control = new PointerLock(this.camera, document.body);
 
