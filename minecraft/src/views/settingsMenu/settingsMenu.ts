@@ -14,6 +14,11 @@ class SettingsMenu {
   okBtn: HTMLButtonElement;
 
   constructor() {
+    this.createMenu();
+    this.getChanges();
+  }
+
+  createMenu() {
     this.settingsMenuScreen = document.createElement('div');
     const settingsWrapper = document.createElement('div');
     this.okBtn = document.createElement('button');
@@ -34,17 +39,6 @@ class SettingsMenu {
     rangeLabel.textContent = 'distance: ';
     this.rangeValue.textContent = cameraConfig.far.cur;
 
-    this.rangeInput.addEventListener('mousemove', () => {
-      this.rangeValue.textContent = this.rangeInput.value;
-      const event = new CustomEvent('camera', {
-        detail: {
-          far: this.rangeInput.value,
-          fov: this.fovInput.value,
-        },
-      });
-      document.body.dispatchEvent(event);
-    });
-
     rangeWrapper.classList.add('input-wrapper');
     this.rangeInput.classList.add('range-input');
 
@@ -64,6 +58,33 @@ class SettingsMenu {
     fovLabel.textContent = 'fov: ';
     this.fovValue.textContent = cameraConfig.fov.cur;
 
+    fovWrapper.classList.add('input-wrapper');
+    this.fovInput.classList.add('range-input');
+
+    fovWrapper.append(this.fovInput, fovLabel, this.fovValue);
+
+    this.settingsMenuScreen.id = 'settings-screen-id';
+    this.settingsMenuScreen.classList.add('settings-menu-screen', 'hide');
+    settingsWrapper.classList.add('settings-wrapper');
+    this.okBtn.classList.add('ok-btn');
+
+    settingsWrapper.append(rangeWrapper, fovWrapper);
+    this.settingsMenuScreen.append(settingsWrapper, this.okBtn);
+    document.body.appendChild(this.settingsMenuScreen);
+  }
+
+  getChanges() {
+    this.rangeInput.addEventListener('mousemove', () => {
+      this.rangeValue.textContent = this.rangeInput.value;
+      const event = new CustomEvent('camera', {
+        detail: {
+          far: this.rangeInput.value,
+          fov: this.fovInput.value,
+        },
+      });
+      this.settingsMenuScreen.dispatchEvent(event);
+    });
+
     this.fovInput.addEventListener('mousemove', () => {
       this.fovValue.textContent = this.fovInput.value;
       const event = new CustomEvent('camera', {
@@ -72,21 +93,8 @@ class SettingsMenu {
           fov: this.fovInput.value,
         },
       });
-      document.body.dispatchEvent(event);
+      this.settingsMenuScreen.dispatchEvent(event);
     });
-
-    fovWrapper.classList.add('input-wrapper');
-    this.fovInput.classList.add('range-input');
-
-    fovWrapper.append(this.fovInput, fovLabel, this.fovValue);
-
-    this.settingsMenuScreen.classList.add('settings-menu-screen', 'hide');
-    settingsWrapper.classList.add('settings-wrapper');
-    this.okBtn.classList.add('ok-btn');
-
-    settingsWrapper.append(rangeWrapper, fovWrapper);
-    this.settingsMenuScreen.append(settingsWrapper, this.okBtn);
-    document.body.appendChild(this.settingsMenuScreen);
   }
 
   toggle() {

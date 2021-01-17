@@ -1,6 +1,6 @@
 import MainMenu from './mainMenu';
+import ServerMenu from './serverMenu';
 import SettingsMenu from './settingsMenu';
-import AuthForm from './authForm';
 import QuitConfirm from './quitConfirm';
 import Chat from './chat';
 import MainModelInterface from '../models/mainModelInterface';
@@ -8,9 +8,9 @@ import MainModelInterface from '../models/mainModelInterface';
 class MenuView {
   mainMenu: MainMenu;
 
-  settingsMenu: SettingsMenu;
+  serverMenu: ServerMenu;
 
-  authForm: AuthForm;
+  settingsMenu: SettingsMenu;
 
   quitConfirm: QuitConfirm;
 
@@ -18,8 +18,8 @@ class MenuView {
 
   constructor(model: MainModelInterface) {
     this.mainMenu = new MainMenu();
+    this.serverMenu = new ServerMenu();
     this.settingsMenu = new SettingsMenu();
-    this.authForm = new AuthForm();
     this.quitConfirm = new QuitConfirm();
     this.chat = new Chat(model);
   }

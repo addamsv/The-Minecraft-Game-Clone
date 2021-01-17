@@ -3,6 +3,10 @@ import { ServerSocketModelInterface, ServerSocketModel } from './modules/serverS
 import { ServerCRUDModelInterface, ServerCRUDModel } from './modules/serverCRUDModel';
 import env from '../configs/environmentVars';
 
+interface MyResponse extends Response {
+  statusCode: any;
+}
+
 class MainModel implements MainModelInterface {
   private rsServerSocket: ServerSocketModelInterface;
 
@@ -38,9 +42,36 @@ class MainModel implements MainModelInterface {
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  public checkStrings(name: string, password: string, type: string) {
+    const regex = /\w{3,12}/;
+    if (!regex.test(name) || !regex.test(password)) {
+      const event = new CustomEvent('input-error');
+      document.getElementById('server-menu-id').dispatchEvent(event);
+    } else {
+      console.log(type);
+      switch (type) {
+        case 'login': {
+          this.auth(name, password);
+          break;
+        }
+        case 'signup': break;
+        default: break;
+      }
+    }
+  }
+
   public auth(login: String, password: String) {
     this.authorize({ login, password })
-      .then((data) => {
+      .then((data: MyResponse) => {
+        let event;
+        if (data.statusCode === 200) {
+          event = new CustomEvent('success');
+        } else {
+          event = new CustomEvent('fail');
+        }
+        document.getElementById('server-menu-id').dispatchEvent(event);
+
         const respData: any = data;
         this.rsServerSocket = new ServerSocketModel(respData.token);
         this.rsServerSocket.init();
@@ -60,7 +91,7 @@ class MainModel implements MainModelInterface {
       redirect: 'follow',
       referrerPolicy: 'no-referrer',
       body: JSON.stringify(data),
-    }).then((resData: any) => resData.json());
+    }).then((resData: MyResponse) => resData.json());
     return this.response;
   }
 }

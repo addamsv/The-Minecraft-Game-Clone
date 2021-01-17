@@ -1,14 +1,15 @@
 import { MainModelInterface, MainModel } from '../models/mainModel';
 import MenuView from '../views/menuView';
-import GameView from '../views/gameView';
+import GameModel from '../models/gameModel';
 
 interface PlayerEvent extends Event {
   which: number;
 }
+
 class MainController {
   menuView: MenuView;
 
-  gameView: GameView;
+  gameModel: GameModel;
 
   gameStart: boolean;
 
@@ -24,55 +25,13 @@ class MainController {
     this.gamePause = true;
     this.openChat = false;
     this.menuView = new MenuView(this.model);
-    this.gameView = new GameView(this.model);
+    this.gameModel = new GameModel(this.model);
     this.prepareToStartGame();
   }
 
   prepareToStartGame() {
-    const play = this.menuView.mainMenu.playBtn;
-    const server = this.menuView.mainMenu.serverBtn;
-    const { login, password } = this.menuView.authForm;
-    const register = this.menuView.authForm.sendBtn;
-    const settings = this.menuView.mainMenu.settingsBtn;
-    const okButton = this.menuView.settingsMenu.okBtn;
-    const { quitBtn } = this.menuView.mainMenu;
-    const { yesBtn, noBtn } = this.menuView.quitConfirm;
-
-    server.addEventListener('click', () => {
-      this.menuView.mainMenu.toggle();
-      this.menuView.authForm.toggle();
-    });
-
-    const controls = this.gameView.control;
-
-    register.addEventListener('click', () => {
-      this.model.auth(login.value, password.value);
-      this.menuView.authForm.toggle();
-      this.menuView.mainMenu.toggle();
-      // start server game here
-      if (!this.gameStart) {
-        this.gameView.generateWorld();
-        this.createKeyboardControls();
-        document.body.appendChild(this.gameView.stats.dom);
-        document.body.appendChild(this.gameView.renderer.domElement);
-        this.gameView.animationFrame();
-        this.gameStart = true;
-      }
-      controls.lock();
-    });
-
-    play.addEventListener('click', () => {
-      if (!this.gameStart) {
-        this.gameView.generateWorld();
-        this.createKeyboardControls();
-        document.body.appendChild(this.gameView.stats.dom);
-        document.body.appendChild(this.gameView.renderer.domElement);
-        this.gameView.animationFrame();
-        this.gameStart = true;
-      }
-      controls.lock();
-    });
-
+    // pointerLock API controls
+    const controls = this.gameModel.control;
     controls.addEventListener('lock', () => {
       if (this.gamePause) {
         this.menuView.mainMenu.toggle();
@@ -86,38 +45,83 @@ class MainController {
       }
     });
 
-    settings.addEventListener('click', () => {
-      this.switchMenu();
+    // mainMenu controls
+    const {
+      playBtn, serverBtn, settingsBtn, quitBtn,
+    } = this.menuView.mainMenu;
+    playBtn.addEventListener('click', () => {
+      if (!this.gameStart) {
+        this.gameModel.generateWorld();
+        this.createKeyboardControls();
+        document.body.appendChild(this.gameModel.stats.dom);
+        document.body.appendChild(this.gameModel.renderer.domElement);
+        this.gameModel.animationFrame();
+        this.gameStart = true;
+      }
+      controls.lock();
+    });
+    serverBtn.addEventListener('click', () => {
+      this.menuView.mainMenu.toggle();
+      this.menuView.serverMenu.toggle();
+    });
+    settingsBtn.addEventListener('click', () => {
+      this.menuView.mainMenu.toggle();
+      this.menuView.settingsMenu.toggle();
     });
 
+    // serverMenu controls
+    const {
+      nickname, password, logIn, signUp, backToMainMenu,
+    } = this.menuView.serverMenu;
+    logIn.addEventListener('click', () => {
+      this.model.checkStrings(nickname.value, password.value, 'login');
+    });
+    signUp.addEventListener('click', () => {
+      this.model.checkStrings(nickname.value, password.value, 'signup');
+    });
+    backToMainMenu.addEventListener('click', () => {
+      this.menuView.mainMenu.toggle();
+      this.menuView.serverMenu.toggle();
+    });
+    document.body.addEventListener('startservergame', () => {
+      this.menuView.mainMenu.toggle();
+      // START SERVER GAME HERE
+      if (!this.gameStart) {
+        this.gameModel.generateWorld();
+        this.createKeyboardControls();
+        document.body.appendChild(this.gameModel.stats.dom);
+        document.body.appendChild(this.gameModel.renderer.domElement);
+        this.gameModel.animationFrame();
+        this.gameStart = true;
+      }
+      controls.lock();
+    });
+
+    // settingsMenu controls
+    const okButton = this.menuView.settingsMenu.okBtn;
     okButton.addEventListener('click', () => {
-      this.switchMenu();
+      this.menuView.mainMenu.toggle();
+      this.menuView.settingsMenu.toggle();
+    });
+    document.getElementById('settings-screen-id').addEventListener('camera', (event: CustomEvent) => {
+      this.gameModel.camera.far = Number(event.detail.far);
+      this.gameModel.camera.fov = Number(event.detail.fov);
+      this.gameModel.camera.updateProjectionMatrix();
     });
 
+    // quitGame controls
+    const { yesBtn, noBtn } = this.menuView.quitConfirm;
     quitBtn.addEventListener('click', () => {
       this.menuView.quitConfirm.toggle();
       this.menuView.mainMenu.toggle();
     });
-
     yesBtn.addEventListener('click', () => {
       window.close();
     });
-
     noBtn.addEventListener('click', () => {
       this.menuView.quitConfirm.toggle();
       this.menuView.mainMenu.toggle();
     });
-
-    document.body.addEventListener('camera', (event: CustomEvent) => {
-      this.gameView.camera.far = Number(event.detail.far);
-      this.gameView.camera.fov = Number(event.detail.fov);
-      this.gameView.camera.updateProjectionMatrix();
-    });
-  }
-
-  switchMenu() {
-    this.menuView.mainMenu.toggle();
-    this.menuView.settingsMenu.toggle();
   }
 
   createKeyboardControls() {
@@ -127,23 +131,23 @@ class MainController {
 
   onKeyDown(event: PlayerEvent) {
     switch (event.which) {
-      case 87: this.gameView.forward = true; break;
-      case 65: this.gameView.left = true; break;
-      case 83: this.gameView.backward = true; break;
-      case 68: this.gameView.right = true; break;
+      case 87: this.gameModel.forward = true; break;
+      case 65: this.gameModel.left = true; break;
+      case 83: this.gameModel.backward = true; break;
+      case 68: this.gameModel.right = true; break;
       case 32: {
-        if (this.gameView.jump === true) {
-          this.gameView.speed.y += 150;
+        if (this.gameModel.jump === true) {
+          this.gameModel.speed.y += 150;
         }
-        this.gameView.jump = false;
+        this.gameModel.jump = false;
         break;
       }
       case 84: {
         this.openChat = !this.openChat;
         if (this.openChat) {
-          this.gameView.control.unlock();
+          this.gameModel.control.unlock();
         } else {
-          this.gameView.control.lock();
+          this.gameModel.control.lock();
         }
         this.menuView.chat.toggle();
         break;
@@ -154,10 +158,10 @@ class MainController {
 
   onKeyUp(event: PlayerEvent) {
     switch (event.which) {
-      case 87: this.gameView.forward = false; break;
-      case 65: this.gameView.left = false; break;
-      case 83: this.gameView.backward = false; break;
-      case 68: this.gameView.right = false; break;
+      case 87: this.gameModel.forward = false; break;
+      case 65: this.gameModel.left = false; break;
+      case 83: this.gameModel.backward = false; break;
+      case 68: this.gameModel.right = false; break;
       default: break;
     }
   }
