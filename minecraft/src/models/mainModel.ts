@@ -1,6 +1,7 @@
 import MainModelInterface from './mainModelInterface';
 import { ServerSocketModelInterface, ServerSocketModel } from './modules/serverSocketModel';
 import { ServerCRUDModelInterface, ServerCRUDModel } from './modules/serverCRUDModel';
+import env from '../configs/environmentVars';
 
 class MainModel implements MainModelInterface {
   private rsServerSocket: ServerSocketModelInterface;
@@ -20,7 +21,7 @@ class MainModel implements MainModelInterface {
     this.a = 'coordinates';
 
     this.serverCRUD = new ServerCRUDModel();
-    console.log(this.serverCRUD.get());
+    // console.log(this.serverCRUD.get());
   }
 
   public sendHeroCoordinates(x: String, z: String) {
@@ -33,15 +34,14 @@ class MainModel implements MainModelInterface {
     this.authorize({ login, password })
       .then((data) => {
         const respData: any = data;
-        console.log(respData.name);
-        this.rsServerSocket = new ServerSocketModel(respData.name);
+        this.rsServerSocket = new ServerSocketModel(respData.token);
         this.rsServerSocket.init();
         setTimeout(() => { this.handshake = true; }, 2000); // wait for handshakes, need refactor
       });
   }
 
   private async authorize(data = {}) {
-    this.response = await fetch('https://rs-clone-server.herokuapp.com/players/auth/', {
+    this.response = await fetch(env.serverHost + env.loginRoute, {
       method: 'POST',
       mode: 'cors',
       cache: 'no-cache',

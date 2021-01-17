@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { ItemType } from './storageItemType';
 import ServerCRUDModelInterface from './serverCRUDModelInterface';
+import env from '../../configs/environmentVars';
 
 class ServerCRUDModel implements ServerCRUDModelInterface {
   private temp: String;
@@ -9,7 +10,7 @@ class ServerCRUDModel implements ServerCRUDModelInterface {
 
   constructor() {
     this.temp = '';
-    this.baseURL = 'https://rs-clone-server.herokuapp.com';
+    this.baseURL = env.serverHost;
   }
 
   public async auth(data: any, token?: String): Promise<ItemType[]> {

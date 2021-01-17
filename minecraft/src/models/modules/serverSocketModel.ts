@@ -1,121 +1,114 @@
 import ServerSocketModelInterface from './ServerSocketModelInterface';
+import { ChatViewModelInterface, ChatViewModel } from './chatViewModel';
+import env from '../../configs/environmentVars';
 
 class ServerSocketModel implements ServerSocketModelInterface {
   private USER_NAME: String;
 
   private TEXTAREA_OBJ: HTMLElement;
 
-  private SCROLL_CONTAINER: HTMLElement;
-
-  private DATA_TO_APPEND: HTMLElement;
-
   private ws: WebSocket;
 
-  constructor(userName: String) {
-    this.USER_NAME = userName;
+  private chatView: ChatViewModelInterface;
+
+  private USER_TOKEN: String;
+
+  private WS_TOKEN: String;
+
+  private HOST: string;
+
+  constructor(userToken = '') {
+    this.chatView = new ChatViewModel();
     this.ws = null;
+    this.WS_TOKEN = '';
+    this.USER_NAME = '';
+    this.USER_TOKEN = userToken;
+
+    this.HOST = env.socketHost;
+
     this.TEXTAREA_OBJ = document.getElementById('sock-msg');
-    this.SCROLL_CONTAINER = document.getElementById('scroll-container');
-    this.DATA_TO_APPEND = document.getElementById('sock-info');
   }
 
-  public init() {
-    this.ws = new WebSocket('ws://rs-clone-server.herokuapp.com/');
-    this.ws.onopen = this.connectionOpen.bind(this);
-    this.ws.onmessage = this.messageReceived.bind(this);
-    this.ws.onerror = this.connectionError.bind(this);
-    this.ws.onclose = this.connectionClose.bind(this);
-
-    this.sendMessageListener();
+  public sendMessage(textMessage: string, type: String) {
+    switch (type) {
+      case 'chatMessage':
+        this.ws.send(`{"userName": "${this.USER_NAME}", "wsToken": "${this.WS_TOKEN}", "chatMessage": "${textMessage}"}`);
+        break;
+      case 'gameMessage': break;
+      case 'sysMessage': break;
+      default: break;
+    }
   }
 
   public sendCoordinates(x: String, z: String) {
     this.ws.send(`{"userName": "${this.USER_NAME}", "mesType": "game", "xCoordinate": "${x}", "zCoordinate": "${z}"}`);
   }
 
+  public init() {
+    document.cookie = `X-Authorization=${this.USER_TOKEN}; path=/`;
+
+    this.ws = new WebSocket(this.HOST);
+    this.ws.onopen = this.connectionOpen.bind(this);
+    this.ws.onmessage = this.messageReceived.bind(this);
+    this.ws.onerror = this.connectionError.bind(this);
+    this.ws.onclose = this.connectionClose.bind(this);
+
+    this.chatMessageListener();
+  }
+
   /*
   *   @private
   */
-
-  private sendMessage(value: String) {
-    this.ws.send(`{"userName": "${this.USER_NAME}", "userMessage": "${value}"}`);
-  }
-
-  private sendMessageListener() {
+  private chatMessageListener() {
     const CONTEXT = this;
-    this.TEXTAREA_OBJ.onkeydown = (event: any) => {
+    this.TEXTAREA_OBJ.onkeydown = function (event: KeyboardEvent): void {
       if (event.keyCode === 13) {
-        CONTEXT.sendMessage((<HTMLTextAreaElement>(CONTEXT.TEXTAREA_OBJ)).value);
+        event.preventDefault();
+        CONTEXT.sendMessage((<HTMLTextAreaElement>(CONTEXT.TEXTAREA_OBJ)).value, 'chatMessage');
       }
     };
   }
 
-  private connectionError() {
-    this.appendMessage(this.getHTMLMessageContainer('system', 'LAN: error'));
-    this.scrollMessagesContainerToTop();
-    this.removeMessageFromInputField();
-  }
-
-  private connectionOpen() {
-    this.ws.send(`{"userName": "${this.USER_NAME}", "userMessage": "new web user has connected"}`);
-  }
-
   private connectionClose() {
     this.ws.close();
-    this.DATA_TO_APPEND.innerHTML += "<div class='info'> connection closed </div>";
-    this.SCROLL_CONTAINER.scrollTop = this.SCROLL_CONTAINER.scrollHeight;
+    this.chatView.appendSysMessage('connection closed');
   }
 
   private messageReceived(message: any) {
     const mess = JSON.parse(message.data);
 
-    if (!mess) {
-      return;
+    if (mess.setUserName) {
+      this.USER_NAME = mess.setUserName;
     }
-
-    switch (mess.mesType) {
-      case 'game':
-        console.log(mess);
-        break;
-      default:
-        this.appendMessage(this.getHTMLMessageContainer(mess.userName || 'User', mess.userMessage));
-        this.scrollMessagesContainerToTop();
-        this.removeMessageFromInputField();
+    if (mess.setWsToken) {
+      this.WS_TOKEN = mess.setWsToken;
     }
-  }
-
-  private isItYours(user: String) {
-    return this.USER_NAME === user;
-  }
-
-  private appendMessage(nodeToAppend: HTMLElement) {
-    this.DATA_TO_APPEND.appendChild(nodeToAppend);
-    while (this.DATA_TO_APPEND.childNodes.length > 100) {
-      this.DATA_TO_APPEND.removeChild(this.DATA_TO_APPEND.firstChild);
+    if (mess.chatMessage) {
+      this.chatView.appendMessage(
+        mess.userName,
+        mess.chatMessage,
+        this.areYouMessageOwner(mess.wsToken),
+      );
+    }
+    if (mess.chatServerMessage) {
+      this.chatView.appendMessage('SERVER', mess.chatServerMessage, false);
     }
   }
 
-  private scrollMessagesContainerToTop() {
-    this.SCROLL_CONTAINER.scrollTop = this.SCROLL_CONTAINER.scrollHeight;
+  private areYouMessageOwner(curWsToken: String) {
+    if (curWsToken === undefined || this.WS_TOKEN === undefined) {
+      return false;
+    }
+    return this.WS_TOKEN === curWsToken;
   }
 
-  private removeMessageFromInputField() {
-    (<HTMLTextAreaElement>(this.TEXTAREA_OBJ)).value = '';
+  private connectionError() {
+    this.chatView.appendSysMessage('connection Error');
   }
 
-  private getHTMLMessageContainer(user: String, textMessage: string) {
-    const TIME = '12:10:22';
-    const CONTAINER: HTMLDivElement = document.createElement('div');
-    const USER_INFO_CONTAINER = document.createElement('div');
-
-    USER_INFO_CONTAINER.innerHTML = `${this.isItYours(user) ? '' : user} ${TIME}`;
-    CONTAINER.className = this.isItYours(user) ? 'user-sock-info' : 'someone-sock-info';
-    USER_INFO_CONTAINER.className = 'messInfo';
-
-    CONTAINER.innerHTML = textMessage;
-    CONTAINER.appendChild(USER_INFO_CONTAINER);
-
-    return CONTAINER;
+  // eslint-disable-next-line class-methods-use-this
+  private connectionOpen() {
+    // this.ws.send(`{"userToken": "${this.USER_TOKEN}"}`);
   }
 }
 
