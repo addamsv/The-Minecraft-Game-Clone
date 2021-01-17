@@ -98,8 +98,21 @@ class MainController {
     });
 
     // settingsMenu controls
-    const okButton = this.menuView.settingsMenu.okBtn;
-    okButton.addEventListener('click', () => {
+    const { langBtn, okBtn } = this.menuView.settingsMenu;
+    langBtn.addEventListener('click', () => {
+      switch (langBtn.textContent) {
+        case 'English': {
+          this.menuView.setLanguage('ru');
+          break;
+        }
+        case 'Русский': {
+          this.menuView.setLanguage('en');
+          break;
+        }
+        default: break;
+      }
+    });
+    okBtn.addEventListener('click', () => {
       this.menuView.mainMenu.toggle();
       this.menuView.settingsMenu.toggle();
     });

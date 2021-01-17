@@ -1,4 +1,4 @@
-const cameraConfig = {
+const settingsConfig = {
   far: {
     min: '500',
     max: '1500',
@@ -9,6 +9,7 @@ const cameraConfig = {
     max: '135',
     cur: '75',
   },
+  language: 'en',
 };
 
-export default cameraConfig;
+export default settingsConfig;

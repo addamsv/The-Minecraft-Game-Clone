@@ -9,7 +9,14 @@ class Chat {
 
   constructor(model: MainModelInterface) {
     this.model = model;
+    this.createMenu();
+  }
 
+  public toggle() {
+    this.container.classList.toggle('hide');
+  }
+
+  private createMenu() {
     this.container = document.createElement('div');
     const scrollContainer = document.createElement('div');
     const sockContainer = document.createElement('div');
@@ -30,10 +37,6 @@ class Chat {
     scrollContainer.appendChild(sockContainer);
     this.container.append(scrollContainer, this.input);
     document.body.appendChild(this.container);
-  }
-
-  toggle() {
-    this.container.classList.toggle('hide');
   }
 }
 
