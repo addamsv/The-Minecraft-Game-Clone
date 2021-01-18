@@ -62,8 +62,13 @@ class ServerSocketModel implements ServerSocketModelInterface {
     this.GAME_SEED = seed;
   }
 
+  /**
+   * @param x: String - X coordinate
+   * @param z: String - Z coordinate
+   * @param c: String - Camera Angle
+  */
   public sendCoordinates(x: String, z: String) {
-    this.ws.send(`{"userName": "${this.USER_NAME}", "mesType": "game", "xCoordinate": "${x}", "zCoordinate": "${z}"}`);
+    this.ws.send(`{"gameMessage": "${this.WS_TOKEN}", "x": "${x}", "z": "${z}", "c": "camera"}`);
   }
 
   /*
