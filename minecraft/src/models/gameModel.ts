@@ -138,6 +138,7 @@ class GameModel {
     this.worker.onmessage = (event: any) => {
       if (event.data.map) {
         this.mapSeed = event.data.seed;
+        this.model.setSeed(this.mapSeed);
       }
       const { geometry, xChunk, zChunk } = event.data;
       if (!this.meshes[`${xChunk}:${zChunk}`]) {
@@ -234,9 +235,6 @@ class GameModel {
     const pingTime = Math.trunc(time / period);
     if (this.model.handshake && this.lastPing !== pingTime) {
       this.lastPing = pingTime;
-
-      // need to send 1 time, REFACTOR
-      this.model.sendMap(this.mapSeed);
 
       this.model.sendHeroCoordinates(
         String(Math.trunc(this.camera.position.x / 10)),

@@ -3,9 +3,7 @@
 interface MainModelInterface {
   handshake: Boolean;
 
-  auth(login: String, password: String): void;
-
-  sendMap(seed: String): void;
+  setSeed(seed: String): void;
 
   checkStrings(name: string, password: string, type: string): void;
 

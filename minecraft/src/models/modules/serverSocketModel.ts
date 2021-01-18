@@ -15,7 +15,11 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private WS_TOKEN: String;
 
+  private USER_AMOUNT: String;
+
   private HOST: string;
+
+  private GAME_SEED: string;
 
   constructor(userToken = '') {
     this.chatView = new ChatViewModel();
@@ -23,6 +27,8 @@ class ServerSocketModel implements ServerSocketModelInterface {
     this.WS_TOKEN = '';
     this.USER_NAME = '';
     this.USER_TOKEN = userToken;
+    this.USER_AMOUNT = '';
+    this.GAME_SEED = '';
 
     this.HOST = env.socketHost;
 
@@ -52,8 +58,8 @@ class ServerSocketModel implements ServerSocketModelInterface {
     this.chatMessageListener();
   }
 
-  public sendMap(seed: String) {
-    this.ws.send(`{"userName": "${this.USER_NAME}", "mesType": "map", "seed": "${seed}"}`);
+  public setSeed(seed: string) {
+    this.GAME_SEED = seed;
   }
 
   public sendCoordinates(x: String, z: String) {
@@ -63,6 +69,11 @@ class ServerSocketModel implements ServerSocketModelInterface {
   /*
   *   @private
   */
+
+  private sendSeed() {
+    this.ws.send(`{"setSeed": "${this.GAME_SEED}"}`);
+  }
+
   private chatMessageListener() {
     const CONTEXT = this;
     this.TEXTAREA_OBJ.onkeydown = (event: KeyboardEvent) => {
@@ -81,13 +92,26 @@ class ServerSocketModel implements ServerSocketModelInterface {
   private messageReceived(message: any) {
     const mess = JSON.parse(message.data);
 
-    console.log(message, 'message');
+    console.log(mess);
 
+    if (mess.setUserMount) {
+      this.USER_AMOUNT = mess.setUserMount;
+      if (this.USER_AMOUNT !== '1') {
+        this.sendSeed();
+      }
+      console.log(`this.USER_AMOUNT: ${this.USER_AMOUNT}`);
+    }
+    if (mess.setSeed && this.GAME_SEED === '') {
+      this.GAME_SEED = mess.setSeed;
+      console.log(`this.GAME_SEED: ${this.GAME_SEED}`);
+    }
     if (mess.setUserName) {
       this.USER_NAME = mess.setUserName;
+      console.log(`this.WS_TOKEN: ${this.WS_TOKEN}`);
     }
     if (mess.setWsToken) {
       this.WS_TOKEN = mess.setWsToken;
+      console.log(`this.WS_TOKEN: ${this.WS_TOKEN}`);
     }
     if (mess.chatMessage) {
       this.chatView.appendMessage(

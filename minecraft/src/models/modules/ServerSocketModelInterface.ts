@@ -3,7 +3,7 @@
 interface ServerSocketModelInterface {
   init(): void;
 
-  sendMap(seed: String): void;
+  setSeed(seed: String): void;
 
   sendCoordinates(x: String, z: String): void;
 }

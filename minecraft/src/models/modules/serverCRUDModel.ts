@@ -6,11 +6,27 @@ import env from '../../configs/environmentVars';
 class ServerCRUDModel implements ServerCRUDModelInterface {
   private temp: String;
 
-  private baseURL: any;
+  private baseURL: string;
 
   constructor() {
     this.temp = '';
     this.baseURL = env.serverHost;
+  }
+
+  public async login(data: any, token?: String): Promise<ItemType[]> {
+    const { baseURL } = this;
+
+    const RESPONSE = await axios({
+      baseURL,
+      url: env.loginRoute,
+      method: 'post',
+      headers: {
+        Authorization: token,
+        'Content-Type': 'application/json',
+      },
+      data,
+    });
+    return RESPONSE.data;
   }
 
   public async auth(data: any, token?: String): Promise<ItemType[]> {
@@ -44,9 +60,9 @@ class ServerCRUDModel implements ServerCRUDModelInterface {
 
     const RESPONSE = await axios({
       baseURL,
+      url: '/auth/reg/',
       method: 'post',
       data,
-      url: '/players',
     });
 
     return RESPONSE.data;

@@ -4,11 +4,13 @@ import { ItemType } from './storageItemType';
 interface ServerCRUDModelInterface {
   get(): Promise<ItemType[]>;
 
-  create(data: ItemType): Promise<ItemType>;
+  create(data: any): Promise<any>;
 
   save(data: ItemType): Promise<ItemType>;
 
   remove(data: ItemType): void;
+
+  login(data: any, token?: String): Promise<any>;
 }
 
 export default ServerCRUDModelInterface;
