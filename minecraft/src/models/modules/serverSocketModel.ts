@@ -99,12 +99,22 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
     console.log(mess);
 
+    if (mess.setWsToken) {
+      this.WS_TOKEN = mess.setWsToken;
+      console.log(`this.WS_TOKEN: ${this.WS_TOKEN}`);
+    }
     if (mess.setUserMount) {
       this.USER_AMOUNT = mess.setUserMount;
       if (this.USER_AMOUNT !== '1') {
         this.sendSeed();
       }
       console.log(`this.USER_AMOUNT: ${this.USER_AMOUNT}`);
+      console.log('Try to Register');
+      if (this.USER_TOKEN) {
+        this.ws.send(`0{"ask": "register", "userToken": "${this.USER_TOKEN}"}`);
+      } else {
+        console.log('User token has not been defined');
+      }
     }
     if (mess.setSeed && this.GAME_SEED === '') {
       this.GAME_SEED = mess.setSeed;
@@ -112,10 +122,6 @@ class ServerSocketModel implements ServerSocketModelInterface {
     }
     if (mess.setUserName) {
       this.USER_NAME = mess.setUserName;
-      console.log(`this.WS_TOKEN: ${this.WS_TOKEN}`);
-    }
-    if (mess.setWsToken) {
-      this.WS_TOKEN = mess.setWsToken;
       console.log(`this.WS_TOKEN: ${this.WS_TOKEN}`);
     }
     if (mess.chatMessage) {
