@@ -1,6 +1,7 @@
 /* eslint-disable no-unused-vars */
 
 interface PointerLockInterface {
+  SPEED: number;
   moveForward(distance: number): void;
   moveRight(distance: number): void;
   lock(): void;

@@ -27,7 +27,7 @@ class PointerLock extends EventDispatcher implements PointerLockInterface {
 
   private vec: Vector3;
 
-  private SPEED: number;
+  public SPEED: number;
 
   private PI_2: number;
 

@@ -128,88 +128,126 @@ class GameModel {
 
     this.worker = new MapWorker();
 
-    const texture = new THREE.TextureLoader().load('../assets/textures/atlas.png');
+    const texture = new THREE.TextureLoader().load('../assets/textures/earth.png');
     texture.magFilter = THREE.NearestFilter;
     texture.minFilter = THREE.LinearMipmapLinearFilter;
+    const sandTexture = new THREE.TextureLoader().load('../assets/textures/sand.png');
+    sandTexture.magFilter = THREE.NearestFilter;
+    sandTexture.minFilter = THREE.LinearMipmapLinearFilter;
 
     const loader = new GLTFLoader();
-
-    const material = new THREE.MeshLambertMaterial(
-      { map: texture, vertexColors: true, side: THREE.DoubleSide },
+    let tree: THREE.Object3D;
+    loader.load(
+      './assets/meshes/oak1.glb',
+      (gltf: any) => {
+        tree = gltf.scene;
+        tree.traverse((node: THREE.Mesh) => {
+          // eslint-disable-next-line
+          node.receiveShadow = true;
+        });
+        tree.scale.set(15, 15, 15);
+      },
     );
 
+    const material = new THREE.MeshLambertMaterial(
+      { map: texture, side: THREE.DoubleSide },
+    );
+    const sandMaterial = new THREE.MeshLambertMaterial(
+      { map: sandTexture, side: THREE.DoubleSide },
+    );
+    const waterMaterial = new THREE.MeshLambertMaterial();
+    waterMaterial.color = new THREE.Color(0x4980A2);
+
+    waterMaterial.transparent = true;
+    waterMaterial.opacity = 0.5;
+
     this.worker.onmessage = (event: any) => {
-      if (event.data.map) {
-        this.mapSeed = event.data.seed;
-        this.model.setSeed(this.mapSeed);
-      }
-
-      const { geometry, xChunk, zChunk } = event.data;
-      if (!this.meshes[`${xChunk}:${zChunk}`]) {
-        this.meshes[`${xChunk}:${zChunk}`] = {
-          obj: null,
-          hasObj: false,
-          group: new THREE.Group(),
-          hasGroup: false,
-          markForRemoval: false,
-          x: xChunk,
-          z: zChunk,
-        };
-      }
-      const meshMemo = this.meshes[`${xChunk}:${zChunk}`];
-
-      if (event.data.add) {
-        const bufferGeometry = new THREE.BufferGeometry().fromGeometry(geometry);
-
-        const mesh = new THREE.Mesh(bufferGeometry, material);
-        mesh.receiveShadow = true;
-        mesh.position.setX(xChunk * this.chunkSize * 10);
-        mesh.position.setZ(zChunk * this.chunkSize * 10);
-
-        meshMemo.obj = mesh;
-        meshMemo.hasObj = true;
-        if (!meshMemo.markForRemoval) {
-          this.scene.add(mesh);
+      setTimeout(() => {
+        if (event.data.map) {
+          this.mapSeed = event.data.seed;
+          this.model.setSeed(this.mapSeed);
         }
-        meshMemo.markForRemoval = false;
-      }
 
-      if (event.data.remove) {
-        meshMemo.markForRemoval = true;
-        if (meshMemo.hasObj) {
-          this.scene.remove(meshMemo.obj);
-          this.scene.remove(meshMemo.group);
+        const {
+          geometry, sandGeometry, waterGeometry, xChunk, zChunk,
+        } = event.data;
+        if (!this.meshes[`${xChunk}:${zChunk}`]) {
+          this.meshes[`${xChunk}:${zChunk}`] = {
+            obj: null,
+            hasObj: false,
+            group: new THREE.Group(),
+            hasGroup: false,
+            sand: null,
+            water: null,
+            markForRemoval: false,
+            x: xChunk,
+            z: zChunk,
+          };
+        }
+        const meshMemo = this.meshes[`${xChunk}:${zChunk}`];
+
+        if (event.data.add) {
+          const bufferGeometry = new THREE.BufferGeometry().fromGeometry(geometry);
+          const sandBufferGeometry = new THREE.BufferGeometry().fromGeometry(sandGeometry);
+          const waterBufferGeometry = new THREE.BufferGeometry().fromGeometry(waterGeometry);
+
+          const mesh = new THREE.Mesh(bufferGeometry, material);
+          mesh.receiveShadow = true;
+          mesh.position.setX(xChunk * this.chunkSize * 10);
+          mesh.position.setZ(zChunk * this.chunkSize * 10);
+
+          const sandMesh = new THREE.Mesh(sandBufferGeometry, sandMaterial);
+          sandMesh.receiveShadow = true;
+          sandMesh.position.setX(xChunk * this.chunkSize * 10);
+          sandMesh.position.setZ(zChunk * this.chunkSize * 10);
+
+          const water = new THREE.Mesh(waterBufferGeometry, waterMaterial);
+          water.receiveShadow = true;
+          water.position.setX(xChunk * this.chunkSize * 10);
+          water.position.setZ(zChunk * this.chunkSize * 10);
+          water.name = 'water';
+
+          meshMemo.obj = mesh;
+          meshMemo.hasObj = true;
+          meshMemo.sand = sandMesh;
+          meshMemo.water = water;
+          if (!meshMemo.markForRemoval) {
+            this.scene.add(mesh);
+            this.scene.add(sandMesh);
+            this.scene.add(water);
+          }
           meshMemo.markForRemoval = false;
         }
-      }
 
-      if (event.data.tree) {
-        loader.load(
-          './assets/meshes/oak1.glb',
-          (gltf: any) => {
-            const tree = gltf.scene;
-            tree.traverse((node: THREE.Mesh) => {
-              // eslint-disable-next-line
-              node.receiveShadow = true;
-            });
-            tree.scale.set(15, 15, 15);
-            tree.rotation.y = Math.PI / Math.random();
-            tree.position.x = event.data.x;
-            tree.position.z = event.data.z;
-            if (!meshMemo.hasGroup) {
-              meshMemo.group.add(tree);
-            }
-            if (event.data.last) {
-              meshMemo.hasGroup = true;
-            }
-            if (event.data.last && !meshMemo.markForRemoval) {
-              this.scene.add(meshMemo.group);
-              meshMemo.group.position.setX(xChunk * this.chunkSize * 10);
-              meshMemo.group.position.setZ(zChunk * this.chunkSize * 10);
-            }
-          },
-        );
-      }
+        if (event.data.remove) {
+          meshMemo.markForRemoval = true;
+          if (meshMemo.hasObj) {
+            this.scene.remove(meshMemo.obj);
+            this.scene.remove(meshMemo.sand);
+            this.scene.remove(meshMemo.water);
+            this.scene.remove(meshMemo.group);
+            meshMemo.markForRemoval = false;
+          }
+        }
+
+        if (event.data.tree) {
+          const treeClone = tree.clone(true);
+          treeClone.rotation.y = Math.PI / Math.random();
+          treeClone.position.x = event.data.x;
+          treeClone.position.z = event.data.z;
+          if (!meshMemo.hasGroup) {
+            meshMemo.group.add(treeClone);
+          }
+          if (event.data.last) {
+            meshMemo.hasGroup = true;
+          }
+          if (event.data.last && !meshMemo.markForRemoval) {
+            this.scene.add(meshMemo.group);
+            meshMemo.group.position.setX(xChunk * this.chunkSize * 10);
+            meshMemo.group.position.setZ(zChunk * this.chunkSize * 10);
+          }
+        }
+      }, 0);
     };
 
     this.worker.postMessage({ xChunk: 0, zChunk: 0, load: true });
@@ -222,12 +260,12 @@ class GameModel {
     this.ambientLight = new THREE.AmbientLight(0xcccccc);
     this.scene.add(this.ambientLight);
 
-    this.directionalLight = new THREE.DirectionalLight(0xffffff, 2);
+    this.directionalLight = new THREE.DirectionalLight(0xffffff, 1.8);
     this.directionalLight.position.set(1, 1, 0.5).normalize();
     this.scene.add(this.directionalLight);
 
     // set night light
-    this.pointLight = new THREE.PointLight(0xffffff, 2);
+    this.pointLight = new THREE.PointLight(0xFAEBA3, 2);
     this.pointLight.castShadow = true;
     this.pointLight.shadow.camera.far = 100;
   }
@@ -325,10 +363,20 @@ class GameModel {
       // falling
       this.raycaster.ray.origin.copy(this.camera.position);
       const falling = this.raycaster.intersectObjects(this.scene.children);
+      let up = 15;
       if (falling.length) {
+        if (falling[0].object.name === 'water') {
+          this.raycaster.far = 5;
+          this.control.SPEED = 1;
+          up = 2.5;
+        } else {
+          this.raycaster.far = 20;
+          this.control.SPEED = 2;
+          up = 15;
+        }
         this.speed.y = Math.max(0, this.speed.y);
         this.jump = true;
-        if (falling[0].distance < 15) {
+        if (falling[0].distance < up) {
           this.speed.z = 0;
           this.speed.x = 0;
           this.speed.y += 20;
