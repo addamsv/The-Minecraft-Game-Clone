@@ -69,7 +69,8 @@ class GameModel {
 
   workerInterval: any;
 
-  mapSeed: string;
+  // mapSeed: string;
+  seed: string;
 
   constructor(model: MainModelInterface) {
     this.model = model;
@@ -84,6 +85,7 @@ class GameModel {
     this.chunkSize = 16;
     this.createScene();
     this.night = false;
+    // this.seed = model.getSeed();
   }
 
   createScene() {
@@ -104,7 +106,8 @@ class GameModel {
     this.renderer.domElement.classList.add('renderer');
   }
 
-  generateWorld() {
+  generateWorld(seed: string) {
+    this.seed = seed;
     this.stats = Stats();
     this.stats.showPanel(0);
 
@@ -163,10 +166,10 @@ class GameModel {
 
     this.worker.onmessage = (event: any) => {
       setTimeout(() => {
-        if (event.data.map) {
-          this.mapSeed = event.data.seed;
-          this.model.setSeed(this.mapSeed);
-        }
+        // if (event.data.map) {
+        //   this.mapSeed = event.data.seed;
+        //   this.model.setSeed(this.mapSeed);
+        // }
 
         const {
           geometry, sandGeometry, waterGeometry, xChunk, zChunk,
@@ -250,6 +253,7 @@ class GameModel {
       }, 0);
     };
 
+    this.worker.postMessage({ seed: this.seed });
     this.worker.postMessage({ xChunk: 0, zChunk: 0, load: true });
 
     // set day fog
@@ -307,12 +311,12 @@ class GameModel {
 
     // send player coordinates to the server
     const pingTime = Math.trunc(time / period);
-    if (this.model.handshake && this.lastPing !== pingTime) {
+    if (this.model.isHandshaked() && this.lastPing !== pingTime) {
       this.lastPing = pingTime;
 
       this.model.sendHeroCoordinates(
         String(Math.trunc(this.camera.position.x / 10)),
-        String(Math.trunc(this.camera.position.y / 10)),
+        String(Math.trunc(this.camera.position.z / 10)),
       );
     }
 

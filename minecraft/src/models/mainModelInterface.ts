@@ -1,9 +1,11 @@
 /* eslint-disable no-unused-vars */
 
 interface MainModelInterface {
-  handshake: Boolean;
+  isHandshaked(): boolean;
 
   setSeed(seed: String): void;
+
+  getSeed(): string;
 
   checkStrings(name: string, password: string, type: string): void;
 
