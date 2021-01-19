@@ -44,6 +44,18 @@ module.exports = {
         ],
       },
       {
+        test: /\.(glb|gltf)$/,
+        use: [
+          {
+            loader: 'file-loader',
+            // options:
+            // {
+            //   outputPath: 'assets/meshes/',
+            // },
+          },
+        ],
+      },
+      {
         test: /\.worker\.js$/,
         use: { loader: 'worker-loader' },
       },

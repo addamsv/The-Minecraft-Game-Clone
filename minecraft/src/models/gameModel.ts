@@ -1,7 +1,8 @@
 import * as THREE from 'three';
 import * as SimplexNoise from 'simplex-noise';
-// eslint-disable-next-line import/no-webpack-loader-syntax, import/no-unresolved
+// eslint-disable-next-line
 import MapWorker from 'worker-loader!./worker';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import PointerLock from '../controllers/pointerLock/pointerLock';
 import PointerLockInterface from '../controllers/pointerLock/pointerLockInterface';
 import MainModelInterface from './mainModelInterface';
@@ -79,7 +80,7 @@ class GameModel {
     this.jump = false;
     this.perlin = new SimplexNoise();
     this.meshes = {};
-    this.renderDistance = 8;
+    this.renderDistance = 6;
     this.chunkSize = 16;
     this.createScene();
     this.night = false;
@@ -131,6 +132,8 @@ class GameModel {
     texture.magFilter = THREE.NearestFilter;
     texture.minFilter = THREE.LinearMipmapLinearFilter;
 
+    const loader = new GLTFLoader();
+
     const material = new THREE.MeshLambertMaterial(
       { map: texture, vertexColors: true, side: THREE.DoubleSide },
     );
@@ -139,11 +142,14 @@ class GameModel {
       if (event.data.map) {
         this.mapSeed = event.data.seed;
       }
+
       const { geometry, xChunk, zChunk } = event.data;
       if (!this.meshes[`${xChunk}:${zChunk}`]) {
         this.meshes[`${xChunk}:${zChunk}`] = {
           obj: null,
           hasObj: false,
+          group: new THREE.Group(),
+          hasGroup: false,
           markForRemoval: false,
           x: xChunk,
           z: zChunk,
@@ -166,12 +172,42 @@ class GameModel {
         }
         meshMemo.markForRemoval = false;
       }
+
       if (event.data.remove) {
         meshMemo.markForRemoval = true;
         if (meshMemo.hasObj) {
           this.scene.remove(meshMemo.obj);
+          this.scene.remove(meshMemo.group);
           meshMemo.markForRemoval = false;
         }
+      }
+
+      if (event.data.tree) {
+        loader.load(
+          './assets/meshes/oak1.glb',
+          (gltf: any) => {
+            const tree = gltf.scene;
+            tree.traverse((node: THREE.Mesh) => {
+              // eslint-disable-next-line
+              node.receiveShadow = true;
+            });
+            tree.scale.set(15, 15, 15);
+            tree.rotation.y = Math.PI / Math.random();
+            tree.position.x = event.data.x;
+            tree.position.z = event.data.z;
+            if (!meshMemo.hasGroup) {
+              meshMemo.group.add(tree);
+            }
+            if (event.data.last) {
+              meshMemo.hasGroup = true;
+            }
+            if (event.data.last && !meshMemo.markForRemoval) {
+              this.scene.add(meshMemo.group);
+              meshMemo.group.position.setX(xChunk * this.chunkSize * 10);
+              meshMemo.group.position.setZ(zChunk * this.chunkSize * 10);
+            }
+          },
+        );
       }
     };
 
@@ -245,7 +281,7 @@ class GameModel {
     }
 
     // check time to update light
-    const dayLength = 20000; // in ms
+    const dayLength = 100000; // in ms
     const dayTime = Math.trunc(time / dayLength);
     if (dayTime && dayTime !== this.lastChange) {
       this.lastChange = dayTime;
