@@ -7,7 +7,10 @@ const thread: Worker = self as any;
 const BLOCK_SIZE = 10;
 const CHUNK_SIZE = 16;
 const RENDER_DISTANCE = 6;
-const DEFAULT_INTERVAL = 50;
+const DEFAULT_INTERVAL = 120;
+const SPLIT_GROUND = -8.7;
+const ACCURACY = 60;
+const UNFLATNESS = 30;
 
 const x1Geometry = new THREE.PlaneGeometry(BLOCK_SIZE, BLOCK_SIZE);
 x1Geometry.faceVertexUvs[0][0][0].y = 0.5;
@@ -67,12 +70,10 @@ class CreateChunk {
   generateHeight(xChunk: number, zChunk: number) {
     const xFrom = xChunk * CHUNK_SIZE;
     const zFrom = zChunk * CHUNK_SIZE;
-    const accuracy = 60;
-    const unflatness = 30;
     let index = 0;
     for (let x = xFrom; x < xFrom + CHUNK_SIZE; x += 1) {
       for (let z = zFrom; z < zFrom + CHUNK_SIZE; z += 1) {
-        this.data[index] = this.perlin.noise2D(x / accuracy, z / accuracy) * unflatness;
+        this.data[index] = this.perlin.noise2D(x / ACCURACY, z / ACCURACY) * UNFLATNESS;
         index += 1;
       }
     }
@@ -87,6 +88,8 @@ class CreateChunk {
 
     const matrix = new THREE.Matrix4();
     const geometry = new THREE.Geometry();
+    const waterGeometry = new THREE.Geometry();
+    const sandGeometry = new THREE.Geometry();
     const queue: Array<object> = [];
 
     for (let x = 0; x < CHUNK_SIZE; x += 1) {
@@ -113,19 +116,49 @@ class CreateChunk {
           z * BLOCK_SIZE,
         );
 
-        geometry.merge(y1Geometry, matrix);
+        if (this.data[x * CHUNK_SIZE + z] >= SPLIT_GROUND) {
+          geometry.merge(y1Geometry, matrix);
 
-        if ((this.getY(x + 1, z) !== y && this.getY(x + 1, z) !== y + 1) || x === CHUNK_SIZE - 1) {
-          geometry.merge(x1Geometry, matrix);
+          if ((this.getY(x + 1, z) !== y
+          && this.getY(x + 1, z) !== y + 1) || x === CHUNK_SIZE - 1) {
+            geometry.merge(x1Geometry, matrix);
+          }
+          if ((this.getY(x - 1, z) !== y && this.getY(x - 1, z) !== y + 1) || x === 0) {
+            geometry.merge(x2Geometry, matrix);
+          }
+          if ((this.getY(x, z + 1) !== y
+          && this.getY(x, z + 1) !== y + 1) || z === CHUNK_SIZE - 1) {
+            geometry.merge(z1Geometry, matrix);
+          }
+          if ((this.getY(x, z - 1) !== y && this.getY(x, z - 1) !== y + 1) || z === 0) {
+            geometry.merge(z2Geometry, matrix);
+          }
         }
-        if ((this.getY(x - 1, z) !== y && this.getY(x - 1, z) !== y + 1) || x === 0) {
-          geometry.merge(x2Geometry, matrix);
+        if (this.data[x * CHUNK_SIZE + z] < SPLIT_GROUND) {
+          sandGeometry.merge(y1Geometry, matrix);
+
+          if ((this.getY(x + 1, z) !== y
+          && this.getY(x + 1, z) !== y + 1) || x === CHUNK_SIZE - 1) {
+            sandGeometry.merge(x1Geometry, matrix);
+          }
+          if ((this.getY(x - 1, z) !== y && this.getY(x - 1, z) !== y + 1) || x === 0) {
+            sandGeometry.merge(x2Geometry, matrix);
+          }
+          if ((this.getY(x, z + 1) !== y
+          && this.getY(x, z + 1) !== y + 1) || z === CHUNK_SIZE - 1) {
+            sandGeometry.merge(z1Geometry, matrix);
+          }
+          if ((this.getY(x, z - 1) !== y && this.getY(x, z - 1) !== y + 1) || z === 0) {
+            sandGeometry.merge(z2Geometry, matrix);
+          }
         }
-        if ((this.getY(x, z + 1) !== y && this.getY(x, z + 1) !== y + 1) || z === CHUNK_SIZE - 1) {
-          geometry.merge(z1Geometry, matrix);
-        }
-        if ((this.getY(x, z - 1) !== y && this.getY(x, z - 1) !== y + 1) || z === 0) {
-          geometry.merge(z2Geometry, matrix);
+        matrix.makeTranslation(
+          x * BLOCK_SIZE,
+          -2 * BLOCK_SIZE,
+          z * BLOCK_SIZE,
+        );
+        if (y < -2) {
+          waterGeometry.merge(y1Geometry, matrix);
         }
       }
     }
@@ -140,7 +173,7 @@ class CreateChunk {
       });
     });
 
-    return geometry;
+    return { geometry, sandGeometry, waterGeometry };
   }
 }
 
@@ -151,10 +184,12 @@ thread.addEventListener('message', (event: any) => {
   if (event.data.load) {
     const { xChunk, zChunk } = event.data;
 
-    let geometry = createChunk.load(xChunk, zChunk);
+    let { geometry, sandGeometry, waterGeometry } = createChunk.load(xChunk, zChunk);
 
     thread.postMessage({
       geometry,
+      sandGeometry,
+      waterGeometry,
       xChunk,
       zChunk,
       add: true,
@@ -186,10 +221,15 @@ thread.addEventListener('message', (event: any) => {
       if (chunk === RENDER_DISTANCE) {
         clearInterval(workerInterval);
       } else {
-        geometry = createChunk.load(x, z);
+        const returnChunk = createChunk.load(x, z);
+        geometry = returnChunk.geometry;
+        waterGeometry = returnChunk.waterGeometry;
+        sandGeometry = returnChunk.sandGeometry;
 
         thread.postMessage({
           geometry,
+          sandGeometry,
+          waterGeometry,
           xChunk: x,
           zChunk: z,
           add: true,
@@ -214,40 +254,46 @@ thread.addEventListener('message', (event: any) => {
     // move X axis
     if (xMove && !zMove) {
       for (let i = oldChunkZ - (RENDER_DISTANCE - 1); i < oldChunkZ + RENDER_DISTANCE; i += 1) {
-        // setTimeout(() => {
-        const geometry = createChunk.load(xBiasAdd, i);
-        thread.postMessage({
-          geometry,
-          xChunk: xBiasAdd,
-          zChunk: i,
-          add: true,
-        });
-        thread.postMessage({
-          xChunk: xBiasRemove,
-          zChunk: i,
-          remove: true,
-        });
-        // }, DEFAULT_INTERVAL * i);
+        setTimeout(() => {
+          const returnChunk = createChunk.load(xBiasAdd, i);
+          const { geometry, sandGeometry, waterGeometry } = returnChunk;
+          thread.postMessage({
+            geometry,
+            sandGeometry,
+            waterGeometry,
+            xChunk: xBiasAdd,
+            zChunk: i,
+            add: true,
+          });
+          thread.postMessage({
+            xChunk: xBiasRemove,
+            zChunk: i,
+            remove: true,
+          });
+        }, DEFAULT_INTERVAL * i);
       }
     }
 
     // move Z axis
     if (zMove && !xMove) {
       for (let i = oldChunkX - (RENDER_DISTANCE - 1); i < oldChunkX + RENDER_DISTANCE; i += 1) {
-        // setTimeout(() => {
-        const geometry = createChunk.load(i, zBiasAdd);
-        thread.postMessage({
-          geometry,
-          xChunk: i,
-          zChunk: zBiasAdd,
-          add: true,
-        });
-        thread.postMessage({
-          xChunk: i,
-          zChunk: zBiasRemove,
-          remove: true,
-        });
-        // }, DEFAULT_INTERVAL * i);
+        setTimeout(() => {
+          const returnChunk = createChunk.load(i, zBiasAdd);
+          const { geometry, sandGeometry, waterGeometry } = returnChunk;
+          thread.postMessage({
+            geometry,
+            sandGeometry,
+            waterGeometry,
+            xChunk: i,
+            zChunk: zBiasAdd,
+            add: true,
+          });
+          thread.postMessage({
+            xChunk: i,
+            zChunk: zBiasRemove,
+            remove: true,
+          });
+        }, DEFAULT_INTERVAL * i);
       }
     }
 
