@@ -61,9 +61,9 @@ class CreateChunk {
 
   perlin: Noise;
 
-  constructor() {
+  constructor(seed: string) {
     this.data = [];
-    this.seed = Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+    this.seed = seed;
     this.perlin = new Noise(this.seed);
   }
 
@@ -177,10 +177,15 @@ class CreateChunk {
   }
 }
 
-const createChunk = new CreateChunk();
+// const createChunk = new CreateChunk();
+let createChunk: CreateChunk = null;
 let workerInterval: any;
 
 thread.addEventListener('message', (event: any) => {
+  if (event.data.seed) {
+    createChunk = new CreateChunk(event.data.seed);
+  }
+
   if (event.data.load) {
     const { xChunk, zChunk } = event.data;
 
@@ -195,10 +200,10 @@ thread.addEventListener('message', (event: any) => {
       add: true,
     });
 
-    thread.postMessage({
-      seed: createChunk.seed,
-      map: true,
-    });
+    // thread.postMessage({
+    //   seed: createChunk.seed,
+    //   map: true,
+    // });
 
     let chunk = 1;
     let count = 0;
@@ -254,6 +259,7 @@ thread.addEventListener('message', (event: any) => {
     // move X axis
     if (xMove && !zMove) {
       for (let i = oldChunkZ - (RENDER_DISTANCE - 1); i < oldChunkZ + RENDER_DISTANCE; i += 1) {
+        // eslint-disable-next-line
         setTimeout(() => {
           const returnChunk = createChunk.load(xBiasAdd, i);
           const { geometry, sandGeometry, waterGeometry } = returnChunk;
@@ -277,6 +283,7 @@ thread.addEventListener('message', (event: any) => {
     // move Z axis
     if (zMove && !xMove) {
       for (let i = oldChunkX - (RENDER_DISTANCE - 1); i < oldChunkX + RENDER_DISTANCE; i += 1) {
+        // eslint-disable-next-line
         setTimeout(() => {
           const returnChunk = createChunk.load(i, zBiasAdd);
           const { geometry, sandGeometry, waterGeometry } = returnChunk;

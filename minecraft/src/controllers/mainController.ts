@@ -11,9 +11,9 @@ class MainController {
 
   gameModel: GameModel;
 
-  gameStart: boolean;
+  isGameStart: boolean;
 
-  gamePause: boolean;
+  isGamePause: boolean;
 
   openChat: boolean;
 
@@ -21,8 +21,8 @@ class MainController {
 
   constructor() {
     this.model = new MainModel();
-    this.gameStart = false; // should be within the model (isGameStart) - state;
-    this.gamePause = true;
+    this.isGameStart = false; // should be within the model (isGameStart) - state;
+    this.isGamePause = true;
     this.openChat = false;
     this.menuView = new MenuView(this.model);
     this.gameModel = new GameModel(this.model);
@@ -33,14 +33,14 @@ class MainController {
     // pointerLock API controls
     const controls = this.gameModel.control;
     controls.addEventListener('lock', () => {
-      if (this.gamePause) {
+      if (this.isGamePause) {
         this.menuView.mainMenu.toggle();
       }
-      this.gamePause = false;
+      this.isGamePause = false;
     });
     controls.addEventListener('unlock', () => {
       if (!this.openChat) {
-        this.gamePause = true;
+        this.isGamePause = true;
         this.menuView.mainMenu.toggle();
       }
     });
@@ -50,13 +50,14 @@ class MainController {
       playBtn, serverBtn, settingsBtn, quitBtn,
     } = this.menuView.mainMenu;
     playBtn.addEventListener('click', () => {
-      if (!this.gameStart) {
-        this.gameModel.generateWorld();
+      if (!this.isGameStart) {
+        const seed = Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+        this.gameModel.generateWorld(seed);
         this.createKeyboardControls();
         document.body.appendChild(this.gameModel.stats.dom);
         document.body.appendChild(this.gameModel.renderer.domElement);
         this.gameModel.animationFrame();
-        this.gameStart = true;
+        this.isGameStart = true;
       }
       controls.lock();
     });
@@ -84,15 +85,16 @@ class MainController {
       this.menuView.serverMenu.toggle();
     });
     document.body.addEventListener('startservergame', () => {
+      const seed = this.model.getSeed();
       this.menuView.mainMenu.toggle();
       console.log('logged in');
-      if (!this.gameStart) {
-        this.gameModel.generateWorld();
+      if (!this.isGameStart) {
+        this.gameModel.generateWorld(seed);
         this.createKeyboardControls();
         document.body.appendChild(this.gameModel.stats.dom);
         document.body.appendChild(this.gameModel.renderer.domElement);
         this.gameModel.animationFrame();
-        this.gameStart = true;
+        this.isGameStart = true;
       }
       controls.lock();
     });

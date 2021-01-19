@@ -97,9 +97,10 @@ class ServerMenu {
   }
 
   private successEnter() {
+    console.log('START SERVER GAME');
     this.toggle();
-    const event = new CustomEvent('startservergame');
-    document.body.dispatchEvent(event);
+    // const event = new CustomEvent('startservergame');
+    // document.body.dispatchEvent(event);
   }
 }
 

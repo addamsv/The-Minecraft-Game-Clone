@@ -21,6 +21,10 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private GAME_SEED: string;
 
+  private isGameHost: boolean;
+
+  private isConnected: boolean;
+
   constructor(userToken = '') {
     this.chatView = new ChatViewModel();
     this.ws = null;
@@ -29,10 +33,16 @@ class ServerSocketModel implements ServerSocketModelInterface {
     this.USER_TOKEN = userToken;
     this.USER_AMOUNT = '';
     this.GAME_SEED = '';
+    this.isGameHost = false;
+    this.isConnected = false;
 
     this.HOST = env.socketHost;
 
     this.TEXTAREA_OBJ = document.getElementById('sock-msg');
+  }
+
+  public isHandshaked() {
+    return this.isConnected;
   }
 
   public sendMessage(textMessage: string, type: String) {
@@ -62,13 +72,18 @@ class ServerSocketModel implements ServerSocketModelInterface {
     this.GAME_SEED = seed;
   }
 
+  public getSeed() {
+    return this.GAME_SEED;
+  }
+
   /**
    * @param x: String - X coordinate
    * @param z: String - Z coordinate
    * @param c: String - Camera Angle
+   * number 1 before object in sendCoordinates is code for server
   */
   public sendCoordinates(x: String, z: String) {
-    this.ws.send(`{"gameMessage": "${this.WS_TOKEN}", "x": "${x}", "z": "${z}", "c": "camera"}`);
+    this.ws.send(`1{"gameMessage": "${this.WS_TOKEN}", "x": "${x}", "z": "${z}", "c": "camera"}`);
   }
 
   /*
@@ -96,33 +111,43 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private messageReceived(message: any) {
     const mess = JSON.parse(message.data);
-
-    console.log(mess);
-
     if (mess.setWsToken) {
       this.WS_TOKEN = mess.setWsToken;
       console.log(`this.WS_TOKEN: ${this.WS_TOKEN}`);
     }
+    if (mess.setNewWsToken) {
+      console.log(mess.setNewWsToken, 'connected user');
+      const tokens = mess.setNewWsToken.split('___');
+      console.log(tokens);
+    }
     if (mess.setUserMount) {
-      this.USER_AMOUNT = mess.setUserMount;
-      if (this.USER_AMOUNT !== '1') {
-        this.sendSeed();
-      }
-      console.log(`this.USER_AMOUNT: ${this.USER_AMOUNT}`);
-      console.log('Try to Register');
       if (this.USER_TOKEN) {
         this.ws.send(`0{"ask": "register", "userToken": "${this.USER_TOKEN}"}`);
       } else {
         console.log('User token has not been defined');
       }
+
+      this.isConnected = true;
+      this.USER_AMOUNT = mess.setUserMount;
+      if (this.USER_AMOUNT === '1') {
+        this.setSeed(Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1));
+        this.isGameHost = true;
+        console.log(`this.GAME_SEED: ${this.GAME_SEED} start game for host`);
+        this.startGame();
+      }
+      this.sendSeed();
     }
-    if (mess.setSeed && this.GAME_SEED === '') {
+    if (mess.setSeed && !this.isGameHost) {
       this.GAME_SEED = mess.setSeed;
-      console.log(`this.GAME_SEED: ${this.GAME_SEED}`);
+      console.log(`this.GAME_SEED: ${this.GAME_SEED} start game for connected`);
+      this.startGame();
     }
     if (mess.setUserName) {
       this.USER_NAME = mess.setUserName;
-      console.log(`this.WS_TOKEN: ${this.WS_TOKEN}`);
+      console.log(`this.WS_TOKEN: ${this.USER_NAME}`);
+    }
+    if (mess.gameMessage) {
+      console.log(mess.x, mess.z, mess.gameMessage);
     }
     if (mess.chatMessage) {
       this.chatView.appendMessage(
@@ -133,28 +158,13 @@ class ServerSocketModel implements ServerSocketModelInterface {
     }
     if (mess.chatServerMessage) {
       this.chatView.appendMessage('SERVER', mess.chatServerMessage, false);
-      //     switch (mess.mesType) {
-      //       case 'game': console.log(mess); break;
-      //       case 'map': console.log(mess); break;
-      //       default: {
-      // this.appendMessage(this.getHTMLMessageContainer(mess.userName
-      // || 'User', mess.userMessage));
-      //         this.scrollMessagesContainerToTop();
-      //         this.removeMessageFromInputField();
-      //         break;
-      //       }
-      //     }
-      //   }
-
-      //   private isItYours(user: String) {
-      //     return this.USER_NAME === user;
-      //   }
-
-      //   private appendMessage(nodeToAppend: HTMLElement) {
-      //     this.DATA_TO_APPEND.appendChild(nodeToAppend);
-      //     while (this.DATA_TO_APPEND.childNodes.length > 100) {
-      //       this.DATA_TO_APPEND.removeChild(this.DATA_TO_APPEND.firstChild);
     }
+  }
+
+  // eslint-disable-next-line
+  private startGame() {
+    const event = new CustomEvent('startservergame');
+    document.body.dispatchEvent(event);
   }
 
   private areYouMessageOwner(curWsToken: String) {
@@ -168,7 +178,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
     this.chatView.appendSysMessage('connection Error');
   }
 
-  // eslint-disable-next-line class-methods-use-this
+  // eslint-disable-next-line
   private connectionOpen() {
     // this.ws.send(`{"userToken": "${this.USER_TOKEN}"}`);
   }
