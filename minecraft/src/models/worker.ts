@@ -1,12 +1,13 @@
 import * as THREE from 'three';
 import * as Noise from 'simplex-noise';
 
-/* eslint-disable-next-line no-restricted-globals */
+// eslint-disable-next-line
 const thread: Worker = self as any;
 
 const BLOCK_SIZE = 10;
 const CHUNK_SIZE = 16;
-const RENDER_DISTANCE = 8;
+const RENDER_DISTANCE = 6;
+const DEFAULT_INTERVAL = 50;
 
 const x1Geometry = new THREE.PlaneGeometry(BLOCK_SIZE, BLOCK_SIZE);
 x1Geometry.faceVertexUvs[0][0][0].y = 0.5;
@@ -85,12 +86,26 @@ class CreateChunk {
     this.generateHeight(xChunk, zChunk);
 
     const matrix = new THREE.Matrix4();
-
     const geometry = new THREE.Geometry();
+    const queue: Array<object> = [];
 
     for (let x = 0; x < CHUNK_SIZE; x += 1) {
       for (let z = 0; z < CHUNK_SIZE; z += 1) {
-        const y = Math.trunc(this.data[x * CHUNK_SIZE + z] / 5) || 0;
+        const y = this.getY(x, z);
+        if (y === 0 && (
+          Math.random() < 0.01
+          // this.data[x * CHUNK_SIZE + z].toFixed(2) === '0.05'
+          // || this.data[x * CHUNK_SIZE + z].toFixed(2) === '0.11'
+          // || this.data[x * CHUNK_SIZE + z].toFixed(2) === '0.15'
+          // || this.data[x * CHUNK_SIZE + z].toFixed(2) === '0.21'
+          // || this.data[x * CHUNK_SIZE + z].toFixed(2) === '0.25'
+          // || this.data[x * CHUNK_SIZE + z].toFixed(2) === '0.31'
+          // || this.data[x * CHUNK_SIZE + z].toFixed(2) === '0.35'
+        )) {
+          queue.push({
+            x, z, xChunk, zChunk,
+          });
+        }
 
         matrix.makeTranslation(
           x * BLOCK_SIZE,
@@ -114,6 +129,17 @@ class CreateChunk {
         }
       }
     }
+    queue.forEach((item: any, index: number) => {
+      thread.postMessage({
+        x: item.x * BLOCK_SIZE,
+        z: item.z * BLOCK_SIZE,
+        xChunk: item.xChunk,
+        zChunk: item.zChunk,
+        tree: true,
+        last: !queue[index + 1],
+      });
+    });
+
     return geometry;
   }
 }
@@ -171,7 +197,7 @@ thread.addEventListener('message', (event: any) => {
         count += 1;
       }
     };
-    workerInterval = setInterval(callWorker, 50);
+    workerInterval = setInterval(callWorker, DEFAULT_INTERVAL);
   }
   if (event.data.update) {
     const {
@@ -180,14 +206,15 @@ thread.addEventListener('message', (event: any) => {
     const xMove = oldChunkX - newChunkX;
     const zMove = oldChunkZ - newChunkZ;
 
-    const xBiasAdd = oldChunkX + 8 * (-xMove);
-    const zBiasAdd = oldChunkZ + 8 * (-zMove);
-    const xBiasRemove = oldChunkX - 7 * (-xMove);
-    const zBiasRemove = oldChunkZ - 7 * (-zMove);
+    const xBiasAdd = oldChunkX + RENDER_DISTANCE * (-xMove);
+    const zBiasAdd = oldChunkZ + RENDER_DISTANCE * (-zMove);
+    const xBiasRemove = oldChunkX - (RENDER_DISTANCE - 1) * (-xMove);
+    const zBiasRemove = oldChunkZ - (RENDER_DISTANCE - 1) * (-zMove);
 
     // move X axis
     if (xMove && !zMove) {
-      for (let i = oldChunkZ - 7; i < oldChunkZ + 8; i += 1) {
+      for (let i = oldChunkZ - (RENDER_DISTANCE - 1); i < oldChunkZ + RENDER_DISTANCE; i += 1) {
+        // setTimeout(() => {
         const geometry = createChunk.load(xBiasAdd, i);
         thread.postMessage({
           geometry,
@@ -200,12 +227,14 @@ thread.addEventListener('message', (event: any) => {
           zChunk: i,
           remove: true,
         });
+        // }, DEFAULT_INTERVAL * i);
       }
     }
 
     // move Z axis
     if (zMove && !xMove) {
-      for (let i = oldChunkX - 7; i < oldChunkX + 8; i += 1) {
+      for (let i = oldChunkX - (RENDER_DISTANCE - 1); i < oldChunkX + RENDER_DISTANCE; i += 1) {
+        // setTimeout(() => {
         const geometry = createChunk.load(i, zBiasAdd);
         thread.postMessage({
           geometry,
@@ -218,6 +247,7 @@ thread.addEventListener('message', (event: any) => {
           zChunk: zBiasRemove,
           remove: true,
         });
+        // }, DEFAULT_INTERVAL * i);
       }
     }
 

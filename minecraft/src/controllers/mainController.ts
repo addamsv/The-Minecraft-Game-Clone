@@ -85,7 +85,7 @@ class MainController {
     });
     document.body.addEventListener('startservergame', () => {
       this.menuView.mainMenu.toggle();
-      // START SERVER GAME HERE
+      console.log('logged in');
       if (!this.gameStart) {
         this.gameModel.generateWorld();
         this.createKeyboardControls();
