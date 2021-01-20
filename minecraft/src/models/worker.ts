@@ -177,7 +177,6 @@ class CreateChunk {
   }
 }
 
-// const createChunk = new CreateChunk();
 let createChunk: CreateChunk = null;
 let workerInterval: any;
 
@@ -199,11 +198,6 @@ thread.addEventListener('message', (event: any) => {
       zChunk,
       add: true,
     });
-
-    // thread.postMessage({
-    //   seed: createChunk.seed,
-    //   map: true,
-    // });
 
     let chunk = 1;
     let count = 0;

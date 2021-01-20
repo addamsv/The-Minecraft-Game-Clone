@@ -87,7 +87,6 @@ class MainController {
     document.body.addEventListener('startservergame', () => {
       const seed = this.model.getSeed();
       this.menuView.mainMenu.toggle();
-      console.log('logged in');
       if (!this.isGameStart) {
         this.gameModel.generateWorld(seed);
         this.createKeyboardControls();

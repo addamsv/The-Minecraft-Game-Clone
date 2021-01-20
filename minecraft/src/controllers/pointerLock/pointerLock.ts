@@ -45,7 +45,7 @@ class PointerLock extends EventDispatcher implements PointerLockInterface {
 
     this.euler = new Euler(0, 0, 0, 'YXZ');
     this.vec = new Vector3();
-    this.SPEED = 2;
+    this.SPEED = 1.5;
     this.PI_2 = Math.PI / 2;
     this.connect();
   }

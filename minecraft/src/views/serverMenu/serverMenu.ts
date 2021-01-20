@@ -89,19 +89,17 @@ class ServerMenu {
       this.errorMessage.textContent = this.parseMessage;
     });
     this.serverScreen.addEventListener('success', () => {
-      this.successEnter();
+      // this.successEnter();
+      this.toggle();
     });
     this.serverScreen.addEventListener('fail', () => {
       this.errorMessage.textContent = this.failMessage;
     });
   }
 
-  private successEnter() {
-    console.log('START SERVER GAME');
-    this.toggle();
-    // const event = new CustomEvent('startservergame');
-    // document.body.dispatchEvent(event);
-  }
+  // private successEnter() {
+  //   this.toggle();
+  // }
 }
 
 export default ServerMenu;

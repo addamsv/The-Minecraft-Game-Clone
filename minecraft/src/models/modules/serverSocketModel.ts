@@ -25,6 +25,8 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private isConnected: boolean;
 
+  private playersTokens: Set<string>;
+
   constructor(userToken = '') {
     this.chatView = new ChatViewModel();
     this.ws = null;
@@ -35,6 +37,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
     this.GAME_SEED = '';
     this.isGameHost = false;
     this.isConnected = false;
+    this.playersTokens = new Set();
 
     this.HOST = env.socketHost;
 
@@ -115,11 +118,20 @@ class ServerSocketModel implements ServerSocketModelInterface {
       this.WS_TOKEN = mess.setWsToken;
       console.log(`this.WS_TOKEN: ${this.WS_TOKEN}`);
     }
+
+    // Connect new Player to GameModel
     if (mess.setNewWsToken) {
-      console.log(mess.setNewWsToken, 'connected user');
-      const tokens = mess.setNewWsToken.split('___');
-      console.log(tokens);
+      const tokens: Array<string> = mess.setNewWsToken.split('___');
+      tokens.forEach((playerToken: string) => {
+        if (!this.playersTokens.has(playerToken) && playerToken !== this.WS_TOKEN) {
+          this.playersTokens.add(playerToken);
+          const event = new CustomEvent('connectplayer', { detail: { token: playerToken } });
+          document.body.dispatchEvent(event);
+        }
+      });
     }
+
+    // Check amount of connected Players
     if (mess.setUserMount) {
       if (this.USER_TOKEN) {
         this.ws.send(`0{"ask": "register", "userToken": "${this.USER_TOKEN}"}`);
@@ -129,26 +141,34 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
       this.isConnected = true;
       this.USER_AMOUNT = mess.setUserMount;
+
+      // Start game for HOST
       if (this.USER_AMOUNT === '1') {
         this.setSeed(Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1));
         this.isGameHost = true;
-        console.log(`this.GAME_SEED: ${this.GAME_SEED} start game for host`);
         this.startGame();
       }
       this.sendSeed();
     }
+
+    // Start game for CONNECTED
     if (mess.setSeed && !this.isGameHost) {
       this.GAME_SEED = mess.setSeed;
-      console.log(`this.GAME_SEED: ${this.GAME_SEED} start game for connected`);
       this.startGame();
     }
+
     if (mess.setUserName) {
       this.USER_NAME = mess.setUserName;
       console.log(`this.WS_TOKEN: ${this.USER_NAME}`);
     }
+
+    // Dispatch event with player coordinates to GameModel
     if (mess.gameMessage) {
-      console.log(mess.x, mess.z, mess.gameMessage);
+      const event = new CustomEvent('moveplayer', { detail: { token: mess.gameMessage, x: mess.x, z: mess.z } });
+      document.body.dispatchEvent(event);
     }
+
+    // Chat messages
     if (mess.chatMessage) {
       this.chatView.appendMessage(
         mess.userName,

@@ -51,7 +51,6 @@ class MainModel implements MainModelInterface {
       const event = new CustomEvent('input-error');
       document.getElementById('server-menu-id').dispatchEvent(event);
     } else {
-      console.log(type);
       switch (type) {
         case 'login': {
           this.login(name, password);
@@ -68,7 +67,7 @@ class MainModel implements MainModelInterface {
   public signUp(login: String, password: String) {
     this.serverCRUD.create({ login, password })
       .then((data: MyResponse) => {
-        console.log(data, 'in sign up');
+        console.log(data, 'SIGN UP RESPONSE');
       });
   }
 

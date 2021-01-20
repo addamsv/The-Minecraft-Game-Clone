@@ -1,5 +1,4 @@
 import * as THREE from 'three';
-import * as SimplexNoise from 'simplex-noise';
 // eslint-disable-next-line
 import MapWorker from 'worker-loader!./worker';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
@@ -43,8 +42,6 @@ class GameModel {
 
   control: PointerLockInterface;
 
-  perlin: SimplexNoise;
-
   renderDistance: number;
 
   chunkSize: number;
@@ -69,8 +66,9 @@ class GameModel {
 
   workerInterval: any;
 
-  // mapSeed: string;
   seed: string;
+
+  connectedPlayers: any;
 
   constructor(model: MainModelInterface) {
     this.model = model;
@@ -79,13 +77,13 @@ class GameModel {
     this.backward = false;
     this.right = false;
     this.jump = false;
-    this.perlin = new SimplexNoise();
     this.meshes = {};
     this.renderDistance = 6;
     this.chunkSize = 16;
     this.createScene();
+    this.connectPlayers();
+    this.connectedPlayers = {};
     this.night = false;
-    // this.seed = model.getSeed();
   }
 
   createScene() {
@@ -104,6 +102,25 @@ class GameModel {
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMap.enabled = true;
     this.renderer.domElement.classList.add('renderer');
+  }
+
+  connectPlayers() {
+    document.body.addEventListener('connectplayer', (event: CustomEvent) => {
+      this.createNewPlayer(event.detail.token);
+    });
+    document.body.addEventListener('moveplayer', (event: CustomEvent) => {
+      this.connectedPlayers[event.detail.token].position.x = event.detail.x * 10;
+      this.connectedPlayers[event.detail.token].position.z = event.detail.z * 10;
+    });
+  }
+
+  createNewPlayer(token: string) {
+    const playerGeometry = new THREE.BoxGeometry(10, 10, 10);
+    const playerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+    const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
+    playerMesh.position.y = 20;
+    this.connectedPlayers[token] = playerMesh;
+    this.scene.add(playerMesh);
   }
 
   generateWorld(seed: string) {
@@ -166,11 +183,6 @@ class GameModel {
 
     this.worker.onmessage = (event: any) => {
       setTimeout(() => {
-        // if (event.data.map) {
-        //   this.mapSeed = event.data.seed;
-        //   this.model.setSeed(this.mapSeed);
-        // }
-
         const {
           geometry, sandGeometry, waterGeometry, xChunk, zChunk,
         } = event.data;
@@ -371,11 +383,11 @@ class GameModel {
       if (falling.length) {
         if (falling[0].object.name === 'water') {
           this.raycaster.far = 5;
-          this.control.SPEED = 1;
+          this.control.SPEED = 0.75;
           up = 2.5;
         } else {
           this.raycaster.far = 20;
-          this.control.SPEED = 2;
+          this.control.SPEED = 1.5;
           up = 15;
         }
         this.speed.y = Math.max(0, this.speed.y);
