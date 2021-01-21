@@ -109,9 +109,24 @@ class GameModel {
       this.createNewPlayer(event.detail.token);
     });
     document.body.addEventListener('moveplayer', (event: CustomEvent) => {
-      this.connectedPlayers[event.detail.token].position.x = event.detail.x * 10;
-      this.connectedPlayers[event.detail.token].position.z = event.detail.z * 10;
+      this.smoothPlayerMotion(event.detail, 'x');
+      this.smoothPlayerMotion(event.detail, 'z');
     });
+  }
+
+  smoothPlayerMotion(evDetail: any, coords: any) {
+    const initialVal = this.connectedPlayers[evDetail.token].position[coords];
+    const zPosTo = evDetail[coords] * 1;
+    const increaseZ = initialVal < zPosTo ? 1 : -1;
+    const cnt = this;
+    function renderPlayerByZ() {
+      if (zPosTo === cnt.connectedPlayers[evDetail.token].position[coords]) {
+        return;
+      }
+      cnt.connectedPlayers[evDetail.token].position[coords] += increaseZ;
+      requestAnimationFrame(renderPlayerByZ);
+    }
+    renderPlayerByZ();
   }
 
   createNewPlayer(token: string) {
@@ -327,8 +342,8 @@ class GameModel {
       this.lastPing = pingTime;
 
       this.model.sendHeroCoordinates(
-        String(Math.trunc(this.camera.position.x / 10)),
-        String(Math.trunc(this.camera.position.z / 10)),
+        String(Math.trunc(this.camera.position.x)), // / 10
+        String(Math.trunc(this.camera.position.z)),
       );
     }
 
