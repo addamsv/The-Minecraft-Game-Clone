@@ -109,44 +109,24 @@ class GameModel {
       this.createNewPlayer(event.detail.token);
     });
     document.body.addEventListener('moveplayer', (event: CustomEvent) => {
-      const CONTEXT = this;
-
-      let positiveY = 0;
-      function renderPlayerByY() {
-        positiveY += 0.01;
-        CONTEXT.connectedPlayers[event.detail.token].position.y = -7 * Math.sin(positiveY * 2);
-        requestAnimationFrame(renderPlayerByY);
-      }
-      renderPlayerByY();
-
-      const xInitialVal = this.connectedPlayers[event.detail.token].position.x;
-      const xPosTo = event.detail.x * 10;
-      const increaseX = xInitialVal < xPosTo ? 1 : -1;
-      function renderPlayerByX() {
-        if (xPosTo === CONTEXT.connectedPlayers[event.detail.token].position.x) {
-          return;
-        }
-        CONTEXT.connectedPlayers[event.detail.token].position.x += increaseX;
-        requestAnimationFrame(renderPlayerByX);
-      }
-      if (xPosTo !== this.connectedPlayers[event.detail.token].position.x) {
-        renderPlayerByX();
-      }
-
-      const initialVal = this.connectedPlayers[event.detail.token].position.z;
-      const zPosTo = event.detail.z * 10;
-      const increaseZ = initialVal < zPosTo ? 1 : -1;
-      function renderPlayerByZ() {
-        if (zPosTo === CONTEXT.connectedPlayers[event.detail.token].position.z) {
-          return;
-        }
-        CONTEXT.connectedPlayers[event.detail.token].position.z += increaseZ;
-        requestAnimationFrame(renderPlayerByZ);
-      }
-      if (zPosTo !== this.connectedPlayers[event.detail.token].position.z) {
-        renderPlayerByZ();
-      }
+      this.smoothPlayerMotion(event.detail, 'x');
+      this.smoothPlayerMotion(event.detail, 'z');
     });
+  }
+
+  smoothPlayerMotion(evDetail: any, coords: any) {
+    const initialVal = this.connectedPlayers[evDetail.token].position[coords];
+    const zPosTo = evDetail[coords] * 1;
+    const increaseZ = initialVal < zPosTo ? 1 : -1;
+    const cnt = this;
+    function renderPlayerByZ() {
+      if (zPosTo === cnt.connectedPlayers[evDetail.token].position[coords]) {
+        return;
+      }
+      cnt.connectedPlayers[evDetail.token].position[coords] += increaseZ;
+      requestAnimationFrame(renderPlayerByZ);
+    }
+    renderPlayerByZ();
   }
 
   createNewPlayer(token: string) {
@@ -362,8 +342,8 @@ class GameModel {
       this.lastPing = pingTime;
 
       this.model.sendHeroCoordinates(
-        String(Math.trunc(this.camera.position.x / 10)),
-        String(Math.trunc(this.camera.position.z / 10)),
+        String(Math.trunc(this.camera.position.x)), // / 10
+        String(Math.trunc(this.camera.position.z)),
       );
     }
 
