@@ -1,29 +1,53 @@
 import languageConfig from '../../configs/languageConfig';
+import MainControllerInterface from '../../controllers/mainControllerInterface';
+import MainModelInterface from '../../models/mainModelInterface';
+import ViewsInterface from '../viewsInterface';
 
-class ServerMenu {
-  serverScreen: HTMLDivElement;
+class ServerMenu implements ViewsInterface {
+  private controller: MainControllerInterface;
 
-  nickname: HTMLInputElement;
+  private model: MainModelInterface;
 
-  password: HTMLInputElement;
+  private serverScreen: HTMLDivElement;
 
-  errorMessage: HTMLDivElement;
+  private nickname: HTMLInputElement;
 
-  logIn: HTMLButtonElement;
+  private password: HTMLInputElement;
 
-  or: HTMLSpanElement;
+  private errorMessage: HTMLDivElement;
 
-  signUp: HTMLButtonElement;
+  private logIn: HTMLButtonElement;
 
-  backToMainMenu: HTMLButtonElement;
+  private or: HTMLSpanElement;
 
-  parseMessage: string;
+  private signUp: HTMLButtonElement;
 
-  failMessage: string;
+  private backToMainMenu: HTMLButtonElement;
 
-  constructor() {
+  private parseMessage: string;
+
+  private failMessage: string;
+
+  private readInputs: any;
+
+  private checkStrings: any;
+
+  private closeServerMenu: any;
+
+  constructor(controller: MainControllerInterface, model: MainModelInterface) {
+    this.controller = controller;
+    this.model = model;
     this.createMenu();
-    this.getChanges();
+  }
+
+  public attachMenu() {
+    document.body.append(this.serverScreen);
+    this.addEventListeners();
+  }
+
+  public removeMenu() {
+    this.serverScreen.remove();
+    this.removeEventListeners();
   }
 
   public addTextContent(language: string) {
@@ -44,10 +68,6 @@ class ServerMenu {
     this.errorMessage.textContent = '';
   }
 
-  public toggle() {
-    this.serverScreen.classList.toggle('hide');
-  }
-
   private createMenu() {
     this.serverScreen = document.createElement('div');
     const serverWrapper = document.createElement('div');
@@ -60,7 +80,7 @@ class ServerMenu {
     this.signUp = document.createElement('button');
     this.backToMainMenu = document.createElement('button');
 
-    this.serverScreen.classList.add('server-screen', 'hide');
+    this.serverScreen.classList.add('server-screen');
     this.serverScreen.id = 'server-menu-id';
     serverWrapper.classList.add('server-wrapper');
     this.nickname.classList.add('nickname');
@@ -68,8 +88,10 @@ class ServerMenu {
     this.errorMessage.classList.add('error-message');
     buttonsWrapper.classList.add('buttons-wrapper');
     this.logIn.classList.add('server-btn');
+    this.logIn.id = 'login';
     this.or.classList.add('or');
     this.signUp.classList.add('server-btn');
+    this.signUp.id = 'signup';
     this.backToMainMenu.classList.add('server-btn', 'back-to-main-menu');
 
     buttonsWrapper.append(this.logIn, this.or, this.signUp);
@@ -80,8 +102,12 @@ class ServerMenu {
       buttonsWrapper,
       this.backToMainMenu,
     );
-    this.serverScreen.appendChild(serverWrapper);
-    document.body.appendChild(this.serverScreen);
+    this.serverScreen.append(serverWrapper);
+
+    this.readInputs = this.readViewInputs.bind(this);
+    this.checkStrings = this.model.checkStrings.bind(this.model);
+    this.closeServerMenu = this.controller.closeServerMenu.bind(this.controller);
+    this.getChanges();
   }
 
   private getChanges() {
@@ -89,17 +115,28 @@ class ServerMenu {
       this.errorMessage.textContent = this.parseMessage;
     });
     this.serverScreen.addEventListener('success', () => {
-      // this.successEnter();
-      this.toggle();
+      this.removeMenu();
     });
     this.serverScreen.addEventListener('fail', () => {
       this.errorMessage.textContent = this.failMessage;
     });
   }
 
-  // private successEnter() {
-  //   this.toggle();
-  // }
+  private readViewInputs(event: any) {
+    this.checkStrings(this.nickname.value, this.password.value, event.target.id);
+  }
+
+  private addEventListeners() {
+    this.logIn.addEventListener('click', this.readInputs);
+    this.signUp.addEventListener('click', this.readInputs);
+    this.backToMainMenu.addEventListener('click', this.closeServerMenu);
+  }
+
+  private removeEventListeners() {
+    this.logIn.removeEventListener('click', this.readViewInputs);
+    this.signUp.removeEventListener('click', this.readViewInputs);
+    this.backToMainMenu.removeEventListener('click', this.closeServerMenu);
+  }
 }
 
 export default ServerMenu;

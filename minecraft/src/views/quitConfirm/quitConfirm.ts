@@ -1,16 +1,35 @@
+import ViewsInterface from '../viewsInterface';
+import MainControllerInterface from '../../controllers/mainControllerInterface';
 import languageConfig from '../../configs/languageConfig';
 
-class quitConfirm {
-  quitConfirmScreen: HTMLDivElement;
+class QuitConfirm implements ViewsInterface {
+  private controller: MainControllerInterface;
 
-  confirmMessage: HTMLSpanElement;
+  private quitConfirmScreen: HTMLDivElement;
 
-  yesBtn: HTMLButtonElement;
+  private confirmMessage: HTMLSpanElement;
 
-  noBtn: HTMLButtonElement;
+  private yesBtn: HTMLButtonElement;
 
-  constructor() {
+  private noBtn: HTMLButtonElement;
+
+  private quitGame: any;
+
+  private closeQuitConfirm: any;
+
+  constructor(controller: MainControllerInterface) {
+    this.controller = controller;
     this.createMenu();
+  }
+
+  public attachMenu() {
+    document.body.append(this.quitConfirmScreen);
+    this.addEventListeners();
+  }
+
+  public removeMenu() {
+    this.quitConfirmScreen.remove();
+    this.removeEventListeners();
   }
 
   public addTextContent(language: string) {
@@ -25,10 +44,6 @@ class quitConfirm {
     this.noBtn.textContent = languageData.noBtn;
   }
 
-  public toggle() {
-    this.quitConfirmScreen.classList.toggle('hide');
-  }
-
   private createMenu() {
     this.quitConfirmScreen = document.createElement('div');
     const quitConfirmWrapper = document.createElement('div');
@@ -37,7 +52,7 @@ class quitConfirm {
     this.yesBtn = document.createElement('button');
     this.noBtn = document.createElement('button');
 
-    this.quitConfirmScreen.classList.add('quit-confirm-screen', 'hide');
+    this.quitConfirmScreen.classList.add('quit-confirm-screen');
     quitConfirmWrapper.classList.add('quit-confirm-wrapper');
     this.confirmMessage.classList.add('confirm-message');
     btnsWrapper.classList.add('btns-wrapper');
@@ -47,8 +62,20 @@ class quitConfirm {
     btnsWrapper.append(this.yesBtn, this.noBtn);
     quitConfirmWrapper.append(this.confirmMessage, btnsWrapper);
     this.quitConfirmScreen.append(quitConfirmWrapper);
-    document.body.appendChild(this.quitConfirmScreen);
+
+    this.quitGame = this.controller.quitGame.bind(this.controller);
+    this.closeQuitConfirm = this.controller.closeQuitConfirm.bind(this.controller);
+  }
+
+  private addEventListeners() {
+    this.yesBtn.addEventListener('click', this.quitGame);
+    this.noBtn.addEventListener('click', this.closeQuitConfirm);
+  }
+
+  private removeEventListeners() {
+    this.yesBtn.removeEventListener('click', this.quitGame);
+    this.noBtn.removeEventListener('click', this.closeQuitConfirm);
   }
 }
 
-export default quitConfirm;
+export default QuitConfirm;

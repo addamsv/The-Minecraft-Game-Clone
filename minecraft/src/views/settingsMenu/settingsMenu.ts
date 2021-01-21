@@ -1,28 +1,56 @@
+import ViewsInterface from '../viewsInterface';
+import MainControllerInterface from '../../controllers/mainControllerInterface';
 import settingsConfig from '../../configs/settingsConfig';
 import languageConfig from '../../configs/languageConfig';
+import MenuViewInterface from '../menuViewInteface';
 
-class SettingsMenu {
-  settingsMenuScreen: HTMLDivElement;
+class SettingsMenu implements ViewsInterface {
+  private controller: MainControllerInterface;
 
-  rangeInput: HTMLInputElement;
+  private view: MenuViewInterface;
 
-  rangeLabel: HTMLSpanElement;
+  private settingsMenuScreen: HTMLDivElement;
 
-  fovInput: HTMLInputElement;
+  private rangeInput: HTMLInputElement;
 
-  fovLabel: HTMLSpanElement;
+  private rangeLabel: HTMLSpanElement;
 
-  rangeValue: HTMLSpanElement;
+  private fovInput: HTMLInputElement;
 
-  fovValue: HTMLSpanElement;
+  private fovLabel: HTMLSpanElement;
 
-  langBtn: HTMLButtonElement;
+  private rangeValue: HTMLSpanElement;
 
-  okBtn: HTMLButtonElement;
+  private fovValue: HTMLSpanElement;
 
-  constructor() {
+  private langBtn: HTMLButtonElement;
+
+  private okBtn: HTMLButtonElement;
+
+  private changeCameraSettings: any;
+
+  private changeRangeSetting: any;
+
+  private changeFovSetting: any;
+
+  private changeLanguageSetting: any;
+
+  private closeSettingsMenu: any;
+
+  constructor(controller: MainControllerInterface, view: MenuViewInterface) {
+    this.controller = controller;
+    this.view = view;
     this.createMenu();
-    this.getChanges();
+  }
+
+  public attachMenu() {
+    document.body.append(this.settingsMenuScreen);
+    this.addEventListeners();
+  }
+
+  public removeMenu() {
+    this.settingsMenuScreen.remove();
+    this.removeEventListeners();
   }
 
   public addTextContent(language: string) {
@@ -35,10 +63,6 @@ class SettingsMenu {
     this.langBtn.textContent = languageData.langBtn;
     this.rangeLabel.textContent = languageData.rangeLabel;
     this.fovLabel.textContent = languageData.fovLabel;
-  }
-
-  public toggle() {
-    this.settingsMenuScreen.classList.toggle('hide');
   }
 
   private createMenu() {
@@ -90,38 +114,57 @@ class SettingsMenu {
     fovWrapper.append(this.fovInput, this.fovLabel, this.fovValue);
 
     this.settingsMenuScreen.id = 'settings-screen-id';
-    this.settingsMenuScreen.classList.add('settings-menu-screen', 'hide');
+    this.settingsMenuScreen.classList.add('settings-menu-screen');
     settingsWrapper.classList.add('settings-wrapper');
     this.langBtn.classList.add('lang-btn');
     this.okBtn.classList.add('ok-btn');
 
     settingsWrapper.append(rangeWrapper, fovWrapper, this.langBtn);
     this.settingsMenuScreen.append(settingsWrapper, this.okBtn);
-    document.body.appendChild(this.settingsMenuScreen);
+
+    this.changeCameraSettings = this.controller.changeCameraSettings.bind(this.controller);
+    this.changeRangeSetting = this.changeRange.bind(this);
+    this.changeFovSetting = this.changeFov.bind(this);
+    this.changeLanguageSetting = this.changeLanguage.bind(this);
+    this.closeSettingsMenu = this.controller.closeSettingsMenu.bind(this.controller);
   }
 
-  private getChanges() {
-    this.rangeInput.addEventListener('mousemove', () => {
-      this.rangeValue.textContent = this.rangeInput.value;
-      const event = new CustomEvent('camera', {
-        detail: {
-          far: this.rangeInput.value,
-          fov: this.fovInput.value,
-        },
-      });
-      this.settingsMenuScreen.dispatchEvent(event);
-    });
+  private changeRange() {
+    this.rangeValue.textContent = this.rangeInput.value;
+    this.changeCameraSettings(this.rangeInput.value, this.fovInput.value);
+  }
 
-    this.fovInput.addEventListener('mousemove', () => {
-      this.fovValue.textContent = this.fovInput.value;
-      const event = new CustomEvent('camera', {
-        detail: {
-          far: this.rangeInput.value,
-          fov: this.fovInput.value,
-        },
-      });
-      this.settingsMenuScreen.dispatchEvent(event);
-    });
+  private changeFov() {
+    this.fovValue.textContent = this.fovInput.value;
+    this.changeCameraSettings(this.rangeInput.value, this.fovInput.value);
+  }
+
+  private changeLanguage() {
+    switch (this.langBtn.textContent) {
+      case 'English': {
+        this.view.setLanguage('ru');
+        break;
+      }
+      case 'Русский': {
+        this.view.setLanguage('en');
+        break;
+      }
+      default: break;
+    }
+  }
+
+  private addEventListeners() {
+    this.rangeInput.addEventListener('mousemove', this.changeRangeSetting);
+    this.fovInput.addEventListener('mousemove', this.changeFovSetting);
+    this.langBtn.addEventListener('click', this.changeLanguageSetting);
+    this.okBtn.addEventListener('click', this.closeSettingsMenu);
+  }
+
+  private removeEventListeners() {
+    this.rangeInput.removeEventListener('mousemove', this.changeRangeSetting);
+    this.fovInput.removeEventListener('mousemove', this.changeFovSetting);
+    this.langBtn.removeEventListener('click', this.changeLanguageSetting);
+    this.okBtn.removeEventListener('click', this.closeSettingsMenu);
   }
 }
 

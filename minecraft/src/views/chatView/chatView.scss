@@ -2,13 +2,14 @@
   width: 290px;
   position: absolute;
   bottom: 5px;
-  right: 45px;
-  background: #efefff44;
+  // right: 45px;
+  left: 0;
+  // background: #efefff44;
   padding: 0px 0px 5px 0px;
   border-radius: 5px 5px 5px 5px;
   -moz-border-radius: 4px 4px 4px 4px;
   -webkit-border-radius: 4px 4px 4px 4px;
-  box-shadow: 0px 16px 16px #0005;
+  // box-shadow: 0px 16px 16px #0005;
 }
 
 input#sock-msg {
@@ -128,7 +129,8 @@ textarea#sock-msg {
   -moz-transition: background-color 0.2s ease-in-out;
   -webkit-border-radius: 15px 15px 0px 15px;
   -webkit-transition: background-color 0.2s ease-in-out;
-  background: #eee8;
+  // background: #eee8;
+  background: white;
   background-size: 6% 100%;
   border-radius: 15px 15px 0px 15px;
   box-shadow: 2px 2px 5px #0005;

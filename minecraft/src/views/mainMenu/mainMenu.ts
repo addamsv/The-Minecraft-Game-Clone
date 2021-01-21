@@ -1,18 +1,41 @@
+import ViewsInterface from '../viewsInterface';
+import MainControllerInterface from '../../controllers/mainControllerInterface';
 import languageConfig from '../../configs/languageConfig';
 
-class MainMenu {
-  mainMenuScreen: HTMLDivElement;
+class MainMenu implements ViewsInterface {
+  private controller: MainControllerInterface;
 
-  playBtn: HTMLButtonElement;
+  private mainMenuScreen: HTMLDivElement;
 
-  serverBtn: HTMLButtonElement;
+  private playBtn: HTMLButtonElement;
 
-  settingsBtn: HTMLButtonElement;
+  private serverBtn: HTMLButtonElement;
 
-  quitBtn: HTMLButtonElement;
+  private settingsBtn: HTMLButtonElement;
 
-  constructor() {
+  private quitBtn: HTMLButtonElement;
+
+  private startGame: any;
+
+  private openServerMenu: any;
+
+  private openSettingsMenu: any;
+
+  private openQuitConfirm: any;
+
+  constructor(controller: MainControllerInterface) {
+    this.controller = controller;
     this.createMenu();
+  }
+
+  public attachMenu() {
+    document.body.append(this.mainMenuScreen);
+    this.addEventListeners();
+  }
+
+  public removeMenu() {
+    this.mainMenuScreen.remove();
+    this.removeEventListeners();
   }
 
   public addTextContent(language: string) {
@@ -26,10 +49,6 @@ class MainMenu {
     this.serverBtn.textContent = languageData.serverBtn;
     this.settingsBtn.textContent = languageData.settingsBtn;
     this.quitBtn.textContent = languageData.quitBtn;
-  }
-
-  public toggle() {
-    this.mainMenuScreen.classList.toggle('hide');
   }
 
   private createMenu() {
@@ -48,9 +67,26 @@ class MainMenu {
     this.quitBtn.classList.add('main-menu-btn', 'quit-btn');
 
     btnsWrapper.append(this.playBtn, this.serverBtn, this.settingsBtn, this.quitBtn);
+    this.mainMenuScreen.append(btnsWrapper);
 
-    this.mainMenuScreen.appendChild(btnsWrapper);
-    document.body.appendChild(this.mainMenuScreen);
+    this.startGame = this.controller.startGame.bind(this.controller);
+    this.openServerMenu = this.controller.openServerMenu.bind(this.controller);
+    this.openSettingsMenu = this.controller.openSettingsMenu.bind(this.controller);
+    this.openQuitConfirm = this.controller.openQuitConfirm.bind(this.controller);
+  }
+
+  private addEventListeners() {
+    this.playBtn.addEventListener('click', this.startGame);
+    this.serverBtn.addEventListener('click', this.openServerMenu);
+    this.settingsBtn.addEventListener('click', this.openSettingsMenu);
+    this.quitBtn.addEventListener('click', this.openQuitConfirm);
+  }
+
+  private removeEventListeners() {
+    this.playBtn.removeEventListener('click', this.startGame);
+    this.serverBtn.removeEventListener('click', this.openServerMenu);
+    this.settingsBtn.removeEventListener('click', this.openSettingsMenu);
+    this.quitBtn.removeEventListener('click', this.openQuitConfirm);
   }
 }
 

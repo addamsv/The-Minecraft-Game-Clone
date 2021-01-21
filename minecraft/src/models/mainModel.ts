@@ -1,6 +1,7 @@
 import MainModelInterface from './mainModelInterface';
 import { ServerSocketModelInterface, ServerSocketModel } from './modules/serverSocketModel';
 import { ServerCRUDModelInterface, ServerCRUDModel } from './modules/serverCRUDModel';
+import MainControllerInterface from '../controllers/mainControllerInterface';
 // import env from '../configs/environmentVars';
 
 interface MyResponse extends Response {
@@ -8,6 +9,8 @@ interface MyResponse extends Response {
 }
 
 class MainModel implements MainModelInterface {
+  controller: MainControllerInterface;
+
   private rsServerSocket: ServerSocketModelInterface;
 
   private response: Response;
@@ -16,12 +19,17 @@ class MainModel implements MainModelInterface {
 
   public serverCRUD: ServerCRUDModelInterface;
 
-  constructor() {
+  constructor(controller: MainControllerInterface) {
+    this.controller = controller;
     this.response = null;
     this.rsServerSocket = null;
 
     this.serverCRUD = new ServerCRUDModel();
     // console.log(this.serverCRUD.get());
+  }
+
+  public getSocket() {
+    return this.rsServerSocket;
   }
 
   public isHandshaked() {
@@ -83,7 +91,7 @@ class MainModel implements MainModelInterface {
         document.getElementById('server-menu-id').dispatchEvent(event);
 
         const respData: any = data;
-        this.rsServerSocket = new ServerSocketModel(respData.token);
+        this.rsServerSocket = new ServerSocketModel(this.controller, respData.token);
         this.rsServerSocket.init();
       });
   }

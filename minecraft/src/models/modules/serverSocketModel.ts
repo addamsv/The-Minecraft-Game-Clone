@@ -1,15 +1,14 @@
 import ServerSocketModelInterface from './ServerSocketModelInterface';
-import { ChatViewModelInterface, ChatViewModel } from './chatViewModel';
 import env from '../../configs/environmentVars';
+import MainControllerInterface from '../../controllers/mainControllerInterface';
+import ChatViewInterface from '../../views/chatView/chatViewInterface';
 
 class ServerSocketModel implements ServerSocketModelInterface {
+  private controller: MainControllerInterface;
+
   private USER_NAME: String;
 
-  private TEXTAREA_OBJ: HTMLElement;
-
   private ws: WebSocket;
-
-  private chatView: ChatViewModelInterface;
 
   private USER_TOKEN: String;
 
@@ -27,8 +26,11 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private playersTokens: Set<string>;
 
-  constructor(userToken = '') {
-    this.chatView = new ChatViewModel();
+  private chatView: ChatViewInterface;
+
+  constructor(controller: MainControllerInterface, userToken = '') {
+    this.controller = controller;
+    this.chatView = null;
     this.ws = null;
     this.WS_TOKEN = '';
     this.USER_NAME = '';
@@ -40,8 +42,6 @@ class ServerSocketModel implements ServerSocketModelInterface {
     this.playersTokens = new Set();
 
     this.HOST = env.socketHost;
-
-    this.TEXTAREA_OBJ = document.getElementById('sock-msg');
   }
 
   public isHandshaked() {
@@ -67,8 +67,6 @@ class ServerSocketModel implements ServerSocketModelInterface {
     this.ws.onmessage = this.messageReceived.bind(this);
     this.ws.onerror = this.connectionError.bind(this);
     this.ws.onclose = this.connectionClose.bind(this);
-
-    this.chatMessageListener();
   }
 
   public setSeed(seed: string) {
@@ -95,21 +93,6 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private sendSeed() {
     this.ws.send(`{"setSeed": "${this.GAME_SEED}"}`);
-  }
-
-  private chatMessageListener() {
-    const CONTEXT = this;
-    this.TEXTAREA_OBJ.onkeydown = (event: KeyboardEvent) => {
-      if (event.keyCode === 13) {
-        event.preventDefault();
-        CONTEXT.sendMessage((<HTMLTextAreaElement>(CONTEXT.TEXTAREA_OBJ)).value, 'chatMessage');
-      }
-    };
-  }
-
-  private connectionClose() {
-    this.ws.close();
-    this.chatView.appendSysMessage('connection closed');
   }
 
   private messageReceived(message: any) {
@@ -170,6 +153,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
     // Chat messages
     if (mess.chatMessage) {
+      console.log(mess.chatMessage);
       this.chatView.appendMessage(
         mess.userName,
         mess.chatMessage,
@@ -177,6 +161,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
       );
     }
     if (mess.chatServerMessage) {
+      console.log(mess.chatServerMessage);
       this.chatView.appendMessage('SERVER', mess.chatServerMessage, false);
     }
   }
@@ -194,13 +179,18 @@ class ServerSocketModel implements ServerSocketModelInterface {
     return this.WS_TOKEN === curWsToken;
   }
 
+  private connectionOpen() {
+    // this.ws.send(`{"userToken": "${this.USER_TOKEN}"}`);
+    this.chatView = this.controller.getChatView();
+  }
+
   private connectionError() {
     this.chatView.appendSysMessage('connection Error');
   }
 
-  // eslint-disable-next-line
-  private connectionOpen() {
-    // this.ws.send(`{"userToken": "${this.USER_TOKEN}"}`);
+  private connectionClose() {
+    this.ws.close();
+    this.chatView.appendSysMessage('connection closed');
   }
 }
 

@@ -1,4 +1,5 @@
 import { MainModelInterface, MainModel } from '../models/mainModel';
+import MainControllerInterface from './mainControllerInterface';
 import MenuView from '../views/menuView';
 import GameModel from '../models/gameModel';
 
@@ -6,7 +7,7 @@ interface PlayerEvent extends Event {
   which: number;
 }
 
-class MainController {
+class MainController implements MainControllerInterface {
   menuView: MenuView;
 
   gameModel: GameModel;
@@ -15,18 +16,89 @@ class MainController {
 
   isGamePause: boolean;
 
-  openChat: boolean;
+  isOpenChat: boolean;
 
   model: MainModelInterface;
 
   constructor() {
-    this.model = new MainModel();
+    this.model = new MainModel(this);
     this.isGameStart = false; // should be within the model (isGameStart) - state;
     this.isGamePause = true;
-    this.openChat = false;
-    this.menuView = new MenuView(this.model);
+    this.isOpenChat = false;
+    this.menuView = new MenuView(this, this.model);
     this.gameModel = new GameModel(this.model);
     this.prepareToStartGame();
+  }
+
+  startGame() {
+    if (!this.isGameStart) {
+      const seed = Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+      this.gameModel.generateWorld(seed);
+      this.createKeyboardControls();
+      document.body.appendChild(this.gameModel.stats.dom);
+      document.body.appendChild(this.gameModel.renderer.domElement);
+      this.gameModel.animationFrame();
+      this.isGameStart = true;
+    }
+    this.gameModel.control.lock();
+  }
+
+  openServerMenu() {
+    this.menuView.mainMenu.removeMenu();
+    this.menuView.serverMenu.attachMenu();
+  }
+
+  closeServerMenu() {
+    this.menuView.serverMenu.removeMenu();
+    this.menuView.mainMenu.attachMenu();
+  }
+
+  openSettingsMenu() {
+    this.menuView.mainMenu.removeMenu();
+    this.menuView.settingsMenu.attachMenu();
+  }
+
+  changeCameraSettings(far: number, fov: number) {
+    this.gameModel.camera.far = Number(far);
+    this.gameModel.camera.fov = Number(fov);
+    this.gameModel.camera.updateProjectionMatrix();
+  }
+
+  closeSettingsMenu() {
+    this.menuView.settingsMenu.removeMenu();
+    this.menuView.mainMenu.attachMenu();
+  }
+
+  openQuitConfirm() {
+    this.menuView.mainMenu.removeMenu();
+    this.menuView.quitConfirm.attachMenu();
+  }
+
+  // eslint-disable-next-line
+  quitGame() {
+    window.close();
+  }
+
+  closeQuitConfirm() {
+    this.menuView.quitConfirm.removeMenu();
+    this.menuView.mainMenu.attachMenu();
+  }
+
+  setChatStatus(message: string) {
+    this.isOpenChat = !this.isOpenChat;
+    if (this.isOpenChat) {
+      this.gameModel.control.unlock();
+      this.menuView.chatView.attachMenu();
+    } else {
+      this.gameModel.control.lock();
+      this.menuView.chatView.removeMenu();
+      const socket = this.model.getSocket();
+      socket.sendMessage(message, 'chatMessage');
+    }
+  }
+
+  getChatView() {
+    return this.menuView.chatView;
   }
 
   prepareToStartGame() {
@@ -34,59 +106,22 @@ class MainController {
     const controls = this.gameModel.control;
     controls.addEventListener('lock', () => {
       if (this.isGamePause) {
-        this.menuView.mainMenu.toggle();
+        this.menuView.mainMenu.removeMenu();
+        this.menuView.chatView.connect();
       }
       this.isGamePause = false;
     });
     controls.addEventListener('unlock', () => {
-      if (!this.openChat) {
+      if (!this.isOpenChat) {
         this.isGamePause = true;
-        this.menuView.mainMenu.toggle();
+        this.menuView.mainMenu.attachMenu();
+        this.menuView.chatView.disconnect();
       }
-    });
-
-    // mainMenu controls
-    const {
-      playBtn, serverBtn, settingsBtn, quitBtn,
-    } = this.menuView.mainMenu;
-    playBtn.addEventListener('click', () => {
-      if (!this.isGameStart) {
-        const seed = Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
-        this.gameModel.generateWorld(seed);
-        this.createKeyboardControls();
-        document.body.appendChild(this.gameModel.stats.dom);
-        document.body.appendChild(this.gameModel.renderer.domElement);
-        this.gameModel.animationFrame();
-        this.isGameStart = true;
-      }
-      controls.lock();
-    });
-    serverBtn.addEventListener('click', () => {
-      this.menuView.mainMenu.toggle();
-      this.menuView.serverMenu.toggle();
-    });
-    settingsBtn.addEventListener('click', () => {
-      this.menuView.mainMenu.toggle();
-      this.menuView.settingsMenu.toggle();
     });
 
     // serverMenu controls
-    const {
-      nickname, password, logIn, signUp, backToMainMenu,
-    } = this.menuView.serverMenu;
-    logIn.addEventListener('click', () => {
-      this.model.checkStrings(nickname.value, password.value, 'login');
-    });
-    signUp.addEventListener('click', () => {
-      this.model.checkStrings(nickname.value, password.value, 'signup');
-    });
-    backToMainMenu.addEventListener('click', () => {
-      this.menuView.mainMenu.toggle();
-      this.menuView.serverMenu.toggle();
-    });
     document.body.addEventListener('startservergame', () => {
       const seed = this.model.getSeed();
-      this.menuView.mainMenu.toggle();
       if (!this.isGameStart) {
         this.gameModel.generateWorld(seed);
         this.createKeyboardControls();
@@ -96,45 +131,6 @@ class MainController {
         this.isGameStart = true;
       }
       controls.lock();
-    });
-
-    // settingsMenu controls
-    const { langBtn, okBtn } = this.menuView.settingsMenu;
-    langBtn.addEventListener('click', () => {
-      switch (langBtn.textContent) {
-        case 'English': {
-          this.menuView.setLanguage('ru');
-          break;
-        }
-        case 'Русский': {
-          this.menuView.setLanguage('en');
-          break;
-        }
-        default: break;
-      }
-    });
-    okBtn.addEventListener('click', () => {
-      this.menuView.mainMenu.toggle();
-      this.menuView.settingsMenu.toggle();
-    });
-    document.getElementById('settings-screen-id').addEventListener('camera', (event: CustomEvent) => {
-      this.gameModel.camera.far = Number(event.detail.far);
-      this.gameModel.camera.fov = Number(event.detail.fov);
-      this.gameModel.camera.updateProjectionMatrix();
-    });
-
-    // quitGame controls
-    const { yesBtn, noBtn } = this.menuView.quitConfirm;
-    quitBtn.addEventListener('click', () => {
-      this.menuView.quitConfirm.toggle();
-      this.menuView.mainMenu.toggle();
-    });
-    yesBtn.addEventListener('click', () => {
-      window.close();
-    });
-    noBtn.addEventListener('click', () => {
-      this.menuView.quitConfirm.toggle();
-      this.menuView.mainMenu.toggle();
     });
   }
 
@@ -154,16 +150,6 @@ class MainController {
           this.gameModel.speed.y += 150;
         }
         this.gameModel.jump = false;
-        break;
-      }
-      case 84: {
-        this.openChat = !this.openChat;
-        if (this.openChat) {
-          this.gameModel.control.unlock();
-        } else {
-          this.gameModel.control.lock();
-        }
-        this.menuView.chat.toggle();
         break;
       }
       default: break;
