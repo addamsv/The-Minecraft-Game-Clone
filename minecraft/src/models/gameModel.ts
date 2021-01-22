@@ -128,12 +128,17 @@ class GameModel {
     const yPosTo = Number(evDetail.y);
     const increaseY = yInitialVal < yPosTo ? 1 : -1;
 
+    const cInitialVal = mesh.rotation.y;
+    const cPosTo = Number(evDetail.c);
+    const increaseC = cInitialVal < cPosTo ? 0.1 : -0.1;
+
     /* ROTATION */
-    mesh.rotation.y = Number(evDetail.c);
+    // mesh.rotation.y = Number(evDetail.c);
 
     let isXReturnFlagHoisted = false;
     let isZReturnFlagHoisted = false;
     let isYReturnFlagHoisted = false;
+    let isCReturnFlagHoisted = false;
 
     function renderPlayerMotion() {
       /* return */
@@ -141,6 +146,7 @@ class GameModel {
         isYReturnFlagHoisted
         && isXReturnFlagHoisted
         && isZReturnFlagHoisted
+        && isCReturnFlagHoisted
       ) {
         return;
       }
@@ -175,6 +181,17 @@ class GameModel {
           isYReturnFlagHoisted = true;
         } else {
           mesh.position.y += increaseY;
+        }
+      }
+
+      /* Cam rotation */
+      if (!isCReturnFlagHoisted) {
+        // eslint-disable-next-line max-len
+        if ((increaseC === -0.1 && cPosTo >= mesh.rotation.y) || (increaseC === 0.1 && cPosTo <= mesh.rotation.y)) {
+          mesh.rotation.y = cPosTo;
+          isCReturnFlagHoisted = true;
+        } else {
+          mesh.rotation.y += increaseC;
         }
       }
       requestAnimationFrame(renderPlayerMotion);
