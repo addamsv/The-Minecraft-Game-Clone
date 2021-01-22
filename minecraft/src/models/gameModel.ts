@@ -2,6 +2,7 @@ import * as THREE from 'three';
 // eslint-disable-next-line
 import MapWorker from 'worker-loader!./worker';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { Vector2, Vector3 } from 'three';
 import PointerLock from '../controllers/pointerLock/pointerLock';
 import PointerLockInterface from '../controllers/pointerLock/pointerLockInterface';
 import MainModelInterface from './mainModelInterface';
@@ -70,6 +71,8 @@ class GameModel {
 
   connectedPlayers: any;
 
+  private vector3: Vector3;
+
   constructor(model: MainModelInterface) {
     this.model = model;
     this.forward = false;
@@ -84,6 +87,7 @@ class GameModel {
     this.connectPlayers();
     this.connectedPlayers = {};
     this.night = false;
+    this.vector3 = new THREE.Vector3();
   }
 
   createScene() {
@@ -109,24 +113,81 @@ class GameModel {
       this.createNewPlayer(event.detail.token);
     });
     document.body.addEventListener('moveplayer', (event: CustomEvent) => {
-      this.smoothPlayerMotion(event.detail, 'x');
-      this.smoothPlayerMotion(event.detail, 'z');
+      this.smoothPlayerMotion(event.detail);
     });
   }
 
+  /*
   smoothPlayerMotion(evDetail: any, coords: any) {
     const initialVal = this.connectedPlayers[evDetail.token].position[coords];
     const zPosTo = evDetail[coords] * 1;
     const increaseZ = initialVal < zPosTo ? 1 : -1;
     const cnt = this;
-    function renderPlayerByZ() {
+    function renderPlayerMotion() {
       if (zPosTo === cnt.connectedPlayers[evDetail.token].position[coords]) {
         return;
       }
       cnt.connectedPlayers[evDetail.token].position[coords] += increaseZ;
-      requestAnimationFrame(renderPlayerByZ);
+      requestAnimationFrame(renderPlayerMotion);
     }
-    renderPlayerByZ();
+    renderPlayerMotion();
+  }
+ */
+  smoothPlayerMotion(evDetail: any) {
+    const mesh = this.connectedPlayers[evDetail.token];
+
+    const zInitialVal = mesh.position.z;
+    const zPosTo = evDetail.z * 1;
+    const increaseZ = zInitialVal < zPosTo ? 1 : -1;
+
+    const xInitialVal = mesh.position.x;
+    const xPosTo = evDetail.x * 1;
+    const increaseX = xInitialVal < xPosTo ? 1 : -1;
+
+    const yInitialVal = mesh.position.y;
+    const yPosTo = evDetail.y * 1;
+    const increaseY = yInitialVal < yPosTo ? 1 : -1;
+
+    mesh.rotation.y = evDetail.c * 1;
+
+    let isXReturnFlagHoisted = false;
+    let isZReturnFlagHoisted = false;
+    let isYReturnFlagHoisted = false;
+
+    function renderPlayerMotion() {
+      /* return */
+      if (
+        isYReturnFlagHoisted
+        && isXReturnFlagHoisted
+        && isZReturnFlagHoisted
+      ) {
+        return;
+      }
+
+      /* Z */
+      if (zPosTo === mesh.position.z) {
+        isZReturnFlagHoisted = true;
+      } else {
+        mesh.position.z += increaseZ;
+      }
+
+      /* X */
+      if (xPosTo === mesh.position.x) {
+        isXReturnFlagHoisted = true;
+      } else {
+        mesh.position.x += increaseX;
+      }
+
+      /* Y */
+      if (yPosTo === mesh.position.y) {
+        isYReturnFlagHoisted = true;
+      } else {
+        mesh.position.y += increaseY;
+      }
+
+      requestAnimationFrame(renderPlayerMotion);
+    }
+    renderPlayerMotion();
   }
 
   createNewPlayer(token: string) {
@@ -329,21 +390,26 @@ class GameModel {
   }
 
   animationFrame() {
+    const vector3 = this.camera.getWorldDirection(this.vector3);
     this.stats.begin();
     this.jump = false;
     const time = performance.now();
 
     // how often should send to the server
     const period = 1000; // in ms
-
     // send player coordinates to the server
     const pingTime = Math.trunc(time / period);
     if (this.model.isHandshaked() && this.lastPing !== pingTime) {
       this.lastPing = pingTime;
+      // 180 / Math.PI =  57.295779513082320876798154814105170332405472466564321549160243861202847148321552632440968995851110944
+      // Math.PI / 180 =  0.0174532925199432957692369076848861271344287188854172545609719144017100911460344944368224156963450948
+      // console.log('deg', (Math.atan2(vector3.x, vector3.z)) * 57.2957795130823208767);
 
       this.model.sendHeroCoordinates(
         String(Math.trunc(this.camera.position.x)), // / 10
         String(Math.trunc(this.camera.position.z)),
+        String(Math.trunc(this.camera.position.y)),
+        String(Math.trunc(Math.atan2(vector3.x, vector3.z) * 57.2957795130823208767)),
       );
     }
 
