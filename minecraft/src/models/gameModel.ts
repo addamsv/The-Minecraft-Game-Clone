@@ -2,7 +2,6 @@ import * as THREE from 'three';
 // eslint-disable-next-line
 import MapWorker from 'worker-loader!./worker';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
-import { Vector2, Vector3 } from 'three';
 import PointerLock from '../controllers/pointerLock/pointerLock';
 import PointerLockInterface from '../controllers/pointerLock/pointerLockInterface';
 import MainModelInterface from './mainModelInterface';
@@ -71,8 +70,6 @@ class GameModel {
 
   connectedPlayers: any;
 
-  private vector3: Vector3;
-
   constructor(model: MainModelInterface) {
     this.model = model;
     this.forward = false;
@@ -87,7 +84,6 @@ class GameModel {
     this.connectPlayers();
     this.connectedPlayers = {};
     this.night = false;
-    this.vector3 = new THREE.Vector3();
   }
 
   createScene() {
@@ -121,21 +117,19 @@ class GameModel {
     const mesh = this.connectedPlayers[evDetail.token];
 
     const zInitialVal = mesh.position.z;
-    const zPosTo = evDetail.z * 1;
+    const zPosTo = Number(evDetail.z);
     const increaseZ = zInitialVal < zPosTo ? 1 : -1;
 
     const xInitialVal = mesh.position.x;
-    const xPosTo = evDetail.x * 1;
+    const xPosTo = Number(evDetail.x);
     const increaseX = xInitialVal < xPosTo ? 1 : -1;
 
     const yInitialVal = mesh.position.y;
-    const yPosTo = evDetail.y * 1;
+    const yPosTo = Number(evDetail.y);
     const increaseY = yInitialVal < yPosTo ? 1 : -1;
 
-    mesh.rotation.y = evDetail.c * 1;
-    // console.log('rotation:', mesh.rotation.y);
-    // console.log('z:', zInitialVal, Math.abs(Math.abs(zInitialVal) - Math.abs(zPosTo)));
-    // console.log('x:', xInitialVal, Math.abs(Math.abs(xInitialVal) - Math.abs(xPosTo)));
+    /* ROTATION */
+    mesh.rotation.y = Number(evDetail.c);
 
     let isXReturnFlagHoisted = false;
     let isZReturnFlagHoisted = false;
@@ -152,30 +146,34 @@ class GameModel {
       }
 
       /* Z */
-      console.log(zPosTo, mesh.position.z, increaseZ);
-      // eslint-disable-next-line max-len
-      if ((increaseZ === -1 && zPosTo >= mesh.position.z) || (increaseZ === 1 && zPosTo <= mesh.position.z)) {
-        isZReturnFlagHoisted = true;
-      } else {
-        mesh.position.z += increaseZ;
+      if (!isZReturnFlagHoisted) {
+        // eslint-disable-next-line max-len
+        if ((increaseZ === -1 && zPosTo >= mesh.position.z) || (increaseZ === 1 && zPosTo <= mesh.position.z)) {
+          isZReturnFlagHoisted = true;
+        } else {
+          mesh.position.z += increaseZ;
+        }
       }
 
       /* X */
-      // eslint-disable-next-line max-len
-      if ((increaseX === -1 && xPosTo >= mesh.position.x) || (increaseX === 1 && xPosTo <= mesh.position.x)) {
-      // if (xPosTo === mesh.position.x) {
-        isXReturnFlagHoisted = true;
-      } else {
-        mesh.position.x += increaseX;
+      if (!isYReturnFlagHoisted) {
+        // eslint-disable-next-line max-len
+        if ((increaseX === -1 && xPosTo >= mesh.position.x) || (increaseX === 1 && xPosTo <= mesh.position.x)) {
+        // if (xPosTo === mesh.position.x) {
+          isXReturnFlagHoisted = true;
+        } else {
+          mesh.position.x += increaseX;
+        }
       }
 
       /* Y */
-      // if (yPosTo === mesh.position.y) {
-      // eslint-disable-next-line max-len
-      if ((increaseY === -1 && yPosTo >= mesh.position.y) || (increaseY === 1 && yPosTo <= mesh.position.y)) {
-        isYReturnFlagHoisted = true;
-      } else {
-        mesh.position.y += increaseY;
+      if (!isYReturnFlagHoisted) {
+        // eslint-disable-next-line max-len
+        if ((increaseY === -1 && yPosTo >= mesh.position.y) || (increaseY === 1 && yPosTo <= mesh.position.y)) {
+          isYReturnFlagHoisted = true;
+        } else {
+          mesh.position.y += increaseY;
+        }
       }
       requestAnimationFrame(renderPlayerMotion);
     }
@@ -382,7 +380,6 @@ class GameModel {
   }
 
   animationFrame() {
-    const vector3 = this.camera.getWorldDirection(this.vector3);
     this.stats.begin();
     this.jump = false;
     const time = performance.now();
@@ -393,15 +390,11 @@ class GameModel {
     const pingTime = Math.trunc(time / period);
     if (this.model.isHandshaked() && this.lastPing !== pingTime) {
       this.lastPing = pingTime;
-      // 180 / Math.PI =  57.295779513082320876798154814105170332405472466564321549160243861202847148321552632440968995851110944
-      // Math.PI / 180 =  0.0174532925199432957692369076848861271344287188854172545609719144017100911460344944368224156963450948
-      // console.log('deg', (Math.atan2(vector3.x, vector3.z)) * 57.2957795130823208767);
-
       this.model.sendHeroCoordinates(
-        String(Math.trunc(this.camera.position.x)), // / 10
+        String(Math.trunc(this.camera.position.x)),
         String(Math.trunc(this.camera.position.z)),
         String(Math.trunc(this.camera.position.y)),
-        String(Math.trunc(Math.atan2(vector3.x, vector3.z) * 57.2957795130823208767)),
+        String(this.camera.rotation.y),
       );
     }
 
