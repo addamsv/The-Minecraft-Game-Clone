@@ -149,6 +149,7 @@ class GameModel {
       if (!isZReturnFlagHoisted) {
         // eslint-disable-next-line max-len
         if ((increaseZ === -1 && zPosTo >= mesh.position.z) || (increaseZ === 1 && zPosTo <= mesh.position.z)) {
+          mesh.position.z = zPosTo;
           isZReturnFlagHoisted = true;
         } else {
           mesh.position.z += increaseZ;
@@ -156,10 +157,10 @@ class GameModel {
       }
 
       /* X */
-      if (!isYReturnFlagHoisted) {
+      if (!isXReturnFlagHoisted) {
         // eslint-disable-next-line max-len
         if ((increaseX === -1 && xPosTo >= mesh.position.x) || (increaseX === 1 && xPosTo <= mesh.position.x)) {
-        // if (xPosTo === mesh.position.x) {
+          mesh.position.x = xPosTo;
           isXReturnFlagHoisted = true;
         } else {
           mesh.position.x += increaseX;
@@ -170,6 +171,7 @@ class GameModel {
       if (!isYReturnFlagHoisted) {
         // eslint-disable-next-line max-len
         if ((increaseY === -1 && yPosTo >= mesh.position.y) || (increaseY === 1 && yPosTo <= mesh.position.y)) {
+          mesh.position.y = yPosTo;
           isYReturnFlagHoisted = true;
         } else {
           mesh.position.y += increaseY;
