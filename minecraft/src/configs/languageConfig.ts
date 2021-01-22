@@ -1,5 +1,8 @@
 const languageConfig = {
   en: {
+    chatView: {
+      placeholder: 'Enter Message',
+    },
     mainMenu: {
       playBtn: 'Play game',
       serverBtn: 'Join game',
@@ -28,6 +31,9 @@ const languageConfig = {
     },
   },
   ru: {
+    chatView: {
+      placeholder: 'Напишите сообщение',
+    },
     mainMenu: {
       playBtn: 'Играть',
       serverBtn: 'Сетевая игра',
