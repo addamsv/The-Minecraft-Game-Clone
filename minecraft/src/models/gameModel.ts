@@ -117,22 +117,6 @@ class GameModel {
     });
   }
 
-  /*
-  smoothPlayerMotion(evDetail: any, coords: any) {
-    const initialVal = this.connectedPlayers[evDetail.token].position[coords];
-    const zPosTo = evDetail[coords] * 1;
-    const increaseZ = initialVal < zPosTo ? 1 : -1;
-    const cnt = this;
-    function renderPlayerMotion() {
-      if (zPosTo === cnt.connectedPlayers[evDetail.token].position[coords]) {
-        return;
-      }
-      cnt.connectedPlayers[evDetail.token].position[coords] += increaseZ;
-      requestAnimationFrame(renderPlayerMotion);
-    }
-    renderPlayerMotion();
-  }
- */
   smoothPlayerMotion(evDetail: any) {
     const mesh = this.connectedPlayers[evDetail.token];
 
@@ -149,6 +133,9 @@ class GameModel {
     const increaseY = yInitialVal < yPosTo ? 1 : -1;
 
     mesh.rotation.y = evDetail.c * 1;
+    // console.log('rotation:', mesh.rotation.y);
+    // console.log('z:', zInitialVal, Math.abs(Math.abs(zInitialVal) - Math.abs(zPosTo)));
+    // console.log('x:', xInitialVal, Math.abs(Math.abs(xInitialVal) - Math.abs(xPosTo)));
 
     let isXReturnFlagHoisted = false;
     let isZReturnFlagHoisted = false;
@@ -165,26 +152,31 @@ class GameModel {
       }
 
       /* Z */
-      if (zPosTo === mesh.position.z) {
+      console.log(zPosTo, mesh.position.z, increaseZ);
+      // eslint-disable-next-line max-len
+      if ((increaseZ === -1 && zPosTo >= mesh.position.z) || (increaseZ === 1 && zPosTo <= mesh.position.z)) {
         isZReturnFlagHoisted = true;
       } else {
         mesh.position.z += increaseZ;
       }
 
       /* X */
-      if (xPosTo === mesh.position.x) {
+      // eslint-disable-next-line max-len
+      if ((increaseX === -1 && xPosTo >= mesh.position.x) || (increaseX === 1 && xPosTo <= mesh.position.x)) {
+      // if (xPosTo === mesh.position.x) {
         isXReturnFlagHoisted = true;
       } else {
         mesh.position.x += increaseX;
       }
 
       /* Y */
-      if (yPosTo === mesh.position.y) {
+      // if (yPosTo === mesh.position.y) {
+      // eslint-disable-next-line max-len
+      if ((increaseY === -1 && yPosTo >= mesh.position.y) || (increaseY === 1 && yPosTo <= mesh.position.y)) {
         isYReturnFlagHoisted = true;
       } else {
         mesh.position.y += increaseY;
       }
-
       requestAnimationFrame(renderPlayerMotion);
     }
     renderPlayerMotion();
