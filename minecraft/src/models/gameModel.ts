@@ -109,24 +109,94 @@ class GameModel {
       this.createNewPlayer(event.detail.token);
     });
     document.body.addEventListener('moveplayer', (event: CustomEvent) => {
-      this.smoothPlayerMotion(event.detail, 'x');
-      this.smoothPlayerMotion(event.detail, 'z');
+      this.smoothPlayerMotion(event.detail);
     });
   }
 
-  smoothPlayerMotion(evDetail: any, coords: any) {
-    const initialVal = this.connectedPlayers[evDetail.token].position[coords];
-    const zPosTo = evDetail[coords] * 1;
-    const increaseZ = initialVal < zPosTo ? 1 : -1;
-    const cnt = this;
-    function renderPlayerByZ() {
-      if (zPosTo === cnt.connectedPlayers[evDetail.token].position[coords]) {
+  smoothPlayerMotion(evDetail: any) {
+    const mesh = this.connectedPlayers[evDetail.token];
+
+    const zInitialVal = mesh.position.z;
+    const zPosTo = Number(evDetail.z);
+    const increaseZ = zInitialVal < zPosTo ? 1 : -1;
+
+    const xInitialVal = mesh.position.x;
+    const xPosTo = Number(evDetail.x);
+    const increaseX = xInitialVal < xPosTo ? 1 : -1;
+
+    const yInitialVal = mesh.position.y;
+    const yPosTo = Number(evDetail.y);
+    const increaseY = yInitialVal < yPosTo ? 1 : -1;
+
+    const cInitialVal = mesh.rotation.y;
+    const cPosTo = Number(evDetail.c);
+    const increaseC = cInitialVal < cPosTo ? 0.1 : -0.1;
+
+    /* ROTATION */
+    // mesh.rotation.y = Number(evDetail.c);
+
+    let isXReturnFlagHoisted = false;
+    let isZReturnFlagHoisted = false;
+    let isYReturnFlagHoisted = false;
+    let isCReturnFlagHoisted = false;
+
+    function renderPlayerMotion() {
+      /* return */
+      if (
+        isYReturnFlagHoisted
+        && isXReturnFlagHoisted
+        && isZReturnFlagHoisted
+        && isCReturnFlagHoisted
+      ) {
         return;
       }
-      cnt.connectedPlayers[evDetail.token].position[coords] += increaseZ;
-      requestAnimationFrame(renderPlayerByZ);
+
+      /* Z */
+      if (!isZReturnFlagHoisted) {
+        // eslint-disable-next-line max-len
+        if ((increaseZ === -1 && zPosTo >= mesh.position.z) || (increaseZ === 1 && zPosTo <= mesh.position.z)) {
+          mesh.position.z = zPosTo;
+          isZReturnFlagHoisted = true;
+        } else {
+          mesh.position.z += increaseZ;
+        }
+      }
+
+      /* X */
+      if (!isXReturnFlagHoisted) {
+        // eslint-disable-next-line max-len
+        if ((increaseX === -1 && xPosTo >= mesh.position.x) || (increaseX === 1 && xPosTo <= mesh.position.x)) {
+          mesh.position.x = xPosTo;
+          isXReturnFlagHoisted = true;
+        } else {
+          mesh.position.x += increaseX;
+        }
+      }
+
+      /* Y */
+      if (!isYReturnFlagHoisted) {
+        // eslint-disable-next-line max-len
+        if ((increaseY === -1 && yPosTo >= mesh.position.y) || (increaseY === 1 && yPosTo <= mesh.position.y)) {
+          mesh.position.y = yPosTo;
+          isYReturnFlagHoisted = true;
+        } else {
+          mesh.position.y += increaseY;
+        }
+      }
+
+      /* Cam rotation */
+      if (!isCReturnFlagHoisted) {
+        // eslint-disable-next-line max-len
+        if ((increaseC === -0.1 && cPosTo >= mesh.rotation.y) || (increaseC === 0.1 && cPosTo <= mesh.rotation.y)) {
+          mesh.rotation.y = cPosTo;
+          isCReturnFlagHoisted = true;
+        } else {
+          mesh.rotation.y += increaseC;
+        }
+      }
+      requestAnimationFrame(renderPlayerMotion);
     }
-    renderPlayerByZ();
+    renderPlayerMotion();
   }
 
   createNewPlayer(token: string) {
@@ -335,15 +405,15 @@ class GameModel {
 
     // how often should send to the server
     const period = 1000; // in ms
-
     // send player coordinates to the server
     const pingTime = Math.trunc(time / period);
     if (this.model.isHandshaked() && this.lastPing !== pingTime) {
       this.lastPing = pingTime;
-
       this.model.sendHeroCoordinates(
-        String(Math.trunc(this.camera.position.x)), // / 10
+        String(Math.trunc(this.camera.position.x)),
         String(Math.trunc(this.camera.position.z)),
+        String(Math.trunc(this.camera.position.y)),
+        String(this.camera.rotation.y),
       );
     }
 

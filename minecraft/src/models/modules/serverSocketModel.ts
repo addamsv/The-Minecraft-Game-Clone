@@ -80,11 +80,12 @@ class ServerSocketModel implements ServerSocketModelInterface {
   /**
    * @param x: String - X coordinate
    * @param z: String - Z coordinate
+   * @param y: String - Y coordinate
    * @param c: String - Camera Angle
    * number 1 before object in sendCoordinates is code for server
   */
-  public sendCoordinates(x: String, z: String) {
-    this.ws.send(`1{"gameMessage": "${this.WS_TOKEN}", "x": "${x}", "z": "${z}", "c": "camera"}`);
+  public sendCoordinates(x: String, z: String, y: String, c: String) {
+    this.ws.send(`1{"gameMessage": "${this.WS_TOKEN}", "x": "${x}", "z": "${z}", "y": "${y}", "c": "${c}"}`);
   }
 
   /*
@@ -147,7 +148,11 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
     // Dispatch event with player coordinates to GameModel
     if (mess.gameMessage) {
-      const event = new CustomEvent('moveplayer', { detail: { token: mess.gameMessage, x: mess.x, z: mess.z } });
+      const event = new CustomEvent('moveplayer', {
+        detail: {
+          token: mess.gameMessage, x: mess.x, z: mess.z, y: mess.y, c: mess.c,
+        },
+      });
       document.body.dispatchEvent(event);
     }
 

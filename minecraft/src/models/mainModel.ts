@@ -36,9 +36,9 @@ class MainModel implements MainModelInterface {
     return this.rsServerSocket ? this.rsServerSocket.isHandshaked() : false;
   }
 
-  public sendHeroCoordinates(x: String, z: String) {
+  public sendHeroCoordinates(x: String, z: String, y: String, c: String) {
     if (this.rsServerSocket) {
-      this.rsServerSocket.sendCoordinates(x, z);
+      this.rsServerSocket.sendCoordinates(x, z, y, c);
     }
   }
 
