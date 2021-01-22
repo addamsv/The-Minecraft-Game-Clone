@@ -2,6 +2,7 @@ import MainControllerInterface from '../../controllers/mainControllerInterface';
 import MainModelInterface from '../../models/mainModelInterface';
 import ViewsInterface from '../viewsInterface';
 import ChatViewInterface from './chatViewInterface';
+import languageConfig from '../../configs/languageConfig';
 
 class ChatView implements ViewsInterface, ChatViewInterface {
   private controller: MainControllerInterface;
@@ -64,6 +65,13 @@ class ChatView implements ViewsInterface, ChatViewInterface {
   }
 
   public addTextContent(language: string) {
+    let languageData;
+    switch (language) {
+      case 'en': languageData = languageConfig.en.chatView; break;
+      case 'ru': languageData = languageConfig.ru.chatView; break;
+      default: break;
+    }
+    this.input.placeholder = languageData.placeholder;
   }
 
   private createMenu() {
@@ -73,13 +81,19 @@ class ChatView implements ViewsInterface, ChatViewInterface {
     this.sockInfo = document.createElement('div');
     this.input = document.createElement('textarea');
 
-    this.container.id = 'chat-container';
-    this.scrollContainer.id = 'scroll-container';
-    this.sockContainer.id = 'sock-container';
-    this.sockInfo.id = 'sock-info';
-    this.input.id = 'sock-msg';
+    // this.container.id = 'chat-container';
+    // this.scrollContainer.id = 'scroll-container';
+    // this.sockContainer.id = 'sock-container';
+    // this.sockInfo.id = 'sock-info';
+    // this.input.id = 'sock-msg';
     this.input.placeholder = 'Please Enter Your Message';
     this.input.autofocus = true;
+
+    this.container.classList.add('chat-container');
+    this.scrollContainer.classList.add('scroll-container');
+    this.sockContainer.classList.add('sock-container');
+    this.sockInfo.classList.add('sock-info');
+    this.input.classList.add('sock-msg');
 
     this.sockContainer.append(this.sockInfo);
     this.scrollContainer.append(this.sockContainer);
@@ -87,6 +101,14 @@ class ChatView implements ViewsInterface, ChatViewInterface {
 
     this.setChatStatus = this.controller.setChatStatus.bind(this.controller);
     this.chatHandler = this.handleChat.bind(this);
+
+    // test chat
+    this.appendMessage('lily', 'Чтобы убрать чатик в одиночной игре', false);
+    this.appendMessage('lily', 'зайди в файл chatViev.ts', true);
+    this.appendMessage('lily', 'там комментарием обозначено', false);
+    this.appendMessage('lily', 'Это был просто тестовый вариант', true);
+    this.appendMessage('lily', 'чтобы каждый раз не заходить в сетевую игру', true);
+    this.appendMessage('lily', ':P', false);
   }
 
   handleChat(event: any) {
