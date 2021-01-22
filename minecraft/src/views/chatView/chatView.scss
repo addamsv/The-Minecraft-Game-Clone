@@ -4,7 +4,7 @@
   font-family: "Press Start 2P", cursive;
 }
 
-#chat-container {
+.chat-container {
   width: 26vw;
   position: absolute;
   bottom: 1.5vw;
@@ -16,7 +16,7 @@
   border-radius: 0.3vw;
   box-shadow: 0px 2vw 2vw rgba(0, 0, 0, 0.144);
 
-  #scroll-container {
+  .scroll-container {
     height: 18vw;
     max-height: 18vw;
     overflow-y: auto;
@@ -29,7 +29,7 @@
       margin: 0.1em 6em 1.2em 1.1em;
       padding: 0.3vw 0.7vw 0.3vw 1vw;
       border-radius: 1vw 1vw 1vw 0;
-      background: rgba(0, 0, 0, 0.37);
+      background: rgba(0, 0, 0, 0.404);
       box-shadow: 0.1vw 0.1vw 0.6vw #0005;
       float: left;
       clear: left;
@@ -37,7 +37,7 @@
     .user-sock-info {
       margin: 0.1em 1em 1.2em 6em;
       border-radius: 1vw 1vw 0 1vw;
-      background: rgba(0, 0, 0, 0.27);
+      background: rgba(0, 0, 0, 0.37);
       border-radius: 1vw 1vw 0 1vw;
       float: right;
       clear: right;
@@ -48,11 +48,11 @@
     }
   }
 
-  #scroll-container::-webkit-scrollbar {
+  .scroll-container::-webkit-scrollbar {
     width: 0.5vw;
   }
 
-  #scroll-container::-webkit-scrollbar-thumb {
+  .scroll-container::-webkit-scrollbar-thumb {
     background-color: rgba(0, 0, 0, 0.418);
     border-radius: 0.7vw;
   }

@@ -81,13 +81,19 @@ class ChatView implements ViewsInterface, ChatViewInterface {
     this.sockInfo = document.createElement('div');
     this.input = document.createElement('textarea');
 
-    this.container.id = 'chat-container';
-    this.scrollContainer.id = 'scroll-container';
-    this.sockContainer.id = 'sock-container';
-    this.sockInfo.id = 'sock-info';
-    this.input.id = 'sock-msg';
+    // this.container.id = 'chat-container';
+    // this.scrollContainer.id = 'scroll-container';
+    // this.sockContainer.id = 'sock-container';
+    // this.sockInfo.id = 'sock-info';
+    // this.input.id = 'sock-msg';
     this.input.placeholder = 'Please Enter Your Message';
     this.input.autofocus = true;
+
+    this.container.classList.add('chat-container');
+    this.scrollContainer.classList.add('scroll-container');
+    this.sockContainer.classList.add('sock-container');
+    this.sockInfo.classList.add('sock-info');
+    this.input.classList.add('sock-msg');
 
     this.sockContainer.append(this.sockInfo);
     this.scrollContainer.append(this.sockContainer);
