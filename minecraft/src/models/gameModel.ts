@@ -112,12 +112,12 @@ class GameModel {
 
   private takeLantern() {
     this.scene.add(this.pointLight);
-    this.gameView.takeLantern();
+    this.gameView.addLanternClass();
   }
 
   private hideLantern() {
     this.scene.remove(this.pointLight);
-    this.gameView.hideLantern();
+    this.gameView.removeLanternClass();
   }
 
   createScene() {

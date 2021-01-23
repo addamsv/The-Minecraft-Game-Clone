@@ -54,11 +54,11 @@ class GameView implements GameViewInterface {
     this.removeEventListeners();
   }
 
-  public takeLantern() {
+  public addLanternClass() {
     this.lightIcon.classList.add('in-hand');
   }
 
-  public hideLantern() {
+  public removeLanternClass() {
     this.lightIcon.classList.remove('in-hand');
   }
 
