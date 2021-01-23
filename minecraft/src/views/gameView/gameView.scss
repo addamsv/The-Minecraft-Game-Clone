@@ -1,0 +1,42 @@
+.player-interface {
+  position: absolute;
+  left: 40vw;
+  top: 85vh;
+  display: flex;
+  justify-content: space-between;
+  width: 20vw;
+
+  .light,
+  .sword {
+    width: 7vw;
+    height: 7vw;
+    border-radius: 50%;
+    box-sizing: border-box;
+    padding-left: 4.5vw;
+    padding-top: 4.5vw;
+
+    .light-control,
+    .sword-control {
+      font-size: 1.5vw;
+      color: white;
+    }
+  }
+
+  .light {
+    background: url(../../assets/textures/lantern.svg) no-repeat,
+      rgba(0, 0, 0, 0.445);
+    background-size: 3.5vw;
+    background-position: center;
+  }
+
+  .sword {
+    background: url(../../assets/textures/sword.svg) no-repeat,
+      rgba(0, 0, 0, 0.445);
+    background-size: 4.5vw;
+    background-position: center;
+  }
+
+  .in-hand {
+    border: white 2px solid;
+  }
+}

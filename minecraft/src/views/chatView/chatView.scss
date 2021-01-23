@@ -14,7 +14,6 @@
   padding: 0.5vw 0;
   padding-bottom: 3.4vw;
   border-radius: 0.3vw;
-  box-shadow: 0px 2vw 2vw rgba(0, 0, 0, 0.144);
 
   .scroll-container {
     height: 18vw;
@@ -59,6 +58,7 @@
 
   textarea {
     position: absolute;
+    text-align: center;
     top: 18.5vw;
     width: 98.5%;
     height: 2.8vw;

@@ -21,6 +21,8 @@ interface MainControllerInterface {
 
   createKeyboardControls(): void;
 
+  playerControls(event: any): any;
+
   // onKeyDown(event: PlayerEvent): void;
 
   // onKeyUp(event: PlayerEvent): void;

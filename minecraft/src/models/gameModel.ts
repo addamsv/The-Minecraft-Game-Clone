@@ -58,7 +58,7 @@ class GameModel {
 
   pointLight: THREE.PointLight;
 
-  night: boolean;
+  private isNight: boolean;
 
   lastChange: number;
 
@@ -69,6 +69,12 @@ class GameModel {
   seed: string;
 
   connectedPlayers: any;
+
+  private isLantern: boolean;
+
+  private gameView: any;
+
+  private isLockPosition: number;
 
   constructor(model: MainModelInterface) {
     this.model = model;
@@ -83,7 +89,35 @@ class GameModel {
     this.createScene();
     this.connectPlayers();
     this.connectedPlayers = {};
-    this.night = false;
+    this.isNight = false;
+    this.isLantern = false;
+    this.gameView = null;
+    this.isLockPosition = 1; // or 0
+  }
+
+  public setGameView(gameView: any) {
+    this.gameView = gameView;
+  }
+
+  public changeLanternStatus() {
+    if (this.isNight) {
+      if (this.isLantern) {
+        this.hideLantern();
+      } else {
+        this.takeLantern();
+      }
+      this.isLantern = !this.isLantern;
+    }
+  }
+
+  private takeLantern() {
+    this.scene.add(this.pointLight);
+    this.gameView.takeLantern();
+  }
+
+  private hideLantern() {
+    this.scene.remove(this.pointLight);
+    this.gameView.hideLantern();
   }
 
   createScene() {
@@ -203,12 +237,15 @@ class GameModel {
     const playerGeometry = new THREE.BoxGeometry(10, 10, 10);
     const playerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
     const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
-    playerMesh.position.y = 20;
+    playerMesh.position.y = 700;
     this.connectedPlayers[token] = playerMesh;
     this.scene.add(playerMesh);
   }
 
   generateWorld(seed: string) {
+    setTimeout(() => {
+      this.isLockPosition = 1;
+    }, 10000);
     this.seed = seed;
     this.stats = Stats();
     this.stats.showPanel(0);
@@ -222,7 +259,7 @@ class GameModel {
     this.speed = new THREE.Vector3();
     this.direction = new THREE.Vector3();
 
-    this.camera.position.y = 200;
+    this.camera.position.y = 700;
     this.camera.position.x = (this.chunkSize / 2) * 10;
     this.camera.position.z = (this.chunkSize / 2) * 10;
 
@@ -372,19 +409,17 @@ class GameModel {
   }
 
   changeLight() {
-    this.night = !this.night;
-    if (this.night) {
+    if (!this.isNight) {
       // sky
       this.scene.fog = new THREE.FogExp2(0x000000, 0.001);
       this.scene.background = new THREE.Color(0x000000);
 
       // ambient
       this.scene.remove(this.ambientLight);
-      this.ambientLight = new THREE.AmbientLight(0xffffff, 0.2);
+      this.ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
       this.scene.add(this.ambientLight);
 
       this.scene.remove(this.directionalLight);
-      this.scene.add(this.pointLight);
     } else {
       this.scene.fog = new THREE.FogExp2(0xffffff, 0.001);
       this.scene.background = new THREE.Color(0x87CEEB);
@@ -393,9 +428,10 @@ class GameModel {
       this.ambientLight = new THREE.AmbientLight(0xcccccc);
       this.scene.add(this.ambientLight);
 
-      this.scene.remove(this.pointLight);
+      this.hideLantern();
       this.scene.add(this.directionalLight);
     }
+    this.isNight = !this.isNight;
   }
 
   animationFrame() {
@@ -418,7 +454,7 @@ class GameModel {
     }
 
     // check time to update light
-    const dayLength = 100000; // in ms
+    const dayLength = 20000; // in ms
     const dayTime = Math.trunc(time / dayLength);
     if (dayTime && dayTime !== this.lastChange) {
       this.lastChange = dayTime;
@@ -447,9 +483,9 @@ class GameModel {
     }
     if (this.control.isLocked) {
       const delta = (time - this.time) / 1000;
-      this.speed.x -= this.speed.x * 10.0 * delta;
-      this.speed.z -= this.speed.z * 10.0 * delta;
-      this.speed.y -= 9.8 * 50.0 * delta;
+      this.speed.x -= this.speed.x * 10.0 * delta * this.isLockPosition;
+      this.speed.z -= this.speed.z * 10.0 * delta * this.isLockPosition;
+      this.speed.y -= 9.8 * 50.0 * delta * this.isLockPosition;
       this.direction.z = Number(this.forward) - Number(this.backward);
       this.direction.x = Number(this.right) - Number(this.left);
 
@@ -467,6 +503,7 @@ class GameModel {
       let up = 15;
       if (falling.length) {
         if (falling[0].object.name === 'water') {
+          this.speed.y = 0;
           this.raycaster.far = 5;
           this.control.SPEED = 0.75;
           up = 2.5;
@@ -476,7 +513,9 @@ class GameModel {
           up = 15;
         }
         this.speed.y = Math.max(0, this.speed.y);
-        this.jump = true;
+        if (this.speed.y <= 0) {
+          this.jump = true;
+        }
         if (falling[0].distance < up) {
           this.speed.z = 0;
           this.speed.x = 0;
