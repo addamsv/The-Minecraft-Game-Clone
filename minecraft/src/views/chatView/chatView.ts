@@ -101,14 +101,6 @@ class ChatView implements ViewsInterface, ChatViewInterface {
 
     this.setChatStatus = this.controller.setChatStatus.bind(this.controller);
     this.chatHandler = this.handleChat.bind(this);
-
-    // test chat
-    this.appendMessage('lily', 'Чтобы убрать чатик в одиночной игре', false);
-    this.appendMessage('lily', 'зайди в файл chatViev.ts', true);
-    this.appendMessage('lily', 'там комментарием обозначено', false);
-    this.appendMessage('lily', 'Это был просто тестовый вариант', true);
-    this.appendMessage('lily', 'чтобы каждый раз не заходить в сетевую игру', true);
-    this.appendMessage('lily', ':P', false);
   }
 
   handleChat(event: any) {

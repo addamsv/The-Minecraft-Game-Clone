@@ -3,26 +3,29 @@ import ServerMenu from './serverMenu';
 import SettingsMenu from './settingsMenu';
 import QuitConfirm from './quitConfirm';
 import ChatView from './chatView';
+import GameView from './gameView';
 import MainControllerInterface from '../controllers/mainControllerInterface';
 import MainModelInterface from '../models/mainModelInterface';
 import settingsConfig from '../configs/settingsConfig';
+import GameViewInterface from './gameView/gameViewInterface';
 import ViewsInterface from './viewsInterface';
 import MenuViewInterface from './menuViewInteface';
 
 class MenuView implements MenuViewInterface {
-  currentView: ViewsInterface;
+  gameView: GameViewInterface;
 
-  mainMenu: MainMenu;
+  mainMenu: ViewsInterface;
 
-  serverMenu: ServerMenu;
+  serverMenu: ViewsInterface;
 
-  settingsMenu: SettingsMenu;
+  settingsMenu: ViewsInterface;
 
-  quitConfirm: QuitConfirm;
+  quitConfirm: ViewsInterface;
 
   chatView: ChatView;
 
   constructor(controller: MainControllerInterface, model: MainModelInterface) {
+    this.gameView = new GameView(controller);
     this.mainMenu = new MainMenu(controller);
     this.mainMenu.attachMenu();
     this.serverMenu = new ServerMenu(controller, model);

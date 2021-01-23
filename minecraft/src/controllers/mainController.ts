@@ -102,12 +102,15 @@ class MainController implements MainControllerInterface {
   }
 
   prepareToStartGame() {
+    this.gameModel.setGameView(this.menuView.gameView);
+
     // pointerLock API controls
     const controls = this.gameModel.control;
     controls.addEventListener('lock', () => {
       if (this.isGamePause) {
         this.menuView.mainMenu.removeMenu();
         this.menuView.chatView.connect();
+        this.menuView.gameView.attachView();
       }
       this.isGamePause = false;
     });
@@ -116,10 +119,11 @@ class MainController implements MainControllerInterface {
         this.isGamePause = true;
         this.menuView.mainMenu.attachMenu();
         this.menuView.chatView.disconnect();
+        this.menuView.gameView.removeView();
       }
     });
 
-    // serverMenu controls
+    // multiplayer controls
     document.body.addEventListener('startservergame', () => {
       const seed = this.model.getSeed();
       if (!this.isGameStart) {
@@ -162,6 +166,17 @@ class MainController implements MainControllerInterface {
       case 65: this.gameModel.left = false; break;
       case 83: this.gameModel.backward = false; break;
       case 68: this.gameModel.right = false; break;
+      default: break;
+    }
+  }
+
+  playerControls(event: any) {
+    switch (event.which) {
+      case 49: {
+        this.gameModel.changeLanternStatus();
+        break;
+      }
+      case 50: break;
       default: break;
     }
   }
