@@ -170,15 +170,22 @@ class MainController implements MainControllerInterface {
     }
   }
 
-  playerControls(event: any) {
+  public playerControls(event: any) {
     switch (event.which) {
       case 49: {
         this.gameModel.changeLanternStatus();
         break;
       }
-      case 50: break;
+      case 50: {
+        this.gameModel.changeSwordStatus();
+        break;
+      }
       default: break;
     }
+  }
+
+  public swordControls() {
+    this.gameModel.hitSword();
   }
 }
 

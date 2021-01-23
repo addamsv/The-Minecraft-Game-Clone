@@ -70,6 +70,10 @@ class GameModel {
 
   connectedPlayers: any;
 
+  private isSword: boolean;
+
+  private isLanternCooldown: boolean;
+
   private isLantern: boolean;
 
   private gameView: any;
@@ -90,6 +94,8 @@ class GameModel {
     this.connectPlayers();
     this.connectedPlayers = {};
     this.isNight = false;
+    this.isSword = false;
+    this.isLanternCooldown = false;
     this.isLantern = false;
     this.gameView = null;
     this.isLockPosition = 1; // or 0
@@ -97,6 +103,31 @@ class GameModel {
 
   public setGameView(gameView: any) {
     this.gameView = gameView;
+  }
+
+  public changeSwordStatus() {
+    if (this.isSword) {
+      this.hideSword();
+    } else {
+      this.takeSword();
+    }
+    this.isSword = !this.isSword;
+  }
+
+  public hitSword() {
+    if (this.isSword) {
+      // here should call sword animation
+    }
+  }
+
+  private takeSword() {
+    // this.scene.add(this.swordMesh);
+    this.gameView.addSwordClass();
+  }
+
+  private hideSword() {
+    // this.scene.remove(this.swordMesh);
+    this.gameView.removeSwordClass();
   }
 
   public changeLanternStatus() {
@@ -111,13 +142,25 @@ class GameModel {
   }
 
   private takeLantern() {
-    this.scene.add(this.pointLight);
-    this.gameView.addLanternClass();
+    if (!this.isLanternCooldown) {
+      this.isLanternCooldown = true;
+      this.gameView.showLanternCooldown();
+      setTimeout(this.lanternCooldown.bind(this), 2000);
+      this.scene.add(this.pointLight);
+      this.gameView.addLanternClass();
+    }
+  }
+
+  private lanternCooldown() {
+    console.log('timeout lanternCooldown', this.isLanternCooldown)
+    this.isLanternCooldown = false;
   }
 
   private hideLantern() {
+    // if (!this.isLanternCooldown) {
     this.scene.remove(this.pointLight);
     this.gameView.removeLanternClass();
+    // }
   }
 
   createScene() {
@@ -454,7 +497,7 @@ class GameModel {
     }
 
     // check time to update light
-    const dayLength = 20000; // in ms
+    const dayLength = 10000; // in ms
     const dayTime = Math.trunc(time / dayLength);
     if (dayTime && dayTime !== this.lastChange) {
       this.lastChange = dayTime;

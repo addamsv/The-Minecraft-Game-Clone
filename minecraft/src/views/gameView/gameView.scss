@@ -10,7 +10,7 @@
   .sword {
     width: 7vw;
     height: 7vw;
-    border-radius: 50%;
+    // border-radius: 50%;
     box-sizing: border-box;
     padding-left: 4.5vw;
     padding-top: 4.5vw;
@@ -19,6 +19,15 @@
     .sword-control {
       font-size: 1.5vw;
       color: white;
+    }
+
+    .cooldown {
+      position: absolute;
+      left: 0;
+      top: 0;
+      background: rgba(255, 255, 255, 0.411);
+      height: 0;
+      width: 7vw;
     }
   }
 
