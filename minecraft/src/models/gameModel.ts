@@ -255,7 +255,6 @@ class GameModel {
 
   createNewPlayer(token: string) {
     let newPlayerMesh;
-
     const loader = new GLTFLoader();
     loader.load(
       './assets/meshes/character.glb',
