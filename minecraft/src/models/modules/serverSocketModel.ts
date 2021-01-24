@@ -115,6 +115,21 @@ class ServerSocketModel implements ServerSocketModelInterface {
       });
     }
 
+    /**
+     * Dispatch event for remote disconnected player
+     *  retrieve player token
+     */
+    if (mess.gameDisconnectedMessage) {
+      if (
+        this.playersTokens.has(mess.gameDisconnectedMessage)
+        && mess.gameDisconnectedMessage !== this.WS_TOKEN
+      ) {
+        this.playersTokens.delete(mess.gameDisconnectedMessage);
+        const event = new CustomEvent('disconnectplayer', { detail: { token: mess.gameDisconnectedMessage } });
+        document.body.dispatchEvent(event);
+      }
+    }
+
     // Check amount of connected Players
     if (mess.setUserMount) {
       if (this.USER_TOKEN) {
@@ -185,15 +200,16 @@ class ServerSocketModel implements ServerSocketModelInterface {
   }
 
   private connectionOpen() {
-    // this.ws.send(`{"userToken": "${this.USER_TOKEN}"}`);
     this.chatView = this.controller.getChatView();
   }
 
   private connectionError() {
+    this.isConnected = false;
     this.chatView.appendSysMessage('connection Error');
   }
 
   private connectionClose() {
+    this.isConnected = false;
     this.ws.close();
     this.chatView.appendSysMessage('connection closed');
   }

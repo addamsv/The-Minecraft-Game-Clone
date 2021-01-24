@@ -90,6 +90,7 @@ class GameModel {
     this.chunkSize = 16;
     this.createScene();
     this.connectPlayers();
+    this.disconnectPlayers();
     this.connectedPlayers = {};
     this.isNight = false;
     this.isLantern = false;
@@ -149,6 +150,17 @@ class GameModel {
     });
   }
 
+  disconnectPlayers() {
+    document.body.addEventListener('disconnectplayer', (event: CustomEvent) => {
+      this.removePlayer(event.detail.token);
+    });
+  }
+
+  removePlayer(token: string) {
+    this.scene.remove(this.connectedPlayers[token]);
+    delete this.connectedPlayers[token];
+  }
+
   smoothPlayerMotion(evDetail: any) {
     const mesh = this.connectedPlayers[evDetail.token];
 
@@ -165,16 +177,18 @@ class GameModel {
     const increaseY = yInitialVal < yPosTo ? 1 : -1;
 
     const cInitialVal = mesh.rotation.y;
-    const cPosTo = Number(evDetail.c);
-    const increaseC = cInitialVal < cPosTo ? 0.1 : -0.1;
-
-    /* ROTATION */
-    // mesh.rotation.y = Number(evDetail.c);
+    const cPosTo = evDetail.c * Math.PI;
+    const increaseC = cInitialVal < cPosTo ? 0.05 : -0.05;
 
     let isXReturnFlagHoisted = false;
     let isZReturnFlagHoisted = false;
     let isYReturnFlagHoisted = false;
     let isCReturnFlagHoisted = false;
+
+    if ((cInitialVal > 0 && cPosTo < 0) || (cInitialVal < 0 && cPosTo > 0)) {
+      mesh.rotation.y = cPosTo;
+      isCReturnFlagHoisted = true;
+    }
 
     function renderPlayerMotion() {
       /* return */
@@ -223,7 +237,7 @@ class GameModel {
       /* Cam rotation */
       if (!isCReturnFlagHoisted) {
         // eslint-disable-next-line max-len
-        if ((increaseC === -0.1 && cPosTo >= mesh.rotation.y) || (increaseC === 0.1 && cPosTo <= mesh.rotation.y)) {
+        if ((increaseC === -0.05 && cPosTo >= mesh.rotation.y) || (increaseC === 0.05 && cPosTo <= mesh.rotation.y)) {
           mesh.rotation.y = cPosTo;
           isCReturnFlagHoisted = true;
         } else {
@@ -236,13 +250,6 @@ class GameModel {
   }
 
   createNewPlayer(token: string) {
-    // const playerGeometry = new THREE.BoxGeometry(10, 10, 10);
-    // const playerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-    // const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
-    // playerMesh.position.y = 700;
-    // this.connectedPlayers[token] = playerMesh;
-    // this.scene.add(playerMesh);
-    // const newPlayerMesh = this.characterMesh.clone(true);
     let newPlayerMesh;
 
     const loader = new GLTFLoader();
@@ -255,15 +262,11 @@ class GameModel {
           node.receiveShadow = true;
         });
         newPlayerMesh.scale.set(9, 9, 9);
-        // this.scene.add(this.characterMesh);
-        newPlayerMesh.position.y = 200;
+        newPlayerMesh.position.y = 700;
         this.connectedPlayers[token] = newPlayerMesh;
         this.scene.add(newPlayerMesh);
       },
     );
-    // newPlayerMesh.position.y = 200;
-    // this.connectedPlayers[token] = newPlayerMesh;
-    // this.scene.add(newPlayerMesh);
   }
 
   generateWorld(seed: string) {
@@ -473,7 +476,7 @@ class GameModel {
         String(Math.trunc(this.camera.position.x)),
         String(Math.trunc(this.camera.position.z)),
         String(Math.trunc(this.camera.position.y)),
-        String(this.camera.rotation.y),
+        String(this.camera.quaternion.y),
       );
     }
 
