@@ -181,7 +181,7 @@ class GameModel {
     const increaseY = yInitialVal < yPosTo ? 1 : -1;
 
     const cInitialVal = mesh.rotation.y;
-    const cPosTo = evDetail.c; // * Math.PI;
+    const cPosTo = evDetail.c * Math.PI;
     const increaseC = cInitialVal < cPosTo ? 0.05 : -0.05;
 
     let isXReturnFlagHoisted = false;
@@ -255,6 +255,7 @@ class GameModel {
 
   createNewPlayer(token: string) {
     let newPlayerMesh;
+
     const loader = new GLTFLoader();
     loader.load(
       './assets/meshes/character.glb',
