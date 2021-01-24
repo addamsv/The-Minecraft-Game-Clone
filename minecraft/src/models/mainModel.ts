@@ -52,7 +52,6 @@ class MainModel implements MainModelInterface {
     return this.rsServerSocket ? this.rsServerSocket.getSeed() : '';
   }
 
-  // eslint-disable-next-line
   public checkStrings(name: string, password: string, type: string) {
     const regex = /\w{3,12}/;
     if (!regex.test(name) || !regex.test(password)) {
@@ -80,21 +79,26 @@ class MainModel implements MainModelInterface {
   }
 
   public login(login: String, password: String) {
-    this.serverCRUD.login({ login, password }, '')
-      .then((data: MyResponse) => {
-        let event;
-        if (data.statusCode === 200) {
-          event = new CustomEvent('success');
-        } else {
-          event = new CustomEvent('fail');
-        }
-        document.getElementById('server-menu-id').dispatchEvent(event);
-
-        const respData: any = data;
-        this.rsServerSocket = new ServerSocketModel(this.controller, respData.token);
-        this.rsServerSocket.init();
-      });
+    this.rsServerSocket = new ServerSocketModel(this.controller);
+    this.rsServerSocket.init(login, password);
   }
+
+  // public login(login: String, password: String) {
+  //   this.serverCRUD.login({ login, password }, '')
+  //     .then((data: MyResponse) => {
+  //       let event;
+  //       if (data.statusCode === 200) {
+  //         event = new CustomEvent('success');
+  //       } else {
+  //         event = new CustomEvent('fail');
+  //       }
+  //       document.getElementById('server-menu-id').dispatchEvent(event);
+
+  //       const respData: any = data;
+  //       this.rsServerSocket = new ServerSocketModel(this.controller, respData.token);
+  //       this.rsServerSocket.init();
+  //     });
+  // }
 }
 
 export { MainModelInterface, MainModel };

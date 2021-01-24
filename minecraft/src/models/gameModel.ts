@@ -76,6 +76,8 @@ class GameModel {
 
   private isLockPosition: number;
 
+  private characterMesh: any;
+
   constructor(model: MainModelInterface) {
     this.model = model;
     this.forward = false;
@@ -88,6 +90,7 @@ class GameModel {
     this.chunkSize = 16;
     this.createScene();
     this.connectPlayers();
+    this.disconnectPlayers();
     this.connectedPlayers = {};
     this.isNight = false;
     this.isLantern = false;
@@ -147,8 +150,23 @@ class GameModel {
     });
   }
 
+  disconnectPlayers() {
+    document.body.addEventListener('disconnectplayer', (event: CustomEvent) => {
+      this.removePlayer(event.detail.token);
+    });
+  }
+
+  removePlayer(token: string) {
+    this.scene.remove(this.connectedPlayers[token]);
+    delete this.connectedPlayers[token];
+  }
+
   smoothPlayerMotion(evDetail: any) {
     const mesh = this.connectedPlayers[evDetail.token];
+
+    if (!mesh) {
+      return;
+    }
 
     const zInitialVal = mesh.position.z;
     const zPosTo = Number(evDetail.z);
@@ -237,6 +255,7 @@ class GameModel {
 
   createNewPlayer(token: string) {
     let newPlayerMesh;
+
     const loader = new GLTFLoader();
     loader.load(
       './assets/meshes/character.glb',
