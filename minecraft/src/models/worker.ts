@@ -83,6 +83,10 @@ class CreateChunk {
     return Math.trunc(this.data[x * CHUNK_SIZE + z] / 5) || 0;
   }
 
+  getNoise(x: number, z: number) {
+    return this.data[x * CHUNK_SIZE + z];
+  }
+
   load(xChunk: number, zChunk: number) {
     this.generateHeight(xChunk, zChunk);
 
@@ -95,18 +99,14 @@ class CreateChunk {
     for (let x = 0; x < CHUNK_SIZE; x += 1) {
       for (let z = 0; z < CHUNK_SIZE; z += 1) {
         const y = this.getY(x, z);
-        if (y === 0 && (
-          Math.random() < 0.01
-          // this.data[x * CHUNK_SIZE + z].toFixed(2) === '0.05'
-          // || this.data[x * CHUNK_SIZE + z].toFixed(2) === '0.11'
-          // || this.data[x * CHUNK_SIZE + z].toFixed(2) === '0.15'
-          // || this.data[x * CHUNK_SIZE + z].toFixed(2) === '0.21'
-          // || this.data[x * CHUNK_SIZE + z].toFixed(2) === '0.25'
-          // || this.data[x * CHUNK_SIZE + z].toFixed(2) === '0.31'
-          // || this.data[x * CHUNK_SIZE + z].toFixed(2) === '0.35'
-        )) {
+        if (y === 0 && Math.random() < 0.01) {
           queue.push({
-            x, z, xChunk, zChunk,
+            tree: true, small: true, x, y, z, xChunk, zChunk,
+          });
+        }
+        if (y === 3 && Math.random() < 0.01) {
+          queue.push({
+            tree: true, large: true, x, y, z, xChunk, zChunk,
           });
         }
 
@@ -165,10 +165,13 @@ class CreateChunk {
     queue.forEach((item: any, index: number) => {
       thread.postMessage({
         x: item.x * BLOCK_SIZE,
+        y: item.y * BLOCK_SIZE,
         z: item.z * BLOCK_SIZE,
         xChunk: item.xChunk,
         zChunk: item.zChunk,
         tree: true,
+        small: item.small,
+        large: item.large,
         last: !queue[index + 1],
       });
     });
