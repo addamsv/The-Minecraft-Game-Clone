@@ -28,18 +28,24 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private chatView: ChatViewInterface;
 
-  constructor(controller: MainControllerInterface, userToken = '') {
+  private login: string;
+
+  private pass: string;
+
+  constructor(controller: MainControllerInterface) {
     this.controller = controller;
     this.chatView = null;
     this.ws = null;
     this.WS_TOKEN = '';
     this.USER_NAME = '';
-    this.USER_TOKEN = userToken;
+    this.USER_TOKEN = '';
     this.USER_AMOUNT = '';
     this.GAME_SEED = '';
     this.isGameHost = false;
     this.isConnected = false;
     this.playersTokens = new Set();
+    this.login = '';
+    this.pass = '';
 
     this.HOST = env.socketHost;
   }
@@ -51,7 +57,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
   public sendMessage(textMessage: string, type: String) {
     switch (type) {
       case 'chatMessage':
-        this.ws.send(`{"userName": "${this.USER_NAME}", "wsToken": "${this.WS_TOKEN}", "chatMessage": "${textMessage}"}`);
+        this.send(`{"userName": "${this.USER_NAME}", "wsToken": "${this.WS_TOKEN}", "chatMessage": "${textMessage}"}`);
         break;
       case 'gameMessage': break;
       case 'sysMessage': break;
@@ -59,8 +65,12 @@ class ServerSocketModel implements ServerSocketModelInterface {
     }
   }
 
-  public init() {
-    document.cookie = `X-Authorization=${this.USER_TOKEN}; path=/`;
+  public init(login: any = '', pass: any = '') {
+    if (this.ws) {
+      this.ws.close();
+    }
+    this.login = login;
+    this.pass = pass;
 
     this.ws = new WebSocket(this.HOST);
     this.ws.onopen = this.connectionOpen.bind(this);
@@ -85,15 +95,21 @@ class ServerSocketModel implements ServerSocketModelInterface {
    * number 1 before object in sendCoordinates is code for server
   */
   public sendCoordinates(x: String, z: String, y: String, c: String) {
-    this.ws.send(`1{"gameMessage": "${this.WS_TOKEN}", "x": "${x}", "z": "${z}", "y": "${y}", "c": "${c}"}`);
+    this.send(`1{"gameMessage": "${this.WS_TOKEN}", "x": "${x}", "z": "${z}", "y": "${y}", "c": "${c}"}`);
   }
 
   /*
   *   @private
   */
 
+  private send(message: string) {
+    if (this.ws && this.isConnected) {
+      this.ws.send(message);
+    }
+  }
+
   private sendSeed() {
-    this.ws.send(`{"setSeed": "${this.GAME_SEED}"}`);
+    this.send(`{"setSeed": "${this.GAME_SEED}"}`);
   }
 
   private messageReceived(message: any) {
@@ -103,7 +119,25 @@ class ServerSocketModel implements ServerSocketModelInterface {
       console.log(`this.WS_TOKEN: ${this.WS_TOKEN}`);
     }
 
-    // Connect new Player to GameModel
+    if (mess.setToken) {
+      const event = new CustomEvent('success');
+      document.getElementById('server-menu-id').dispatchEvent(event);
+      /*
+      * Here should add token to storage
+       */
+      this.USER_TOKEN = mess.setToken;
+      console.log(`this.USER_TOKEN: ${this.USER_TOKEN}`);
+    }
+
+    if (mess.failLogin) {
+      console.log(mess.failLogin);
+      const event = new CustomEvent('fail');
+      document.getElementById('server-menu-id').dispatchEvent(event);
+    }
+
+    /*
+    * Connect new Player to GameModel
+    */
     if (mess.setNewWsToken) {
       const tokens: Array<string> = mess.setNewWsToken.split('___');
       tokens.forEach((playerToken: string) => {
@@ -130,15 +164,10 @@ class ServerSocketModel implements ServerSocketModelInterface {
       }
     }
 
-    // Check amount of connected Players
+    /*
+    * Check amount of connected Players
+    */
     if (mess.setUserMount) {
-      if (this.USER_TOKEN) {
-        this.ws.send(`0{"ask": "register", "userToken": "${this.USER_TOKEN}"}`);
-      } else {
-        console.log('User token has not been defined');
-      }
-
-      this.isConnected = true;
       this.USER_AMOUNT = mess.setUserMount;
 
       // Start game for HOST
@@ -150,7 +179,9 @@ class ServerSocketModel implements ServerSocketModelInterface {
       this.sendSeed();
     }
 
-    // Start game for CONNECTED
+    /*
+    * Start game for CONNECTED
+    */
     if (mess.setSeed && !this.isGameHost) {
       this.GAME_SEED = mess.setSeed;
       this.startGame();
@@ -158,10 +189,12 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
     if (mess.setUserName) {
       this.USER_NAME = mess.setUserName;
-      console.log(`this.WS_TOKEN: ${this.USER_NAME}`);
+      console.log(`this.USER_NAME: ${this.USER_NAME}`);
     }
 
-    // Dispatch event with player coordinates to GameModel
+    /*
+    * Dispatch event with player coordinates to GameModel
+    */
     if (mess.gameMessage) {
       const event = new CustomEvent('moveplayer', {
         detail: {
@@ -171,7 +204,9 @@ class ServerSocketModel implements ServerSocketModelInterface {
       document.body.dispatchEvent(event);
     }
 
-    // Chat messages
+    /*
+    *  Chat messages
+    */
     if (mess.chatMessage) {
       console.log(mess.chatMessage);
       this.chatView.appendMessage(
@@ -200,7 +235,9 @@ class ServerSocketModel implements ServerSocketModelInterface {
   }
 
   private connectionOpen() {
+    this.isConnected = true;
     this.chatView = this.controller.getChatView();
+    this.loginThroughPass(this.login, this.pass);
   }
 
   private connectionError() {
@@ -212,6 +249,18 @@ class ServerSocketModel implements ServerSocketModelInterface {
     this.isConnected = false;
     this.ws.close();
     this.chatView.appendSysMessage('connection closed');
+  }
+
+  private loginThroughPass(login: any, password: any) {
+    this.send(`0{"ask": "loginThroughPass", "login": "${login}", "password": "${password}"}`);
+  }
+
+  private loginThroughToken() {
+    if (this.USER_TOKEN) {
+      this.send(`0{"ask": "register", "userToken": "${this.USER_TOKEN}"}`);
+    } else {
+      console.log('User token has not been defined');
+    }
   }
 }
 

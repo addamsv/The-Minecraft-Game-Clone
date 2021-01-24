@@ -3,7 +3,7 @@
 interface ServerSocketModelInterface {
   isHandshaked(): boolean;
 
-  init(): void;
+  init(login: any, password: any): void;
 
   setSeed(seed: String): void;
 
