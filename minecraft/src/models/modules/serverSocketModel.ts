@@ -24,6 +24,8 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private isConnected: boolean;
 
+  private isRegistered: boolean;
+
   private playersTokens: Set<string>;
 
   private chatView: ChatViewInterface;
@@ -44,6 +46,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
     this.isGameHost = false;
     this.isConnected = false;
     this.playersTokens = new Set();
+    this.isRegistered = false;
     this.login = '';
     this.pass = '';
 
@@ -114,12 +117,18 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private messageReceived(message: any) {
     const mess = JSON.parse(message.data);
+    if (mess.setUserAsRegistered) {
+      this.isRegistered = true;
+      console.log('User is Registered: true');
+    }
+
     if (mess.setWsToken) {
       this.WS_TOKEN = mess.setWsToken;
       console.log(`this.WS_TOKEN: ${this.WS_TOKEN}`);
     }
 
     if (mess.setToken) {
+      this.isRegistered = true;
       const event = new CustomEvent('success');
       document.getElementById('server-menu-id').dispatchEvent(event);
       /*
@@ -131,6 +140,8 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
     if (mess.failLogin) {
       console.log(mess.failLogin);
+      this.isRegistered = false;
+      this.ws.close();
       const event = new CustomEvent('fail');
       document.getElementById('server-menu-id').dispatchEvent(event);
     }
@@ -167,7 +178,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
     /*
     * Check amount of connected Players
     */
-    if (mess.setUserMount) {
+    if (mess.setUserMount && this.isRegistered) {
       this.USER_AMOUNT = mess.setUserMount;
 
       // Start game for HOST
@@ -182,7 +193,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
     /*
     * Start game for CONNECTED
     */
-    if (mess.setSeed && !this.isGameHost) {
+    if (mess.setSeed && !this.isGameHost && this.isRegistered) {
       this.GAME_SEED = mess.setSeed;
       this.startGame();
     }
