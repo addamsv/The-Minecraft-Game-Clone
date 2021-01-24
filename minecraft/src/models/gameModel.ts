@@ -1,12 +1,14 @@
 import * as THREE from 'three';
 // eslint-disable-next-line
 import MapWorker from 'worker-loader!./worker';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+// import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import PointerLock from '../controllers/pointerLock/pointerLock';
 import PointerLockInterface from '../controllers/pointerLock/pointerLockInterface';
 import MainModelInterface from './mainModelInterface';
 import settingsConfig from '../configs/settingsConfig';
 import Stats from '../controllers/pointerLock/stats.js';
+import GameLoader from './gameLoader/gameLoader';
+import GameLoaderInterface from './gameLoader/gameLoaderInterface';
 
 class GameModel {
   stats: any;
@@ -75,11 +77,22 @@ class GameModel {
   private gameView: any;
 
   private isLockPosition: number;
+  
+  private gameLoader: GameLoaderInterface;
 
-  private characterMesh: any;
+  private grassTexture: THREE.Texture;
+
+  private sandTexture: THREE.Texture;
+
+  private smallTree: THREE.Object3D;
+
+  private largeTree: THREE.Object3D;
 
   constructor(model: MainModelInterface) {
     this.model = model;
+    this.gameLoader = new GameLoader(this);
+    this.gameLoader.loadTextures();
+    this.gameLoader.loadObjects();
     this.forward = false;
     this.left = false;
     this.backward = false;
@@ -96,6 +109,27 @@ class GameModel {
     this.isLantern = false;
     this.gameView = null;
     this.isLockPosition = 1; // or 0
+  }
+
+  public setTexture(texture: THREE.Texture) {
+    switch (texture.name) {
+      case 'grassTexture': this.grassTexture = texture; break;
+      case 'sandTexture': this.sandTexture = texture; break;
+      default: break;
+    }
+  }
+
+  public setObject(object: THREE.Object3D) {
+    switch (object.name) {
+      case 'smallTree': this.smallTree = object; break;
+      case 'largeTree': this.largeTree = object; break;
+      default: break;
+    }
+  }
+
+  public setPlayer(player: THREE.Object3D) {
+    this.connectedPlayers[player.name] = player;
+    this.scene.add(player);
   }
 
   public setGameView(gameView: any) {
@@ -143,7 +177,7 @@ class GameModel {
 
   connectPlayers() {
     document.body.addEventListener('connectplayer', (event: CustomEvent) => {
-      this.createNewPlayer(event.detail.token);
+      this.gameLoader.loadPlayer(event.detail.token);
     });
     document.body.addEventListener('moveplayer', (event: CustomEvent) => {
       this.smoothPlayerMotion(event.detail);
@@ -253,26 +287,6 @@ class GameModel {
     renderPlayerMotion();
   }
 
-  createNewPlayer(token: string) {
-    let newPlayerMesh;
-
-    const loader = new GLTFLoader();
-    loader.load(
-      './assets/meshes/character.glb',
-      (gltf: any) => {
-        newPlayerMesh = gltf.scene;
-        newPlayerMesh.traverse((node: THREE.Mesh) => {
-          // eslint-disable-next-line
-          node.receiveShadow = true;
-        });
-        newPlayerMesh.scale.set(9, 9, 9);
-        newPlayerMesh.position.y = 700;
-        this.connectedPlayers[token] = newPlayerMesh;
-        this.scene.add(newPlayerMesh);
-      },
-    );
-  }
-
   generateWorld(seed: string) {
     setTimeout(() => {
       this.isLockPosition = 1;
@@ -301,32 +315,11 @@ class GameModel {
 
     this.worker = new MapWorker();
 
-    const texture = new THREE.TextureLoader().load('../assets/textures/earth.png');
-    texture.magFilter = THREE.NearestFilter;
-    texture.minFilter = THREE.LinearMipmapLinearFilter;
-    const sandTexture = new THREE.TextureLoader().load('../assets/textures/sand.png');
-    sandTexture.magFilter = THREE.NearestFilter;
-    sandTexture.minFilter = THREE.LinearMipmapLinearFilter;
-
-    const loader = new GLTFLoader();
-    let tree: THREE.Object3D;
-    loader.load(
-      './assets/meshes/oak1.glb',
-      (gltf: any) => {
-        tree = gltf.scene;
-        tree.traverse((node: THREE.Mesh) => {
-          // eslint-disable-next-line
-          node.receiveShadow = true;
-        });
-        tree.scale.set(15, 15, 15);
-      },
-    );
-
     const material = new THREE.MeshLambertMaterial(
-      { map: texture, side: THREE.DoubleSide },
+      { map: this.grassTexture, side: THREE.DoubleSide },
     );
     const sandMaterial = new THREE.MeshLambertMaterial(
-      { map: sandTexture, side: THREE.DoubleSide },
+      { map: this.sandTexture, side: THREE.DoubleSide },
     );
     const waterMaterial = new THREE.MeshLambertMaterial();
     waterMaterial.color = new THREE.Color(0x4980A2);
@@ -399,9 +392,12 @@ class GameModel {
         }
 
         if (event.data.tree) {
-          const treeClone = tree.clone(true);
+          const treeClone = event.data.small
+            ? this.smallTree.clone(true)
+            : this.largeTree.clone(true);
           treeClone.rotation.y = Math.PI / Math.random();
           treeClone.position.x = event.data.x;
+          treeClone.position.y = event.data.y;
           treeClone.position.z = event.data.z;
           if (!meshMemo.hasGroup) {
             meshMemo.group.add(treeClone);
@@ -485,7 +481,7 @@ class GameModel {
     }
 
     // check time to update light
-    const dayLength = 200000; // in ms
+    const dayLength = 10000; // in ms
     const dayTime = Math.trunc(time / dayLength);
     if (dayTime && dayTime !== this.lastChange) {
       this.lastChange = dayTime;
