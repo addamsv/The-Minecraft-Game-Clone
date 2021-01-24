@@ -164,6 +164,10 @@ class GameModel {
   smoothPlayerMotion(evDetail: any) {
     const mesh = this.connectedPlayers[evDetail.token];
 
+    if (!mesh) {
+      return;
+    }
+
     const zInitialVal = mesh.position.z;
     const zPosTo = Number(evDetail.z);
     const increaseZ = zInitialVal < zPosTo ? 1 : -1;
@@ -177,7 +181,7 @@ class GameModel {
     const increaseY = yInitialVal < yPosTo ? 1 : -1;
 
     const cInitialVal = mesh.rotation.y;
-    const cPosTo = evDetail.c * Math.PI;
+    const cPosTo = evDetail.c; // * Math.PI;
     const increaseC = cInitialVal < cPosTo ? 0.05 : -0.05;
 
     let isXReturnFlagHoisted = false;
