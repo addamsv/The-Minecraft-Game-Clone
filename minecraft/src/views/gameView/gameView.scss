@@ -10,7 +10,6 @@
   .sword {
     width: 7vw;
     height: 7vw;
-    // border-radius: 50%;
     box-sizing: border-box;
     padding-left: 4.5vw;
     padding-top: 4.5vw;
@@ -23,7 +22,7 @@
 
     .cooldown {
       position: absolute;
-      left: 0;
+      margin-left: -4.6vw;
       top: 0;
       background: rgba(255, 255, 255, 0.411);
       height: 0;

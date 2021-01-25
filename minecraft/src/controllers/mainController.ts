@@ -170,6 +170,10 @@ class MainController implements MainControllerInterface {
     }
   }
 
+  public hitControls() {
+    this.gameModel.hitSword();
+  }
+
   public playerControls(event: any) {
     switch (event.which) {
       case 49: {

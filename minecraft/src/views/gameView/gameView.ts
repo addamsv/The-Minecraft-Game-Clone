@@ -8,6 +8,8 @@ class GameView implements GameViewInterface {
 
   private lightCooldown: HTMLDivElement;
 
+  private swordCooldown: HTMLDivElement;
+
   private lightIcon: HTMLDivElement;
 
   private swordIcon: HTMLDivElement;
@@ -20,6 +22,8 @@ class GameView implements GameViewInterface {
 
   private swordControls: any;
 
+  private hitControls: any;
+
   constructor(controller: MainControllerInterface) {
     this.controller = controller;
     this.createView();
@@ -28,6 +32,7 @@ class GameView implements GameViewInterface {
   private createView() {
     this.playerInterface = document.createElement('div');
     this.lightCooldown = document.createElement('div');
+    this.swordCooldown = document.createElement('div');
     this.lightIcon = document.createElement('div');
     this.swordIcon = document.createElement('div');
     this.lightControl = document.createElement('span');
@@ -35,6 +40,7 @@ class GameView implements GameViewInterface {
 
     this.playerInterface.classList.add('player-interface');
     this.lightCooldown.classList.add('cooldown');
+    this.swordCooldown.classList.add('cooldown');
     this.lightIcon.classList.add('light');
     this.swordIcon.classList.add('sword');
     this.lightControl.classList.add('light-control');
@@ -44,11 +50,12 @@ class GameView implements GameViewInterface {
     this.swordControl.textContent = '2';
 
     this.lightIcon.append(this.lightCooldown, this.lightControl);
-    this.swordIcon.append(this.swordControl);
+    this.swordIcon.append(this.swordCooldown, this.swordControl);
     this.playerInterface.append(this.lightIcon, this.swordIcon);
 
     this.playerControls = this.controller.playerControls.bind(this.controller);
     this.swordControls = this.controller.swordControls.bind(this.controller);
+    this.hitControls = this.controller.hitControls.bind(this.controller);
   }
 
   public attachView() {
@@ -63,11 +70,9 @@ class GameView implements GameViewInterface {
 
   public showLanternCooldown() {
     this.lightCooldown.animate([
-      // keyframes
       { height: '100%' },
       { height: '0' },
     ], {
-      // timing options
       duration: 2000,
     });
   }
@@ -78,6 +83,15 @@ class GameView implements GameViewInterface {
 
   public removeLanternClass() {
     this.lightIcon.classList.remove('in-hand');
+  }
+
+  public showSwordCooldown() {
+    this.swordCooldown.animate([
+      { height: '100%' },
+      { height: '0' },
+    ], {
+      duration: 2000,
+    });
   }
 
   public addSwordClass() {
@@ -91,11 +105,13 @@ class GameView implements GameViewInterface {
   private addEventListeners() {
     document.body.addEventListener('keydown', this.playerControls);
     document.body.addEventListener('mousedown', this.swordControls);
+    document.body.addEventListener('click', this.hitControls);
   }
 
   private removeEventListeners() {
     document.body.removeEventListener('keydown', this.playerControls);
     document.body.removeEventListener('mousedown', this.swordControls);
+    document.body.removeEventListener('click', this.hitControls);
   }
 }
 
