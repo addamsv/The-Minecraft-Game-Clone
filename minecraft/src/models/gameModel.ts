@@ -140,7 +140,7 @@ class GameModel {
   }
 
   public changeLanternStatus() {
-    if (this.gameLight.checkNight()) {
+    if (this.gameLight.isNight) {
       if (this.isLantern) {
         this.hideLantern();
       } else {
@@ -294,7 +294,7 @@ class GameModel {
   generateWorld(seed: string) {
     setTimeout(() => {
       this.isLockPosition = 1;
-    }, 10000);
+    }, 13000);
     this.seed = seed;
     this.stats = Stats();
     this.stats.showPanel(0);
@@ -308,7 +308,7 @@ class GameModel {
     this.speed = new THREE.Vector3();
     this.direction = new THREE.Vector3();
 
-    this.camera.position.y = 200; // 700
+    this.camera.position.y = 700;
     this.camera.position.x = (this.chunkSize / 2) * 10;
     this.camera.position.z = (this.chunkSize / 2) * 10;
 
@@ -423,6 +423,7 @@ class GameModel {
 
     this.worker.postMessage({ seed: this.seed });
     this.worker.postMessage({ xChunk: 0, zChunk: 0, load: true });
+    this.gameLight.startDay();
   }
 
   animationFrame() {
@@ -444,20 +445,8 @@ class GameModel {
       );
     }
 
-    // const sunUpdateTime = Math.trunc(time / 1000);
-    // if (this.lastSunUpdate !== sunUpdateTime) {
-    //   this.lastSunUpdate = sunUpdateTime;
     this.gameLight.setSunlightAngle(time);
     this.gameLight.setSunligntPosition(this.camera.position);
-    // }
-
-    // check time to update light
-    // const dayLength = 500000; // in ms
-    // const dayTime = Math.trunc(time / dayLength);
-    // if (dayTime && dayTime !== this.lastChange) {
-    //   this.lastChange = dayTime;
-    //   this.gameLight.changeLight();
-    // }
 
     // check position to update map
     let newChunkX = this.camera.position.x / 10 / this.chunkSize;
@@ -467,7 +456,6 @@ class GameModel {
     newChunkX = Math.trunc(newChunkX);
     newChunkZ = Math.trunc(newChunkZ);
     if (newChunkX !== this.currentChunk.x || newChunkZ !== this.currentChunk.z) {
-      // this.gameLight.setSunligntChunk(this.camera.position);
       this.worker.postMessage(
         {
           oldChunkX: this.currentChunk.x,
@@ -531,7 +519,6 @@ class GameModel {
       this.control.moveRight(-this.speed.x * delta);
       this.control.moveForward(-this.speed.z * delta);
       this.camera.position.y += (this.speed.y * delta);
-      this.gameLight.lightFollowCamera(this.camera.position);
     }
     this.time = time;
     this.renderer.render(this.scene, this.camera);
