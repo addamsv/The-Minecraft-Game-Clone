@@ -71,6 +71,10 @@ class GameModel {
 
   connectedPlayers: any;
 
+  private isSword: boolean;
+
+  private isLanternCooldown: boolean;
+
   private isLantern: boolean;
 
   private gameView: any;
@@ -107,9 +111,12 @@ class GameModel {
     this.meshes = {};
     this.renderDistance = 6;
     this.chunkSize = 16;
-    // this.connectPlayers();
-    // this.disconnectPlayers();
+    this.connectPlayers();
+    this.disconnectPlayers();
     this.connectedPlayers = {};
+    // this.isNight = false;
+    this.isSword = false;
+    this.isLanternCooldown = false;
     this.isLantern = false;
     this.gameView = null;
     this.isLockPosition = 1; // or 0
@@ -140,6 +147,31 @@ class GameModel {
     this.gameView = gameView;
   }
 
+  public changeSwordStatus() {
+    if (this.isSword) {
+      this.hideSword();
+    } else {
+      this.takeSword();
+    }
+    this.isSword = !this.isSword;
+  }
+
+  public hitSword() {
+    if (this.isSword) {
+      // here should call sword animation
+    }
+  }
+
+  private takeSword() {
+    // this.scene.add(this.swordMesh);
+    this.gameView.addSwordClass();
+  }
+
+  private hideSword() {
+    // this.scene.remove(this.swordMesh);
+    this.gameView.removeSwordClass();
+  }
+
   public changeLanternStatus() {
     if (this.gameLight.isNight) {
       if (this.isLantern) {
@@ -152,13 +184,25 @@ class GameModel {
   }
 
   private takeLantern() {
-    this.gameLight.addLanternToScene();
-    this.gameView.addLanternClass();
+    if (!this.isLanternCooldown) {
+      this.isLanternCooldown = true;
+      this.gameView.showLanternCooldown();
+      setTimeout(this.lanternCooldown.bind(this), 2000);
+      this.scene.add(this.pointLight);
+      this.gameView.addLanternClass();
+    }
+  }
+
+  private lanternCooldown() {
+    console.log('timeout lanternCooldown', this.isLanternCooldown)
+    this.isLanternCooldown = false;
   }
 
   private hideLantern() {
+    // if (!this.isLanternCooldown) {
     this.gameLight.removeLanternFromScene();
     this.gameView.removeLanternClass();
+    // }
   }
 
   createScene() {
