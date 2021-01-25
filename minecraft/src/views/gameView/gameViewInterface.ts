@@ -4,6 +4,7 @@ interface GameViewInterface {
   showLanternCooldown(): void;
   addLanternClass(): void;
   removeLanternClass(): void;
+  showSwordCooldown(): void;
   addSwordClass(): void;
   removeSwordClass(): void;
 }

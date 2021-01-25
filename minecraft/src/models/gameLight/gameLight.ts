@@ -11,6 +11,8 @@ const MIN_SUN_Z = -1000;
 class GameLight implements GameLightInterface {
   public isNight: boolean;
 
+  public isLantern: boolean;
+
   private isMorning: boolean;
 
   private isEvening: boolean;
@@ -47,6 +49,7 @@ class GameLight implements GameLightInterface {
     this.gameModel = gameModel;
     this.scene = gameModel.scene;
     this.isNight = false;
+    this.isLantern = false;
     this.isMorning = false;
     this.isEvening = true;
     this.sunHexes = [0xD71B1B, 0xE6392F, 0xEC6A56, 0xF39D80, 0xFAD5AD, 0xFFFCCD];
@@ -185,7 +188,9 @@ class GameLight implements GameLightInterface {
     this.directionalLight.color.setHex(0xD71B1B);
     (<any> this.sunMesh.material).color.setHex(0xD71B1B);
 
-    this.gameModel.hideLantern();
+    if (this.isLantern) {
+      this.gameModel.hideLantern();
+    }
     this.scene.add(this.directionalLight);
   }
 

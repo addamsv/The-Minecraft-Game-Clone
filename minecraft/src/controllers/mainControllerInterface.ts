@@ -24,6 +24,9 @@ interface MainControllerInterface {
   playerControls(event: any): any;
 
   swordControls(): any;
+
+  hitControls(): any;
+
   // onKeyDown(event: PlayerEvent): void;
 
   // onKeyUp(event: PlayerEvent): void;

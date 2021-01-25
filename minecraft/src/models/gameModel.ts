@@ -71,13 +71,15 @@ class GameModel {
 
   connectedPlayers: any;
 
-  private isSword: boolean;
+  private gameView: any;
 
   private isLanternCooldown: boolean;
 
-  private isLantern: boolean;
+  private isSword: boolean;
 
-  private gameView: any;
+  private isSwordCooldown: boolean;
+
+  private isHitCooldown: boolean;
 
   private isLockPosition: number;
 
@@ -92,8 +94,6 @@ class GameModel {
   private largeTree: THREE.Object3D;
 
   private gameLight: any;
-
-  lastSunUpdate: number;
 
   constructor(model: MainModelInterface) {
     this.model = model;
@@ -114,11 +114,11 @@ class GameModel {
     this.connectPlayers();
     this.disconnectPlayers();
     this.connectedPlayers = {};
-    // this.isNight = false;
-    this.isSword = false;
-    this.isLanternCooldown = false;
-    this.isLantern = false;
     this.gameView = null;
+    this.isLanternCooldown = false;
+    this.isSword = false;
+    this.isSwordCooldown = false;
+    this.isHitCooldown = false;
     this.isLockPosition = 1; // or 0
   }
 
@@ -148,61 +148,78 @@ class GameModel {
   }
 
   public changeSwordStatus() {
-    if (this.isSword) {
-      this.hideSword();
-    } else {
-      this.takeSword();
+    if (!this.isSwordCooldown) {
+      if (this.isSword) {
+        this.hideSword();
+      } else {
+        this.takeSword();
+      }
     }
-    this.isSword = !this.isSword;
   }
 
   public hitSword() {
-    if (this.isSword) {
+    if (this.isSword && !this.isHitCooldown) {
+      this.isHitCooldown = true;
+      console.log('hit');
       // here should call sword animation
+      setTimeout(() => {
+        this.isHitCooldown = false;
+      }, 2000);
     }
   }
 
   private takeSword() {
+    this.isSword = true;
     // this.scene.add(this.swordMesh);
     this.gameView.addSwordClass();
+    this.startSwordCooldown();
   }
 
   private hideSword() {
+    this.isSword = false;
     // this.scene.remove(this.swordMesh);
     this.gameView.removeSwordClass();
+    this.startSwordCooldown();
+  }
+
+  private startSwordCooldown() {
+    this.isSwordCooldown = true;
+    this.gameView.showSwordCooldown();
+    setTimeout(() => {
+      this.isSwordCooldown = false;
+    }, 2000);
   }
 
   public changeLanternStatus() {
-    if (this.gameLight.isNight) {
-      if (this.isLantern) {
+    if (this.gameLight.isNight && !this.isLanternCooldown) {
+      if (this.gameLight.isLantern) {
         this.hideLantern();
       } else {
         this.takeLantern();
       }
-      this.isLantern = !this.isLantern;
     }
   }
 
   private takeLantern() {
-    if (!this.isLanternCooldown) {
-      this.isLanternCooldown = true;
-      this.gameView.showLanternCooldown();
-      setTimeout(this.lanternCooldown.bind(this), 2000);
-      this.scene.add(this.pointLight);
-      this.gameView.addLanternClass();
-    }
-  }
-
-  private lanternCooldown() {
-    console.log('timeout lanternCooldown', this.isLanternCooldown)
-    this.isLanternCooldown = false;
+    this.gameLight.isLantern = true;
+    this.gameLight.addLanternToScene();
+    this.gameView.addLanternClass();
+    this.startLanternCooldown();
   }
 
   private hideLantern() {
-    // if (!this.isLanternCooldown) {
+    this.gameLight.isLantern = false;
     this.gameLight.removeLanternFromScene();
     this.gameView.removeLanternClass();
-    // }
+    this.startLanternCooldown();
+  }
+
+  private startLanternCooldown() {
+    this.isLanternCooldown = true;
+    this.gameView.showLanternCooldown();
+    setTimeout(() => {
+      this.isLanternCooldown = false;
+    }, 2000);
   }
 
   createScene() {
