@@ -1,6 +1,8 @@
 import MainControllerInterface from '../../controllers/mainControllerInterface';
 import GameViewInterface from './gameViewInterface';
 
+const COOLDOWN_TIME = 2000;
+
 class GameView implements GameViewInterface {
   private controller: MainControllerInterface;
 
@@ -18,11 +20,11 @@ class GameView implements GameViewInterface {
 
   private swordControl: HTMLSpanElement;
 
-  private playerControls: any;
+  private playerControlsDown: any;
+
+  private playerControlsUp: any;
 
   private swordControls: any;
-
-  private hitControls: any;
 
   constructor(controller: MainControllerInterface) {
     this.controller = controller;
@@ -53,9 +55,9 @@ class GameView implements GameViewInterface {
     this.swordIcon.append(this.swordCooldown, this.swordControl);
     this.playerInterface.append(this.lightIcon, this.swordIcon);
 
-    this.playerControls = this.controller.playerControls.bind(this.controller);
+    this.playerControlsDown = this.controller.playerControlsDown.bind(this.controller);
+    this.playerControlsUp = this.controller.playerControlsUp.bind(this.controller);
     this.swordControls = this.controller.swordControls.bind(this.controller);
-    this.hitControls = this.controller.hitControls.bind(this.controller);
   }
 
   public attachView() {
@@ -73,7 +75,7 @@ class GameView implements GameViewInterface {
       { height: '100%' },
       { height: '0' },
     ], {
-      duration: 2000,
+      duration: COOLDOWN_TIME,
     });
   }
 
@@ -90,7 +92,7 @@ class GameView implements GameViewInterface {
       { height: '100%' },
       { height: '0' },
     ], {
-      duration: 2000,
+      duration: COOLDOWN_TIME,
     });
   }
 
@@ -103,15 +105,15 @@ class GameView implements GameViewInterface {
   }
 
   private addEventListeners() {
-    document.body.addEventListener('keydown', this.playerControls);
+    document.body.addEventListener('keydown', this.playerControlsDown);
+    document.body.addEventListener('keyup', this.playerControlsUp);
     document.body.addEventListener('mousedown', this.swordControls);
-    document.body.addEventListener('click', this.hitControls);
   }
 
   private removeEventListeners() {
-    document.body.removeEventListener('keydown', this.playerControls);
+    document.body.removeEventListener('keydown', this.playerControlsDown);
+    document.body.removeEventListener('keyup', this.playerControlsUp);
     document.body.removeEventListener('mousedown', this.swordControls);
-    document.body.removeEventListener('click', this.hitControls);
   }
 }
 
