@@ -1,8 +1,8 @@
 const settingsConfig = {
   far: {
     min: '300',
-    max: '2000',
-    cur: '1000',
+    max: '1800',
+    cur: '1200',
   },
   fov: {
     min: '50',

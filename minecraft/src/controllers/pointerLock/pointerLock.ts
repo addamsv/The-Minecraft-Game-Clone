@@ -69,11 +69,6 @@ class PointerLock extends EventDispatcher implements PointerLockInterface {
     this.domElement.ownerDocument.exitPointerLock();
   }
 
-  // public getDirection() {
-  //   const direction = new Vector3(0, 0, -1);
-  //   return (v: any) => v.copy(direction).applyQuaternion(this.camera.quaternion);
-  // }
-
   private onMouseMove(event: any) {
     if (this.isLocked === false) return;
     const { movementX } = event;

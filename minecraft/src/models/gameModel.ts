@@ -1,12 +1,15 @@
 import * as THREE from 'three';
 // eslint-disable-next-line
 import MapWorker from 'worker-loader!./worker';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import PointerLock from '../controllers/pointerLock/pointerLock';
 import PointerLockInterface from '../controllers/pointerLock/pointerLockInterface';
 import MainModelInterface from './mainModelInterface';
 import settingsConfig from '../configs/settingsConfig';
 import Stats from '../controllers/pointerLock/stats.js';
+import GameLoader from './gameLoader/gameLoader';
+import GameLoaderInterface from './gameLoader/gameLoaderInterface';
+import GameLight from './gameLight/gameLight';
+import PlayerMotion from './playerMotion/playerMotion';
 
 class GameModel {
   stats: any;
@@ -58,8 +61,6 @@ class GameModel {
 
   pointLight: THREE.PointLight;
 
-  private isNight: boolean;
-
   lastChange: number;
 
   worker: Worker;
@@ -80,8 +81,28 @@ class GameModel {
 
   private isLockPosition: number;
 
+  private gameLoader: GameLoaderInterface;
+
+  private grassTexture: THREE.Texture;
+
+  private sandTexture: THREE.Texture;
+
+  private smallTree: THREE.Object3D;
+
+  private largeTree: THREE.Object3D;
+
+  private gameLight: any;
+
+  lastSunUpdate: number;
+
   constructor(model: MainModelInterface) {
     this.model = model;
+    this.createScene();
+    this.gameLight = new GameLight(this);
+    this.gameLight.createLight();
+    this.gameLoader = new GameLoader(this);
+    this.gameLoader.loadTextures();
+    this.gameLoader.loadObjects();
     this.forward = false;
     this.left = false;
     this.backward = false;
@@ -90,15 +111,36 @@ class GameModel {
     this.meshes = {};
     this.renderDistance = 6;
     this.chunkSize = 16;
-    this.createScene();
     this.connectPlayers();
+    this.disconnectPlayers();
     this.connectedPlayers = {};
-    this.isNight = false;
+    // this.isNight = false;
     this.isSword = false;
     this.isLanternCooldown = false;
     this.isLantern = false;
     this.gameView = null;
     this.isLockPosition = 1; // or 0
+  }
+
+  public setTexture(texture: THREE.Texture) {
+    switch (texture.name) {
+      case 'grassTexture': this.grassTexture = texture; break;
+      case 'sandTexture': this.sandTexture = texture; break;
+      default: break;
+    }
+  }
+
+  public setObject(object: THREE.Object3D) {
+    switch (object.name) {
+      case 'smallTree': this.smallTree = object; break;
+      case 'largeTree': this.largeTree = object; break;
+      default: break;
+    }
+  }
+
+  public setPlayer(player: THREE.Object3D) {
+    this.connectedPlayers[player.name] = player;
+    this.scene.add(player);
   }
 
   public setGameView(gameView: any) {
@@ -131,7 +173,7 @@ class GameModel {
   }
 
   public changeLanternStatus() {
-    if (this.isNight) {
+    if (this.gameLight.isNight) {
       if (this.isLantern) {
         this.hideLantern();
       } else {
@@ -158,7 +200,7 @@ class GameModel {
 
   private hideLantern() {
     // if (!this.isLanternCooldown) {
-    this.scene.remove(this.pointLight);
+    this.gameLight.removeLanternFromScene();
     this.gameView.removeLanternClass();
     // }
   }
@@ -178,117 +220,39 @@ class GameModel {
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.domElement.classList.add('renderer');
   }
 
+  /* ****************CODE TO REFACTOR**************** */
   connectPlayers() {
     document.body.addEventListener('connectplayer', (event: CustomEvent) => {
-      this.createNewPlayer(event.detail.token);
+      this.gameLoader.loadPlayer(event.detail.token);
     });
     document.body.addEventListener('moveplayer', (event: CustomEvent) => {
-      this.smoothPlayerMotion(event.detail);
+      const mesh = this.connectedPlayers[event.detail.token];
+      if (mesh) {
+        PlayerMotion.smoothPlayerMotion(event.detail, mesh);
+      }
     });
   }
 
-  smoothPlayerMotion(evDetail: any) {
-    const mesh = this.connectedPlayers[evDetail.token];
-
-    const zInitialVal = mesh.position.z;
-    const zPosTo = Number(evDetail.z);
-    const increaseZ = zInitialVal < zPosTo ? 1 : -1;
-
-    const xInitialVal = mesh.position.x;
-    const xPosTo = Number(evDetail.x);
-    const increaseX = xInitialVal < xPosTo ? 1 : -1;
-
-    const yInitialVal = mesh.position.y;
-    const yPosTo = Number(evDetail.y);
-    const increaseY = yInitialVal < yPosTo ? 1 : -1;
-
-    const cInitialVal = mesh.rotation.y;
-    const cPosTo = Number(evDetail.c);
-    const increaseC = cInitialVal < cPosTo ? 0.1 : -0.1;
-
-    /* ROTATION */
-    // mesh.rotation.y = Number(evDetail.c);
-
-    let isXReturnFlagHoisted = false;
-    let isZReturnFlagHoisted = false;
-    let isYReturnFlagHoisted = false;
-    let isCReturnFlagHoisted = false;
-
-    function renderPlayerMotion() {
-      /* return */
-      if (
-        isYReturnFlagHoisted
-        && isXReturnFlagHoisted
-        && isZReturnFlagHoisted
-        && isCReturnFlagHoisted
-      ) {
-        return;
-      }
-
-      /* Z */
-      if (!isZReturnFlagHoisted) {
-        // eslint-disable-next-line max-len
-        if ((increaseZ === -1 && zPosTo >= mesh.position.z) || (increaseZ === 1 && zPosTo <= mesh.position.z)) {
-          mesh.position.z = zPosTo;
-          isZReturnFlagHoisted = true;
-        } else {
-          mesh.position.z += increaseZ;
-        }
-      }
-
-      /* X */
-      if (!isXReturnFlagHoisted) {
-        // eslint-disable-next-line max-len
-        if ((increaseX === -1 && xPosTo >= mesh.position.x) || (increaseX === 1 && xPosTo <= mesh.position.x)) {
-          mesh.position.x = xPosTo;
-          isXReturnFlagHoisted = true;
-        } else {
-          mesh.position.x += increaseX;
-        }
-      }
-
-      /* Y */
-      if (!isYReturnFlagHoisted) {
-        // eslint-disable-next-line max-len
-        if ((increaseY === -1 && yPosTo >= mesh.position.y) || (increaseY === 1 && yPosTo <= mesh.position.y)) {
-          mesh.position.y = yPosTo;
-          isYReturnFlagHoisted = true;
-        } else {
-          mesh.position.y += increaseY;
-        }
-      }
-
-      /* Cam rotation */
-      if (!isCReturnFlagHoisted) {
-        // eslint-disable-next-line max-len
-        if ((increaseC === -0.1 && cPosTo >= mesh.rotation.y) || (increaseC === 0.1 && cPosTo <= mesh.rotation.y)) {
-          mesh.rotation.y = cPosTo;
-          isCReturnFlagHoisted = true;
-        } else {
-          mesh.rotation.y += increaseC;
-        }
-      }
-      requestAnimationFrame(renderPlayerMotion);
-    }
-    renderPlayerMotion();
+  disconnectPlayers() {
+    document.body.addEventListener('disconnectplayer', (event: CustomEvent) => {
+      this.removePlayer(event.detail.token);
+    });
   }
 
-  createNewPlayer(token: string) {
-    const playerGeometry = new THREE.BoxGeometry(10, 10, 10);
-    const playerMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-    const playerMesh = new THREE.Mesh(playerGeometry, playerMaterial);
-    playerMesh.position.y = 700;
-    this.connectedPlayers[token] = playerMesh;
-    this.scene.add(playerMesh);
+  removePlayer(token: string) {
+    this.scene.remove(this.connectedPlayers[token]);
+    delete this.connectedPlayers[token];
   }
+  /* ************************************************ */
 
   generateWorld(seed: string) {
     setTimeout(() => {
       this.isLockPosition = 1;
-    }, 10000);
+    }, 13000);
     this.seed = seed;
     this.stats = Stats();
     this.stats.showPanel(0);
@@ -313,32 +277,11 @@ class GameModel {
 
     this.worker = new MapWorker();
 
-    const texture = new THREE.TextureLoader().load('../assets/textures/earth.png');
-    texture.magFilter = THREE.NearestFilter;
-    texture.minFilter = THREE.LinearMipmapLinearFilter;
-    const sandTexture = new THREE.TextureLoader().load('../assets/textures/sand.png');
-    sandTexture.magFilter = THREE.NearestFilter;
-    sandTexture.minFilter = THREE.LinearMipmapLinearFilter;
-
-    const loader = new GLTFLoader();
-    let tree: THREE.Object3D;
-    loader.load(
-      './assets/meshes/oak1.glb',
-      (gltf: any) => {
-        tree = gltf.scene;
-        tree.traverse((node: THREE.Mesh) => {
-          // eslint-disable-next-line
-          node.receiveShadow = true;
-        });
-        tree.scale.set(15, 15, 15);
-      },
-    );
-
     const material = new THREE.MeshLambertMaterial(
-      { map: texture, side: THREE.DoubleSide },
+      { map: this.grassTexture, side: THREE.FrontSide },
     );
     const sandMaterial = new THREE.MeshLambertMaterial(
-      { map: sandTexture, side: THREE.DoubleSide },
+      { map: this.sandTexture, side: THREE.FrontSide },
     );
     const waterMaterial = new THREE.MeshLambertMaterial();
     waterMaterial.color = new THREE.Color(0x4980A2);
@@ -373,16 +316,19 @@ class GameModel {
 
           const mesh = new THREE.Mesh(bufferGeometry, material);
           mesh.receiveShadow = true;
+          mesh.castShadow = true;
           mesh.position.setX(xChunk * this.chunkSize * 10);
           mesh.position.setZ(zChunk * this.chunkSize * 10);
 
           const sandMesh = new THREE.Mesh(sandBufferGeometry, sandMaterial);
           sandMesh.receiveShadow = true;
+          sandMesh.castShadow = true;
           sandMesh.position.setX(xChunk * this.chunkSize * 10);
           sandMesh.position.setZ(zChunk * this.chunkSize * 10);
 
           const water = new THREE.Mesh(waterBufferGeometry, waterMaterial);
           water.receiveShadow = true;
+          water.castShadow = true;
           water.position.setX(xChunk * this.chunkSize * 10);
           water.position.setZ(zChunk * this.chunkSize * 10);
           water.name = 'water';
@@ -411,9 +357,12 @@ class GameModel {
         }
 
         if (event.data.tree) {
-          const treeClone = tree.clone(true);
+          const treeClone = event.data.small
+            ? this.smallTree.clone(true)
+            : this.largeTree.clone(true);
           treeClone.rotation.y = Math.PI / Math.random();
           treeClone.position.x = event.data.x;
+          treeClone.position.y = event.data.y;
           treeClone.position.z = event.data.z;
           if (!meshMemo.hasGroup) {
             meshMemo.group.add(treeClone);
@@ -432,49 +381,7 @@ class GameModel {
 
     this.worker.postMessage({ seed: this.seed });
     this.worker.postMessage({ xChunk: 0, zChunk: 0, load: true });
-
-    // set day fog
-    this.scene.fog = new THREE.FogExp2(0xffffff, 0.001);
-    // set day sky
-    this.scene.background = new THREE.Color(0x87CEEB);
-    // set day light
-    this.ambientLight = new THREE.AmbientLight(0xcccccc);
-    this.scene.add(this.ambientLight);
-
-    this.directionalLight = new THREE.DirectionalLight(0xffffff, 1.8);
-    this.directionalLight.position.set(1, 1, 0.5).normalize();
-    this.scene.add(this.directionalLight);
-
-    // set night light
-    this.pointLight = new THREE.PointLight(0xFAEBA3, 2);
-    this.pointLight.castShadow = true;
-    this.pointLight.shadow.camera.far = 100;
-  }
-
-  changeLight() {
-    if (!this.isNight) {
-      // sky
-      this.scene.fog = new THREE.FogExp2(0x000000, 0.001);
-      this.scene.background = new THREE.Color(0x000000);
-
-      // ambient
-      this.scene.remove(this.ambientLight);
-      this.ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
-      this.scene.add(this.ambientLight);
-
-      this.scene.remove(this.directionalLight);
-    } else {
-      this.scene.fog = new THREE.FogExp2(0xffffff, 0.001);
-      this.scene.background = new THREE.Color(0x87CEEB);
-
-      this.scene.remove(this.ambientLight);
-      this.ambientLight = new THREE.AmbientLight(0xcccccc);
-      this.scene.add(this.ambientLight);
-
-      this.hideLantern();
-      this.scene.add(this.directionalLight);
-    }
-    this.isNight = !this.isNight;
+    this.gameLight.startDay();
   }
 
   animationFrame() {
@@ -492,17 +399,12 @@ class GameModel {
         String(Math.trunc(this.camera.position.x)),
         String(Math.trunc(this.camera.position.z)),
         String(Math.trunc(this.camera.position.y)),
-        String(this.camera.rotation.y),
+        String(this.camera.quaternion.y),
       );
     }
 
-    // check time to update light
-    const dayLength = 10000; // in ms
-    const dayTime = Math.trunc(time / dayLength);
-    if (dayTime && dayTime !== this.lastChange) {
-      this.lastChange = dayTime;
-      this.changeLight();
-    }
+    this.gameLight.setSunlightAngle(time);
+    this.gameLight.setSunligntPosition(this.camera.position);
 
     // check position to update map
     let newChunkX = this.camera.position.x / 10 / this.chunkSize;
@@ -575,11 +477,6 @@ class GameModel {
       this.control.moveRight(-this.speed.x * delta);
       this.control.moveForward(-this.speed.z * delta);
       this.camera.position.y += (this.speed.y * delta);
-
-      // pointLight follow camera
-      this.pointLight.position.x = this.camera.position.x;
-      this.pointLight.position.y = this.camera.position.y;
-      this.pointLight.position.z = this.camera.position.z;
     }
     this.time = time;
     this.renderer.render(this.scene, this.camera);
