@@ -26,7 +26,7 @@ class MainModel implements MainModelInterface {
     this.controller = controller;
     this.response = null;
 
-    this.rsServerSocket = null;
+    this.rsServerSocket = new ServerSocketModel(this.controller);
 
     this.serverCRUD = new ServerCRUDModel();
 
@@ -84,7 +84,7 @@ class MainModel implements MainModelInterface {
   }
 
   public login(login: String, password: String) {
-    this.rsServerSocket = new ServerSocketModel(this.controller);
+    // this.rsServerSocket = new ServerSocketModel(this.controller);
     this.rsServerSocket.init(login, password);
 
     this.storageModel.init(this.rsServerSocket);

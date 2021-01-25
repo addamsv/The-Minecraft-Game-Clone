@@ -34,6 +34,8 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private pass: string;
 
+  private pingSetIntervalID: number;
+
   constructor(controller: MainControllerInterface) {
     this.controller = controller;
     this.chatView = null;
@@ -45,12 +47,13 @@ class ServerSocketModel implements ServerSocketModelInterface {
     this.GAME_SEED = '';
     this.isGameHost = false;
     this.isConnected = false;
-    this.playersTokens = new Set();
     this.isRegistered = false;
+    this.playersTokens = new Set();
     this.login = '';
     this.pass = '';
-
+    this.pingSetIntervalID = null;
     this.HOST = env.socketHost;
+    this.createConnection();
   }
 
   public isHandshaked() {
@@ -81,17 +84,15 @@ class ServerSocketModel implements ServerSocketModelInterface {
   }
 
   public init(login: any = '', pass: any = '') {
-    if (this.ws) {
-      this.ws.close();
-    }
     this.login = login;
     this.pass = pass;
+    if (!this.ws) {
+      this.createConnection();
+    }
 
-    this.ws = new WebSocket(this.HOST);
-    this.ws.onopen = this.connectionOpen.bind(this);
-    this.ws.onmessage = this.messageReceived.bind(this);
-    this.ws.onerror = this.connectionError.bind(this);
-    this.ws.onclose = this.connectionClose.bind(this);
+    this.loginThroughPass(this.login, this.pass);
+    console.log(login);
+    console.log(this.ws);
   }
 
   public setSeed(seed: string) {
@@ -116,9 +117,16 @@ class ServerSocketModel implements ServerSocketModelInterface {
   /*
   *   @private
   */
+  private createConnection() {
+    this.ws = new WebSocket(this.HOST);
+    this.ws.onopen = this.connectionOpen.bind(this);
+    this.ws.onmessage = this.messageReceived.bind(this);
+    this.ws.onerror = this.connectionError.bind(this);
+    this.ws.onclose = this.connectionClose.bind(this);
+  }
 
   private send(message: string) {
-    if (this.ws && this.isConnected) {
+    if (this.ws && this.isConnected && this.ws.readyState === 1) {
       this.ws.send(message);
     }
   }
@@ -131,6 +139,8 @@ class ServerSocketModel implements ServerSocketModelInterface {
     const mess = JSON.parse(message.data);
     if (mess.setUserAsRegistered) {
       this.isRegistered = true;
+      this.sendMessage('{"ask": "getSetts"}', 'setts');
+      this.sendMessage('{"ask": "getStat"}', 'stat');
       console.log('User is Registered: true');
     }
 
@@ -146,6 +156,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
       /*
       * Here should add token to storage
        */
+      localStorage.setItem('USER_TOKEN', mess.setToken);
       this.USER_TOKEN = mess.setToken;
       console.log(`this.USER_TOKEN: ${this.USER_TOKEN}`);
     }
@@ -153,7 +164,6 @@ class ServerSocketModel implements ServerSocketModelInterface {
     if (mess.failLogin) {
       console.log(mess.failLogin);
       this.isRegistered = false;
-      this.ws.close();
       const event = new CustomEvent('fail');
       document.getElementById('server-menu-id').dispatchEvent(event);
     }
@@ -260,7 +270,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
   private connectionOpen() {
     this.isConnected = true;
     this.chatView = this.controller.getChatView();
-    this.loginThroughPass(this.login, this.pass);
+    this.ping();
   }
 
   private connectionError() {
@@ -270,7 +280,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private connectionClose() {
     this.isConnected = false;
-    this.ws.close();
+    clearInterval(this.pingSetIntervalID);
     this.chatView.appendSysMessage('connection closed');
   }
 
@@ -284,6 +294,10 @@ class ServerSocketModel implements ServerSocketModelInterface {
     } else {
       console.log('User token has not been defined');
     }
+  }
+
+  private ping() {
+    this.pingSetIntervalID = window.setInterval(() => this.send('3'), 30000);
   }
 }
 

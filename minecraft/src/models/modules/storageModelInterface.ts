@@ -17,13 +17,13 @@ interface StorageModelInterface {
 
   /** Answer will be in the socket
    * this.model.storageModel.sendStatQueryToServer('{"ask": "setStat", "item1": "chicky-shpoky"}');
+   * @param stat - String - serialized JSON Object:
    *
    ** In order to Send Statistics To the Heroku Server Through Socket
-   * @param stat - example:
    * warning! required: {"ask": "setStat", ... }
    *
    * * In order to Get Statistics from the Heroku Server Through Socket
-   * @param requiredStat - example: `{"getStat": "${yourID}", "getStat": "all"}`
+   * example: `{"getStat": "${yourID}", "getStat": "all"}`
    * warning! required: {"ask": "getStat", ... }
    */
   sendStatQueryToServer(stat: String): void;
