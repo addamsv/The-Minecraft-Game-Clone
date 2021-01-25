@@ -9,6 +9,7 @@ import Stats from '../controllers/pointerLock/stats.js';
 import GameLoader from './gameLoader/gameLoader';
 import GameLoaderInterface from './gameLoader/gameLoaderInterface';
 import GameLight from './gameLight/gameLight';
+import PlayerMotion from './playerMotion/playerMotion';
 
 class GameModel {
   stats: any;
@@ -106,8 +107,8 @@ class GameModel {
     this.meshes = {};
     this.renderDistance = 6;
     this.chunkSize = 16;
-    this.connectPlayers();
-    this.disconnectPlayers();
+    // this.connectPlayers();
+    // this.disconnectPlayers();
     this.connectedPlayers = {};
     this.isLantern = false;
     this.gameView = null;
@@ -179,12 +180,16 @@ class GameModel {
     this.renderer.domElement.classList.add('renderer');
   }
 
+  /* ****************CODE TO REFACTOR**************** */
   connectPlayers() {
     document.body.addEventListener('connectplayer', (event: CustomEvent) => {
       this.gameLoader.loadPlayer(event.detail.token);
     });
     document.body.addEventListener('moveplayer', (event: CustomEvent) => {
-      this.smoothPlayerMotion(event.detail);
+      const mesh = this.connectedPlayers[event.detail.token];
+      if (mesh) {
+        PlayerMotion.smoothPlayerMotion(event.detail, mesh);
+      }
     });
   }
 
@@ -198,98 +203,7 @@ class GameModel {
     this.scene.remove(this.connectedPlayers[token]);
     delete this.connectedPlayers[token];
   }
-
-  smoothPlayerMotion(evDetail: any) {
-    const mesh = this.connectedPlayers[evDetail.token];
-
-    if (!mesh) {
-      return;
-    }
-
-    const zInitialVal = mesh.position.z;
-    const zPosTo = Number(evDetail.z);
-    const increaseZ = zInitialVal < zPosTo ? 1 : -1;
-
-    const xInitialVal = mesh.position.x;
-    const xPosTo = Number(evDetail.x);
-    const increaseX = xInitialVal < xPosTo ? 1 : -1;
-
-    const yInitialVal = mesh.position.y;
-    const yPosTo = Number(evDetail.y);
-    const increaseY = yInitialVal < yPosTo ? 1 : -1;
-
-    const cInitialVal = mesh.rotation.y;
-    const cPosTo = evDetail.c * Math.PI;
-    const increaseC = cInitialVal < cPosTo ? 0.05 : -0.05;
-
-    let isXReturnFlagHoisted = false;
-    let isZReturnFlagHoisted = false;
-    let isYReturnFlagHoisted = false;
-    let isCReturnFlagHoisted = false;
-
-    if ((cInitialVal > 0 && cPosTo < 0) || (cInitialVal < 0 && cPosTo > 0)) {
-      mesh.rotation.y = cPosTo;
-      isCReturnFlagHoisted = true;
-    }
-
-    function renderPlayerMotion() {
-      /* return */
-      if (
-        isYReturnFlagHoisted
-        && isXReturnFlagHoisted
-        && isZReturnFlagHoisted
-        && isCReturnFlagHoisted
-      ) {
-        return;
-      }
-
-      /* Z */
-      if (!isZReturnFlagHoisted) {
-        // eslint-disable-next-line max-len
-        if ((increaseZ === -1 && zPosTo >= mesh.position.z) || (increaseZ === 1 && zPosTo <= mesh.position.z)) {
-          mesh.position.z = zPosTo;
-          isZReturnFlagHoisted = true;
-        } else {
-          mesh.position.z += increaseZ;
-        }
-      }
-
-      /* X */
-      if (!isXReturnFlagHoisted) {
-        // eslint-disable-next-line max-len
-        if ((increaseX === -1 && xPosTo >= mesh.position.x) || (increaseX === 1 && xPosTo <= mesh.position.x)) {
-          mesh.position.x = xPosTo;
-          isXReturnFlagHoisted = true;
-        } else {
-          mesh.position.x += increaseX;
-        }
-      }
-
-      /* Y */
-      if (!isYReturnFlagHoisted) {
-        // eslint-disable-next-line max-len
-        if ((increaseY === -1 && yPosTo >= mesh.position.y) || (increaseY === 1 && yPosTo <= mesh.position.y)) {
-          mesh.position.y = yPosTo;
-          isYReturnFlagHoisted = true;
-        } else {
-          mesh.position.y += increaseY;
-        }
-      }
-
-      /* Cam rotation */
-      if (!isCReturnFlagHoisted) {
-        // eslint-disable-next-line max-len
-        if ((increaseC === -0.05 && cPosTo >= mesh.rotation.y) || (increaseC === 0.05 && cPosTo <= mesh.rotation.y)) {
-          mesh.rotation.y = cPosTo;
-          isCReturnFlagHoisted = true;
-        } else {
-          mesh.rotation.y += increaseC;
-        }
-      }
-      requestAnimationFrame(renderPlayerMotion);
-    }
-    renderPlayerMotion();
-  }
+  /* ************************************************ */
 
   generateWorld(seed: string) {
     setTimeout(() => {
