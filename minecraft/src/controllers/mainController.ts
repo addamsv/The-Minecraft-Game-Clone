@@ -34,7 +34,6 @@ class MainController implements MainControllerInterface {
     if (!this.isGameStart) {
       const seed = Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
       this.gameModel.generateWorld(seed);
-      this.createKeyboardControls();
       document.body.appendChild(this.gameModel.stats.dom);
       document.body.appendChild(this.gameModel.renderer.domElement);
       this.gameModel.animationFrame();
@@ -128,7 +127,6 @@ class MainController implements MainControllerInterface {
       const seed = this.model.getSeed();
       if (!this.isGameStart) {
         this.gameModel.generateWorld(seed);
-        this.createKeyboardControls();
         document.body.appendChild(this.gameModel.stats.dom);
         document.body.appendChild(this.gameModel.renderer.domElement);
         this.gameModel.animationFrame();
@@ -138,12 +136,7 @@ class MainController implements MainControllerInterface {
     });
   }
 
-  createKeyboardControls() {
-    document.addEventListener('keydown', this.onKeyDown.bind(this));
-    document.addEventListener('keyup', this.onKeyUp.bind(this));
-  }
-
-  onKeyDown(event: PlayerEvent) {
+  public playerControlsDown(event: PlayerEvent) {
     switch (event.which) {
       case 87: this.gameModel.forward = true; break;
       case 65: this.gameModel.left = true; break;
@@ -156,26 +149,6 @@ class MainController implements MainControllerInterface {
         this.gameModel.jump = false;
         break;
       }
-      default: break;
-    }
-  }
-
-  onKeyUp(event: PlayerEvent) {
-    switch (event.which) {
-      case 87: this.gameModel.forward = false; break;
-      case 65: this.gameModel.left = false; break;
-      case 83: this.gameModel.backward = false; break;
-      case 68: this.gameModel.right = false; break;
-      default: break;
-    }
-  }
-
-  public hitControls() {
-    this.gameModel.hitSword();
-  }
-
-  public playerControls(event: any) {
-    switch (event.which) {
       case 49: {
         this.gameModel.changeLanternStatus();
         break;
@@ -184,6 +157,16 @@ class MainController implements MainControllerInterface {
         this.gameModel.changeSwordStatus();
         break;
       }
+      default: break;
+    }
+  }
+
+  public playerControlsUp(event: PlayerEvent) {
+    switch (event.which) {
+      case 87: this.gameModel.forward = false; break;
+      case 65: this.gameModel.left = false; break;
+      case 83: this.gameModel.backward = false; break;
+      case 68: this.gameModel.right = false; break;
       default: break;
     }
   }

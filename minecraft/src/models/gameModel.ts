@@ -11,6 +11,8 @@ import GameLoaderInterface from './gameLoader/gameLoaderInterface';
 import GameLight from './gameLight/gameLight';
 import PlayerMotion from './playerMotion/playerMotion';
 
+const COOLDOWN_TIME = 2000;
+
 class GameModel {
   stats: any;
 
@@ -164,7 +166,7 @@ class GameModel {
       // here should call sword animation
       setTimeout(() => {
         this.isHitCooldown = false;
-      }, 2000);
+      }, COOLDOWN_TIME);
     }
   }
 
@@ -187,7 +189,7 @@ class GameModel {
     this.gameView.showSwordCooldown();
     setTimeout(() => {
       this.isSwordCooldown = false;
-    }, 2000);
+    }, COOLDOWN_TIME);
   }
 
   public changeLanternStatus() {
@@ -219,7 +221,7 @@ class GameModel {
     this.gameView.showLanternCooldown();
     setTimeout(() => {
       this.isLanternCooldown = false;
-    }, 2000);
+    }, COOLDOWN_TIME);
   }
 
   createScene() {
@@ -233,7 +235,7 @@ class GameModel {
 
     this.scene = new THREE.Scene();
 
-    this.renderer = new THREE.WebGLRenderer();
+    this.renderer = new THREE.WebGLRenderer(); // { powerPreference: 'high-performance' }
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMap.enabled = true;
@@ -283,7 +285,7 @@ class GameModel {
     this.speed = new THREE.Vector3();
     this.direction = new THREE.Vector3();
 
-    this.camera.position.y = 700;
+    this.camera.position.y = 200;
     this.camera.position.x = (this.chunkSize / 2) * 10;
     this.camera.position.z = (this.chunkSize / 2) * 10;
 
