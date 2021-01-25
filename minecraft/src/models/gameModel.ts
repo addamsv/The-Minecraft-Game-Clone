@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 // eslint-disable-next-line
 import MapWorker from 'worker-loader!./worker';
-// import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
 import PointerLock from '../controllers/pointerLock/pointerLock';
 import PointerLockInterface from '../controllers/pointerLock/pointerLockInterface';
 import MainModelInterface from './mainModelInterface';
@@ -9,6 +8,7 @@ import settingsConfig from '../configs/settingsConfig';
 import Stats from '../controllers/pointerLock/stats.js';
 import GameLoader from './gameLoader/gameLoader';
 import GameLoaderInterface from './gameLoader/gameLoaderInterface';
+import GameLight from './gameLight/gameLight';
 
 class GameModel {
   stats: any;
@@ -60,8 +60,6 @@ class GameModel {
 
   pointLight: THREE.PointLight;
 
-  private isNight: boolean;
-
   lastChange: number;
 
   worker: Worker;
@@ -77,7 +75,7 @@ class GameModel {
   private gameView: any;
 
   private isLockPosition: number;
-  
+
   private gameLoader: GameLoaderInterface;
 
   private grassTexture: THREE.Texture;
@@ -88,8 +86,15 @@ class GameModel {
 
   private largeTree: THREE.Object3D;
 
+  private gameLight: any;
+
+  lastSunUpdate: number;
+
   constructor(model: MainModelInterface) {
     this.model = model;
+    this.createScene();
+    this.gameLight = new GameLight(this);
+    this.gameLight.createLight();
     this.gameLoader = new GameLoader(this);
     this.gameLoader.loadTextures();
     this.gameLoader.loadObjects();
@@ -101,11 +106,9 @@ class GameModel {
     this.meshes = {};
     this.renderDistance = 6;
     this.chunkSize = 16;
-    this.createScene();
     this.connectPlayers();
     this.disconnectPlayers();
     this.connectedPlayers = {};
-    this.isNight = false;
     this.isLantern = false;
     this.gameView = null;
     this.isLockPosition = 1; // or 0
@@ -137,7 +140,7 @@ class GameModel {
   }
 
   public changeLanternStatus() {
-    if (this.isNight) {
+    if (this.gameLight.checkNight()) {
       if (this.isLantern) {
         this.hideLantern();
       } else {
@@ -148,12 +151,12 @@ class GameModel {
   }
 
   private takeLantern() {
-    this.scene.add(this.pointLight);
+    this.gameLight.addLanternToScene();
     this.gameView.addLanternClass();
   }
 
   private hideLantern() {
-    this.scene.remove(this.pointLight);
+    this.gameLight.removeLanternFromScene();
     this.gameView.removeLanternClass();
   }
 
@@ -172,6 +175,7 @@ class GameModel {
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.domElement.classList.add('renderer');
   }
 
@@ -304,7 +308,7 @@ class GameModel {
     this.speed = new THREE.Vector3();
     this.direction = new THREE.Vector3();
 
-    this.camera.position.y = 700;
+    this.camera.position.y = 200; // 700
     this.camera.position.x = (this.chunkSize / 2) * 10;
     this.camera.position.z = (this.chunkSize / 2) * 10;
 
@@ -316,10 +320,10 @@ class GameModel {
     this.worker = new MapWorker();
 
     const material = new THREE.MeshLambertMaterial(
-      { map: this.grassTexture, side: THREE.DoubleSide },
+      { map: this.grassTexture, side: THREE.FrontSide },
     );
     const sandMaterial = new THREE.MeshLambertMaterial(
-      { map: this.sandTexture, side: THREE.DoubleSide },
+      { map: this.sandTexture, side: THREE.FrontSide },
     );
     const waterMaterial = new THREE.MeshLambertMaterial();
     waterMaterial.color = new THREE.Color(0x4980A2);
@@ -354,16 +358,19 @@ class GameModel {
 
           const mesh = new THREE.Mesh(bufferGeometry, material);
           mesh.receiveShadow = true;
+          mesh.castShadow = true;
           mesh.position.setX(xChunk * this.chunkSize * 10);
           mesh.position.setZ(zChunk * this.chunkSize * 10);
 
           const sandMesh = new THREE.Mesh(sandBufferGeometry, sandMaterial);
           sandMesh.receiveShadow = true;
+          sandMesh.castShadow = true;
           sandMesh.position.setX(xChunk * this.chunkSize * 10);
           sandMesh.position.setZ(zChunk * this.chunkSize * 10);
 
           const water = new THREE.Mesh(waterBufferGeometry, waterMaterial);
           water.receiveShadow = true;
+          water.castShadow = true;
           water.position.setX(xChunk * this.chunkSize * 10);
           water.position.setZ(zChunk * this.chunkSize * 10);
           water.name = 'water';
@@ -416,49 +423,6 @@ class GameModel {
 
     this.worker.postMessage({ seed: this.seed });
     this.worker.postMessage({ xChunk: 0, zChunk: 0, load: true });
-
-    // set day fog
-    this.scene.fog = new THREE.FogExp2(0xffffff, 0.001);
-    // set day sky
-    this.scene.background = new THREE.Color(0x87CEEB);
-    // set day light
-    this.ambientLight = new THREE.AmbientLight(0xcccccc);
-    this.scene.add(this.ambientLight);
-
-    this.directionalLight = new THREE.DirectionalLight(0xffffff, 1.8);
-    this.directionalLight.position.set(1, 1, 0.5).normalize();
-    this.scene.add(this.directionalLight);
-
-    // set night light
-    this.pointLight = new THREE.PointLight(0xFAEBA3, 2);
-    this.pointLight.castShadow = true;
-    this.pointLight.shadow.camera.far = 100;
-  }
-
-  changeLight() {
-    if (!this.isNight) {
-      // sky
-      this.scene.fog = new THREE.FogExp2(0x000000, 0.001);
-      this.scene.background = new THREE.Color(0x000000);
-
-      // ambient
-      this.scene.remove(this.ambientLight);
-      this.ambientLight = new THREE.AmbientLight(0xffffff, 0.1);
-      this.scene.add(this.ambientLight);
-
-      this.scene.remove(this.directionalLight);
-    } else {
-      this.scene.fog = new THREE.FogExp2(0xffffff, 0.001);
-      this.scene.background = new THREE.Color(0x87CEEB);
-
-      this.scene.remove(this.ambientLight);
-      this.ambientLight = new THREE.AmbientLight(0xcccccc);
-      this.scene.add(this.ambientLight);
-
-      this.hideLantern();
-      this.scene.add(this.directionalLight);
-    }
-    this.isNight = !this.isNight;
   }
 
   animationFrame() {
@@ -480,13 +444,20 @@ class GameModel {
       );
     }
 
+    // const sunUpdateTime = Math.trunc(time / 1000);
+    // if (this.lastSunUpdate !== sunUpdateTime) {
+    //   this.lastSunUpdate = sunUpdateTime;
+    this.gameLight.setSunlightAngle(time);
+    this.gameLight.setSunligntPosition(this.camera.position);
+    // }
+
     // check time to update light
-    const dayLength = 10000; // in ms
-    const dayTime = Math.trunc(time / dayLength);
-    if (dayTime && dayTime !== this.lastChange) {
-      this.lastChange = dayTime;
-      this.changeLight();
-    }
+    // const dayLength = 500000; // in ms
+    // const dayTime = Math.trunc(time / dayLength);
+    // if (dayTime && dayTime !== this.lastChange) {
+    //   this.lastChange = dayTime;
+    //   this.gameLight.changeLight();
+    // }
 
     // check position to update map
     let newChunkX = this.camera.position.x / 10 / this.chunkSize;
@@ -496,6 +467,7 @@ class GameModel {
     newChunkX = Math.trunc(newChunkX);
     newChunkZ = Math.trunc(newChunkZ);
     if (newChunkX !== this.currentChunk.x || newChunkZ !== this.currentChunk.z) {
+      // this.gameLight.setSunligntChunk(this.camera.position);
       this.worker.postMessage(
         {
           oldChunkX: this.currentChunk.x,
@@ -559,11 +531,7 @@ class GameModel {
       this.control.moveRight(-this.speed.x * delta);
       this.control.moveForward(-this.speed.z * delta);
       this.camera.position.y += (this.speed.y * delta);
-
-      // pointLight follow camera
-      this.pointLight.position.x = this.camera.position.x;
-      this.pointLight.position.y = this.camera.position.y;
-      this.pointLight.position.z = this.camera.position.z;
+      this.gameLight.lightFollowCamera(this.camera.position);
     }
     this.time = time;
     this.renderer.render(this.scene, this.camera);
