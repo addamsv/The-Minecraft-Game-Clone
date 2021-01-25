@@ -59,12 +59,24 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   public sendMessage(textMessage: string, type: String) {
     switch (type) {
-      case 'chatMessage':
+      case 'chatMessage': {
         this.send(`{"userName": "${this.USER_NAME}", "wsToken": "${this.WS_TOKEN}", "chatMessage": "${textMessage}"}`);
         break;
-      case 'gameMessage': break;
-      case 'sysMessage': break;
-      default: break;
+      }
+
+      case 'stat': {
+        this.send(0 + textMessage);
+        break;
+      }
+
+      case 'setts': {
+        this.send(0 + textMessage);
+        break;
+      }
+
+      default: {
+        break;
+      }
     }
   }
 

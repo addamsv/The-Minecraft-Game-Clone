@@ -1,5 +1,13 @@
 /* eslint-disable no-unused-vars */
+import ServerSocketModelInterface from './ServerSocketModelInterface';
+
 interface StorageModelInterface {
+
+  /**
+   * Init StorageModel when Socket is ready
+   * @param socket Socket
+   */
+  init(socket: ServerSocketModelInterface): void;
 
   /**
    *
@@ -7,23 +15,18 @@ interface StorageModelInterface {
    *
    */
 
-  /**
-   *  Send Statistics To the Heroku Server Through Socket
+  /** Answer will be in the socket
+   * this.model.storageModel.sendStatQueryToServer('{"ask": "setStat", "item1": "chicky-shpoky"}');
    *
-   * @param stat - example: `0{"setStat": "${yourID}", "item1": "${itemVal1}, ...}`
+   ** In order to Send Statistics To the Heroku Server Through Socket
+   * @param stat - example:
+   * warning! required: {"ask": "setStat", ... }
    *
-   * warning! required: 0{"setStat": "${yourID}"
+   * * In order to Get Statistics from the Heroku Server Through Socket
+   * @param requiredStat - example: `{"getStat": "${yourID}", "getStat": "all"}`
+   * warning! required: {"ask": "getStat", ... }
    */
-  sendStatToServer(stat: String): void;
-
-  /**
-   *  Get Statistics from the Heroku Server Through Socket
-   *
-   * @param requiredStat - example: `0{"getStat": "${yourID}", "getStat": "all"}`
-   *
-   * warning! required: 0{"getStat": "${yourID}"
-   */
-  getStatFromServer(requiredStat: String): String;
+  sendStatQueryToServer(stat: String): void;
 
   /**
    *  Send Statistics To the LocalStorage
@@ -45,23 +48,18 @@ interface StorageModelInterface {
    *
    */
 
-  /**
+  /** Answer will be in the socket
+  * this.model.storageModel.sendSettsQueryToServer('{"ask": "setSetts", "item1": "chicky-shpoky"}');
+   *
    *  Send Settings To the Heroku Server Through Socket
+   * @param stat - example: `{"ask": "setSetts", "item1": "${itemVal1}, ...}`
+   * warning! required: {"ask": "setSetts", ... }
    *
-   * @param stat - example: `0{"setSetts": "${yourID}", "item1": "${itemVal1}, ...}`
-   *
-   * warning! required: 0{"setSetts": "${yourID}"
+   ** Get Settings from the Heroku Server Through Socket
+   * @param requiredSetts - example: `{"ask": "getSetts", "getSetts": "all"}`
+   * warning! required: {"ask": "getSetts", ... }
    */
-  sendSettsToServer(setts: String): void;
-
-  /**
-   *  Get Settings from the Heroku Server Through Socket
-   *
-   * @param requiredSetts - example: `0{"getSetts": "${yourID}", "getSetts": "all"}`
-   *
-   * warning! required: 0{"getSetts": "${yourID}"
-   */
-  getSettsFromServer(requiredSetts: String): String;
+  sendSettsQueryToServer(setts: String): void;
 
   /**
    *  Send Settings To the LocalStorage

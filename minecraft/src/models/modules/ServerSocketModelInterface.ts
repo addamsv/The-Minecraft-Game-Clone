@@ -17,6 +17,8 @@ interface ServerSocketModelInterface {
    * @param c - Camera Angle
    */
   sendCoordinates(x: String, z: String, y: String, c: String): void;
+
+  sendMessage(textMessage: string, type: String): void;
 }
 
 export default ServerSocketModelInterface;

@@ -1,6 +1,7 @@
 import MainModelInterface from './mainModelInterface';
 import { ServerSocketModelInterface, ServerSocketModel } from './modules/serverSocketModel';
 import { ServerCRUDModelInterface, ServerCRUDModel } from './modules/serverCRUDModel';
+import { StorageModelInterface, StorageModel } from './modules/storageModel';
 import MainControllerInterface from '../controllers/mainControllerInterface';
 // import env from '../configs/environmentVars';
 
@@ -19,13 +20,17 @@ class MainModel implements MainModelInterface {
 
   public serverCRUD: ServerCRUDModelInterface;
 
+  public storageModel: StorageModelInterface;
+
   constructor(controller: MainControllerInterface) {
     this.controller = controller;
     this.response = null;
+
     this.rsServerSocket = null;
 
     this.serverCRUD = new ServerCRUDModel();
-    // console.log(this.serverCRUD.get());
+
+    this.storageModel = new StorageModel(this.controller);
   }
 
   public getSocket() {
@@ -81,6 +86,8 @@ class MainModel implements MainModelInterface {
   public login(login: String, password: String) {
     this.rsServerSocket = new ServerSocketModel(this.controller);
     this.rsServerSocket.init(login, password);
+
+    this.storageModel.init(this.rsServerSocket);
   }
 
   // public login(login: String, password: String) {

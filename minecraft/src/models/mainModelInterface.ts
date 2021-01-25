@@ -1,6 +1,9 @@
 /* eslint-disable no-unused-vars */
+import StorageModelInterface from './modules/storageModelInterface';
 
 interface MainModelInterface {
+  storageModel: StorageModelInterface;
+
   getSocket(): any;
 
   isHandshaked(): boolean;
