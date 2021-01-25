@@ -37,6 +37,7 @@ class GameLoader implements GameLoaderInterface {
         const smallTree = gltf.scene;
         smallTree.traverse((node: THREE.Mesh) => {
           node.receiveShadow = true;
+          node.castShadow = true;
         });
         smallTree.scale.set(15, 15, 15);
         smallTree.name = 'smallTree';
@@ -49,6 +50,7 @@ class GameLoader implements GameLoaderInterface {
         const largeTree = gltf.scene;
         largeTree.traverse((node: THREE.Mesh) => {
           node.receiveShadow = true;
+          node.castShadow = true;
         });
         largeTree.scale.set(15, 15, 15);
         largeTree.name = 'largeTree';

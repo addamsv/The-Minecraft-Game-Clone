@@ -33,14 +33,6 @@ y1Geometry.faceVertexUvs[0][1][1].y = 0.5;
 y1Geometry.rotateX(-Math.PI / 2);
 y1Geometry.translate(0, 5, 0);
 
-// const y2Geometry = new THREE.PlaneGeometry(BLOCK_SIZE, BLOCK_SIZE);
-// y2Geometry.faceVertexUvs[0][0][1].y = 0.5;
-// y2Geometry.faceVertexUvs[0][1][0].y = 0.5;
-// y2Geometry.faceVertexUvs[0][1][1].y = 0.5;
-// y2Geometry.rotateX(-Math.PI / 2);
-// y2Geometry.rotateY(Math.PI / 2);
-// y2Geometry.translate(0, 5, 0);
-
 const z1Geometry = new THREE.PlaneGeometry(BLOCK_SIZE, BLOCK_SIZE);
 z1Geometry.faceVertexUvs[0][0][0].y = 0.5;
 z1Geometry.faceVertexUvs[0][0][2].y = 0.5;
@@ -51,7 +43,7 @@ const z2Geometry = new THREE.PlaneGeometry(BLOCK_SIZE, BLOCK_SIZE);
 z2Geometry.faceVertexUvs[0][0][0].y = 0.5;
 z2Geometry.faceVertexUvs[0][0][2].y = 0.5;
 z2Geometry.faceVertexUvs[0][1][2].y = 0.5;
-// z2Geometry.rotateY(Math.PI);
+z2Geometry.rotateY(Math.PI);
 z2Geometry.translate(0, 0, -5);
 
 class CreateChunk {
