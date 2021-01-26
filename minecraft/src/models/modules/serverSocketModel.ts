@@ -30,9 +30,9 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private chatView: ChatViewInterface;
 
-  private login: string;
+  // private login: string;
 
-  private pass: string;
+  // private pass: string;
 
   private pingSetIntervalID: number;
 
@@ -49,8 +49,8 @@ class ServerSocketModel implements ServerSocketModelInterface {
     this.isConnected = false;
     this.isRegistered = false;
     this.playersTokens = new Set();
-    this.login = '';
-    this.pass = '';
+    // this.login = '';
+    // this.pass = '';
     this.pingSetIntervalID = null;
     this.HOST = env.socketHost;
     this.createConnection();
@@ -84,15 +84,23 @@ class ServerSocketModel implements ServerSocketModelInterface {
   }
 
   public init(login: any = '', pass: any = '') {
-    this.login = login;
-    this.pass = pass;
-    if (!this.ws) {
-      this.createConnection();
-    }
+    console.log("login", login);
+    
+    // this.login = login;
+    // this.pass = pass;
 
-    this.loginThroughPass(this.login, this.pass);
-    console.log(login);
-    console.log(this.ws);
+    if (this.ws) {
+      this.login(login, pass);
+    } else {
+      this.createConnection();
+      setTimeout(() => {
+        if (this.isConnected) {
+          this.login(login, pass);
+          console.log(login);
+          console.log(this.ws);
+        }
+      }, 3000);
+    }
   }
 
   public setSeed(seed: string) {
@@ -275,22 +283,38 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private connectionError() {
     this.isConnected = false;
-    this.chatView.appendSysMessage('connection Error');
+    if (this.chatView) {
+      this.chatView.appendSysMessage('connection Error');
+    }
   }
 
   private connectionClose() {
     this.isConnected = false;
     clearInterval(this.pingSetIntervalID);
-    this.chatView.appendSysMessage('connection closed');
+    if (this.chatView) {
+      this.chatView.appendSysMessage('connection closed');
+    }
+    setTimeout(() => this.createConnection(), 5000);
+  }
+
+  private login(login: any, password: any) {
+    if (login && password) {
+      this.loginThroughPass(login, password);
+      return;
+    }
+    const USER_TOKEN = localStorage.getItem('USER_TOKEN');
+    if (USER_TOKEN) {
+      this.loginThroughToken(USER_TOKEN);
+    }
   }
 
   private loginThroughPass(login: any, password: any) {
     this.send(`0{"ask": "loginThroughPass", "login": "${login}", "password": "${password}"}`);
   }
 
-  private loginThroughToken() {
-    if (this.USER_TOKEN) {
-      this.send(`0{"ask": "register", "userToken": "${this.USER_TOKEN}"}`);
+  private loginThroughToken(token: any) {
+    if (token) {
+      this.send(`0{"ask": "register", "userToken": "${token}"}`);
     } else {
       console.log('User token has not been defined');
     }

@@ -12,7 +12,9 @@ interface MainModelInterface {
 
   getSeed(): string;
 
-  checkStrings(name: string, password: string, type: string): void;
+  loginThroughPassword(name: string, password: string, type: string): void;
+
+  loginThroughToken(name: string, password: string, type: string): void;
 
   /**
    *  Send Message To the Heroku Server Through Socket

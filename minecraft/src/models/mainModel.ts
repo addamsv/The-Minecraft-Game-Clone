@@ -57,7 +57,13 @@ class MainModel implements MainModelInterface {
     return this.rsServerSocket ? this.rsServerSocket.getSeed() : '';
   }
 
-  public checkStrings(name: string, password: string, type: string) {
+  public loginThroughToken() {
+    console.log('loginThroughToken');
+    
+    this.login('', '');
+  }
+
+  public loginThroughPassword(name: string, password: string, type: string) {
     const regex = /\w{3,12}/;
     if (!regex.test(name) || !regex.test(password)) {
       const event = new CustomEvent('input-error');

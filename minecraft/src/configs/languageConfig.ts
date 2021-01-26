@@ -17,6 +17,8 @@ const languageConfig = {
     serverMenu: {
       nickname: 'name',
       password: 'password',
+      logOut: 'Log-Out',
+      play: 'Play',
       logIn: 'Log In',
       or: 'or',
       signUp: 'Sign Up',
@@ -48,6 +50,8 @@ const languageConfig = {
     serverMenu: {
       nickname: 'имя',
       password: 'пароль',
+      play: 'Играть',
+      logOut: 'Выйти из аккаунта',
       logIn: 'Войти',
       or: 'или',
       signUp: 'Зарегистрироваться',

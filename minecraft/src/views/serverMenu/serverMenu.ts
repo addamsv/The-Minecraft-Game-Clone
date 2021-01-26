@@ -16,6 +16,10 @@ class ServerMenu implements ViewsInterface {
 
   private errorMessage: HTMLDivElement;
 
+  private play: HTMLButtonElement;
+
+  private logOut: HTMLButtonElement;
+
   private logIn: HTMLButtonElement;
 
   private or: HTMLSpanElement;
@@ -31,6 +35,8 @@ class ServerMenu implements ViewsInterface {
   private readInputs: any;
 
   private checkStrings: any;
+
+  private tokenLogin: any;
 
   private closeServerMenu: any;
 
@@ -59,6 +65,8 @@ class ServerMenu implements ViewsInterface {
     }
     this.nickname.placeholder = languageData.nickname;
     this.password.placeholder = languageData.password;
+    this.logOut.textContent = languageData.logOut;
+    this.play.textContent = languageData.play;
     this.logIn.textContent = languageData.logIn;
     this.or.textContent = languageData.or;
     this.signUp.textContent = languageData.signUp;
@@ -75,6 +83,8 @@ class ServerMenu implements ViewsInterface {
     this.password = document.createElement('input');
     this.errorMessage = document.createElement('div');
     const buttonsWrapper = document.createElement('div');
+    this.logOut = document.createElement('button');
+    this.play = document.createElement('button');
     this.logIn = document.createElement('button');
     this.or = document.createElement('span');
     this.signUp = document.createElement('button');
@@ -87,6 +97,10 @@ class ServerMenu implements ViewsInterface {
     this.password.classList.add('password');
     this.errorMessage.classList.add('error-message');
     buttonsWrapper.classList.add('buttons-wrapper');
+    this.logOut.classList.add('server-btn');
+    this.logOut.id = 'logOut';
+    this.play.classList.add('server-btn');
+    this.play.id = 'play';
     this.logIn.classList.add('server-btn');
     this.logIn.id = 'login';
     this.or.classList.add('or');
@@ -94,18 +108,28 @@ class ServerMenu implements ViewsInterface {
     this.signUp.id = 'signup';
     this.backToMainMenu.classList.add('server-btn', 'back-to-main-menu');
 
-    buttonsWrapper.append(this.logIn, this.or, this.signUp);
-    serverWrapper.append(
-      this.nickname,
-      this.password,
-      this.errorMessage,
-      buttonsWrapper,
-      this.backToMainMenu,
-    );
+    const USER_TOKEN = localStorage.getItem('USER_TOKEN');
+    if (USER_TOKEN) {
+      buttonsWrapper.append(this.play, this.or, this.logOut);
+      serverWrapper.append(
+        buttonsWrapper,
+        this.backToMainMenu,
+      );
+    } else {
+      buttonsWrapper.append(this.logIn, this.or, this.signUp);
+      serverWrapper.append(
+        this.nickname,
+        this.password,
+        this.errorMessage,
+        buttonsWrapper,
+        this.backToMainMenu,
+      );
+    }
     this.serverScreen.append(serverWrapper);
 
     this.readInputs = this.readViewInputs.bind(this);
-    this.checkStrings = this.model.checkStrings.bind(this.model);
+    this.checkStrings = this.model.loginThroughPassword.bind(this.model);
+    this.tokenLogin = this.model.loginThroughToken.bind(this.model);
     this.closeServerMenu = this.controller.closeServerMenu.bind(this.controller);
     this.getChanges();
   }
@@ -126,13 +150,21 @@ class ServerMenu implements ViewsInterface {
     this.checkStrings(this.nickname.value, this.password.value, event.target.id);
   }
 
+  private tokenLoginFn() {
+    this.tokenLogin();
+  }
+
   private addEventListeners() {
+    this.play.addEventListener('click', this.tokenLogin);
+    this.logOut.addEventListener('click', this.tokenLogin);
     this.logIn.addEventListener('click', this.readInputs);
     this.signUp.addEventListener('click', this.readInputs);
     this.backToMainMenu.addEventListener('click', this.closeServerMenu);
   }
 
   private removeEventListeners() {
+    this.play.removeEventListener('click', this.tokenLoginFn);
+    this.logOut.removeEventListener('click', this.tokenLoginFn);
     this.logIn.removeEventListener('click', this.readViewInputs);
     this.signUp.removeEventListener('click', this.readViewInputs);
     this.backToMainMenu.removeEventListener('click', this.closeServerMenu);
