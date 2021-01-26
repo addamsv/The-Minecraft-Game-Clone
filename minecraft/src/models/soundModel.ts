@@ -7,20 +7,56 @@ class SoundModel {
 
     audioBufferSourceNodeBackground: AudioBufferSourceNode;
 
-    walkJumpBuffer: AudioBuffer;
+    walkGrassBuffer: AudioBuffer;
+
+    walkSandBuffer: AudioBuffer;
+
+    swimBuffer: AudioBuffer;
+
+    jumpBuffer: AudioBuffer;
 
     backgroundBuffer: AudioBuffer;
 
+    gainNodeMove: GainNode;
+
+    gainNodeJump: GainNode;
+
     gainNodeBackground: GainNode;
 
-    initSounds() {
-        this.audioContext = new window.AudioContext();
+    public surface: string;
 
-        fetch('/assets/sounds/walk_jump.ogg')
+    initSounds() {
+      this.audioContext = new window.AudioContext();
+
+      fetch('/assets/sounds/grass_walk.wav')
         .then((response) => response.arrayBuffer())
         .then((buffer) => {
           this.audioContext.decodeAudioData(buffer, (decoded) => {
-            this.walkJumpBuffer = decoded;
+            this.walkGrassBuffer = decoded;
+          });
+        });
+
+      fetch('/assets/sounds/sand_walk.wav')
+        .then((response) => response.arrayBuffer())
+        .then((buffer) => {
+          this.audioContext.decodeAudioData(buffer, (decoded) => {
+            this.walkSandBuffer = decoded;
+          });
+        });
+
+      fetch('/assets/sounds/swim.wav')
+        .then((response) => response.arrayBuffer())
+        .then((buffer) => {
+          this.audioContext.decodeAudioData(buffer, (decoded) => {
+            this.swimBuffer = decoded;
+          });
+        });
+
+      fetch('/assets/sounds/jump.wav')
+        .then((response) => response.arrayBuffer())
+        .then((buffer) => {
+          this.audioContext.decodeAudioData(buffer, (decoded) => {
+            this.jumpBuffer = decoded;
           });
         });
 
@@ -36,8 +72,29 @@ class SoundModel {
     startWalkSound() {
       this.audioBufferSourceNode = this.audioContext.createBufferSource();
       this.audioBufferSourceNode.loop = true;
-      this.audioBufferSourceNode.buffer = this.walkJumpBuffer;
-      this.audioBufferSourceNode.connect(this.audioContext.destination);
+      this.audioBufferSourceNode.playbackRate.value = 1.2;
+      let volume = 0.3;
+      switch (this.surface) {
+        case 'grass': {
+          this.audioBufferSourceNode.buffer = this.walkGrassBuffer;
+          break;
+        }
+        case 'sand': {
+          this.audioBufferSourceNode.buffer = this.walkSandBuffer;
+          break;
+        }
+        case 'water': {
+          this.audioBufferSourceNode.buffer = this.swimBuffer;
+          volume *= 0.2;
+          break;
+        }
+        default: break;
+      }
+
+      this.gainNodeMove = this.audioContext.createGain();
+      this.gainNodeMove.gain.value = volume;
+      this.gainNodeMove.connect(this.audioContext.destination);
+      this.audioBufferSourceNode.connect(this.gainNodeMove);
 
       this.audioBufferSourceNode.start();
     }
@@ -47,11 +104,16 @@ class SoundModel {
     }
 
     jump() {
-      this.audioBufferSourceNodeJump = this.audioContext.createBufferSource();
-      this.audioBufferSourceNodeJump.buffer = this.walkJumpBuffer;
-      this.audioBufferSourceNodeJump.connect(this.audioContext.destination);
+      this.audioBufferSourceNode = this.audioContext.createBufferSource();
+      this.audioBufferSourceNode.playbackRate.value = 1.2;
+      this.audioBufferSourceNode.buffer = this.jumpBuffer;
 
-      this.audioBufferSourceNodeJump.start();
+      this.gainNodeJump = this.audioContext.createGain();
+      this.gainNodeJump.gain.value = 0.1;
+      this.gainNodeJump.connect(this.audioContext.destination);
+      this.audioBufferSourceNode.connect(this.gainNodeJump);
+
+      this.audioBufferSourceNode.start();
     }
 
     backgroundStart() {
@@ -60,7 +122,7 @@ class SoundModel {
       this.audioBufferSourceNodeBackground.loop = true;
 
       this.gainNodeBackground = this.audioContext.createGain();
-      this.gainNodeBackground.gain.value = 0.15; // 15 %
+      this.gainNodeBackground.gain.value = 0.2;
       this.gainNodeBackground.connect(this.audioContext.destination);
       this.audioBufferSourceNodeBackground.connect(this.gainNodeBackground);
 

@@ -2,7 +2,6 @@ import { MainModelInterface, MainModel } from '../models/mainModel';
 import MainControllerInterface from './mainControllerInterface';
 import MenuView from '../views/menuView';
 import GameModel from '../models/gameModel';
-import SoundModel from '../models/soundModel';
 
 interface PlayerEvent extends Event {
   which: number;
@@ -131,6 +130,7 @@ class MainController implements MainControllerInterface {
         this.gameModel.generateWorld(seed);
         document.body.appendChild(this.gameModel.stats.dom);
         document.body.appendChild(this.gameModel.renderer.domElement);
+        this.gameModel.sound.initSounds();
         this.gameModel.animationFrame();
         this.isGameStart = true;
       }
