@@ -2,6 +2,7 @@ import { MainModelInterface, MainModel } from '../models/mainModel';
 import MainControllerInterface from './mainControllerInterface';
 import MenuView from '../views/menuView';
 import GameModel from '../models/gameModel';
+import SoundModel from '../models/soundModel';
 
 interface PlayerEvent extends Event {
   which: number;
@@ -36,6 +37,7 @@ class MainController implements MainControllerInterface {
       this.gameModel.generateWorld(seed);
       document.body.appendChild(this.gameModel.stats.dom);
       document.body.appendChild(this.gameModel.renderer.domElement);
+      this.gameModel.sound = new SoundModel();
       this.gameModel.animationFrame();
       this.isGameStart = true;
     }
@@ -145,8 +147,10 @@ class MainController implements MainControllerInterface {
       case 32: {
         if (this.gameModel.jump === true) {
           this.gameModel.speed.y += 150;
+          this.gameModel.jumpSound = true;
         }
         this.gameModel.jump = false;
+        this.gameModel.isSpacebarDown = true;
         break;
       }
       case 49: {
@@ -167,6 +171,7 @@ class MainController implements MainControllerInterface {
       case 65: this.gameModel.left = false; break;
       case 83: this.gameModel.backward = false; break;
       case 68: this.gameModel.right = false; break;
+      case 32: this.gameModel.isSpacebarDown = false; break;
       default: break;
     }
   }

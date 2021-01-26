@@ -10,6 +10,7 @@ import GameLoader from './gameLoader/gameLoader';
 import GameLoaderInterface from './gameLoader/gameLoaderInterface';
 import GameLight from './gameLight/gameLight';
 import PlayerMotion from './playerMotion/playerMotion';
+import SoundModel from './soundModel';
 
 const COOLDOWN_TIME = 2000;
 
@@ -97,6 +98,16 @@ class GameModel {
 
   private gameLight: any;
 
+  sound: SoundModel;
+
+  isMovingSoundNowPlaying: Boolean;
+
+  jumpSound: Boolean;
+
+  isBackgroundNowPlaying: Boolean;
+
+  isSpacebarDown: Boolean;
+
   constructor(model: MainModelInterface) {
     this.model = model;
     this.createScene();
@@ -122,6 +133,8 @@ class GameModel {
     this.isSwordCooldown = false;
     this.isHitCooldown = false;
     this.isLockPosition = 1; // or 0
+    this.isMovingSoundNowPlaying = false;
+    this.isBackgroundNowPlaying = false;
   }
 
   public setTexture(texture: THREE.Texture) {
@@ -486,6 +499,30 @@ class GameModel {
           this.speed.y += 20;
         }
       }
+      
+
+      // sounds
+      // walk
+      const isWASD = this.forward || this.backward || this.left || this.right; 
+      if (isWASD && !this.isMovingSoundNowPlaying && !this.isSpacebarDown) {
+        this.isMovingSoundNowPlaying = true;
+        this.sound.startWalkSound();
+      }
+      if ((!isWASD || !this.jump) && this.isMovingSoundNowPlaying) {
+        this.isMovingSoundNowPlaying = false;
+        this.sound.stopWalkSound();
+      }
+      // jump
+      if (this.jumpSound) {
+        this.jumpSound = false;
+        this.sound.jump();
+      }
+      // background
+      if (!this.isBackgroundNowPlaying && this.sound.backgroundBuffer) {
+        this.sound.backgroundStart();
+        this.isBackgroundNowPlaying = true;
+      }
+
 
       // if player fall down under textures
       if (this.camera.position.y < -300) {
@@ -496,6 +533,12 @@ class GameModel {
       this.control.moveRight(-this.speed.x * delta);
       this.control.moveForward(-this.speed.z * delta);
       this.camera.position.y += (this.speed.y * delta);
+    } else {
+        // background
+        if (this.isBackgroundNowPlaying && this.sound.backgroundBuffer) {
+          this.sound.backgroundStop();
+          this.isBackgroundNowPlaying = false;
+        }
     }
     this.time = time;
     this.renderer.render(this.scene, this.camera);
