@@ -37,7 +37,7 @@ class MainController implements MainControllerInterface {
       this.gameModel.generateWorld(seed);
       document.body.appendChild(this.gameModel.stats.dom);
       document.body.appendChild(this.gameModel.renderer.domElement);
-      this.gameModel.sound = new SoundModel();
+      this.gameModel.sound.initSounds();
       this.gameModel.animationFrame();
       this.isGameStart = true;
     }

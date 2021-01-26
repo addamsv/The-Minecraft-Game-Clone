@@ -135,6 +135,7 @@ class GameModel {
     this.isLockPosition = 1; // or 0
     this.isMovingSoundNowPlaying = false;
     this.isBackgroundNowPlaying = false;
+    this.sound = new SoundModel();
   }
 
   public setTexture(texture: THREE.Texture) {
@@ -499,11 +500,10 @@ class GameModel {
           this.speed.y += 20;
         }
       }
-      
 
       // sounds
       // walk
-      const isWASD = this.forward || this.backward || this.left || this.right; 
+      const isWASD = this.forward || this.backward || this.left || this.right;
       if (isWASD && !this.isMovingSoundNowPlaying && !this.isSpacebarDown) {
         this.isMovingSoundNowPlaying = true;
         this.sound.startWalkSound();
@@ -523,7 +523,6 @@ class GameModel {
         this.isBackgroundNowPlaying = true;
       }
 
-
       // if player fall down under textures
       if (this.camera.position.y < -300) {
         this.camera.position.y = 300;
@@ -534,11 +533,11 @@ class GameModel {
       this.control.moveForward(-this.speed.z * delta);
       this.camera.position.y += (this.speed.y * delta);
     } else {
-        // background
-        if (this.isBackgroundNowPlaying && this.sound.backgroundBuffer) {
-          this.sound.backgroundStop();
-          this.isBackgroundNowPlaying = false;
-        }
+      // background
+      if (this.isBackgroundNowPlaying && this.sound.backgroundBuffer) {
+        this.sound.backgroundStop();
+        this.isBackgroundNowPlaying = false;
+      }
     }
     this.time = time;
     this.renderer.render(this.scene, this.camera);

@@ -13,10 +13,10 @@ class SoundModel {
 
     gainNodeBackground: GainNode;
 
-    constructor() {
-      this.audioContext = new window.AudioContext();
+    initSounds() {
+        this.audioContext = new window.AudioContext();
 
-      fetch('/assets/sounds/walk_jump.ogg')
+        fetch('/assets/sounds/walk_jump.ogg')
         .then((response) => response.arrayBuffer())
         .then((buffer) => {
           this.audioContext.decodeAudioData(buffer, (decoded) => {
