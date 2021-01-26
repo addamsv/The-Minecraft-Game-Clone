@@ -30,10 +30,6 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private chatView: ChatViewInterface;
 
-  // private login: string;
-
-  // private pass: string;
-
   private pingSetIntervalID: number;
 
   constructor(controller: MainControllerInterface) {
@@ -49,8 +45,6 @@ class ServerSocketModel implements ServerSocketModelInterface {
     this.isConnected = false;
     this.isRegistered = false;
     this.playersTokens = new Set();
-    // this.login = '';
-    // this.pass = '';
     this.pingSetIntervalID = null;
     this.HOST = env.socketHost;
     this.createConnection();
@@ -84,11 +78,6 @@ class ServerSocketModel implements ServerSocketModelInterface {
   }
 
   public init(login: any = '', pass: any = '') {
-    console.log("login", login);
-    
-    // this.login = login;
-    // this.pass = pass;
-
     if (this.ws) {
       this.login(login, pass);
     } else {

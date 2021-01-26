@@ -58,8 +58,6 @@ class MainModel implements MainModelInterface {
   }
 
   public loginThroughToken() {
-    console.log('loginThroughToken');
-    
     this.login('', '');
   }
 

@@ -24,24 +24,10 @@ class StorageModel implements StorageModelInterface {
     }
   }
 
-  public sendStatToLocalStorage(stat: String) {
-  }
-
-  public getStatFromLocalStorage(requiredStat: String) {
-    return requiredStat;
-  }
-
   public sendSettsQueryToServer(setts: string) {
     if (this.serverSocket) {
       this.serverSocket.sendMessage(setts, 'setts');
     }
-  }
-
-  public sendSettsToLocalStorage(setts: String) {
-  }
-
-  public getSettsFromLocalStorage(requiredSetts: String) {
-    return requiredSetts;
   }
 }
 
