@@ -97,6 +97,8 @@ class GameModel {
 
   private gameLight: any;
 
+  isShiftPressed: Boolean;
+
   constructor(model: MainModelInterface) {
     this.model = model;
     this.createScene();
@@ -455,10 +457,19 @@ class GameModel {
 
       this.direction.normalize();
       if (this.forward || this.backward) {
-        this.speed.z -= this.direction.z * 400.0 * delta;
+        if (this.isShiftPressed) {
+          this.speed.z -= this.direction.z * 800.0 * delta;
+        } else {
+          this.speed.z -= this.direction.z * 400.0 * delta;
+        }
       }
       if (this.left || this.right) {
-        this.speed.x -= this.direction.x * 400.0 * delta;
+        if (this.isShiftPressed) {
+          this.speed.x -= this.direction.x * 800.0 * delta;
+        } else {
+          this.speed.x -= this.direction.x * 400.0 * delta;
+        }
+
       }
 
       // falling
