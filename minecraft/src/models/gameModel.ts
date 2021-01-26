@@ -10,6 +10,7 @@ import GameLoader from './gameLoader/gameLoader';
 import GameLoaderInterface from './gameLoader/gameLoaderInterface';
 import GameLight from './gameLight/gameLight';
 import PlayerMotion from './playerMotion/playerMotion';
+import SoundModel from './soundModel';
 
 const COOLDOWN_TIME = 2000;
 
@@ -22,6 +23,8 @@ class GameModel {
   }
 
   camera: THREE.PerspectiveCamera;
+
+  private cameraHeight: number;
 
   scene: THREE.Scene;
 
@@ -97,9 +100,20 @@ class GameModel {
 
   private gameLight: any;
 
+  sound: SoundModel;
+
+  isMovingSoundNowPlaying: Boolean;
+
+  jumpSound: Boolean;
+
+  isBackgroundNowPlaying: Boolean;
+
+  isSpacebarDown: Boolean;
+
   constructor(model: MainModelInterface) {
     this.model = model;
     this.createScene();
+    this.cameraHeight = 15;
     this.gameLight = new GameLight(this);
     this.gameLight.createLight();
     this.gameLoader = new GameLoader(this);
@@ -122,6 +136,9 @@ class GameModel {
     this.isSwordCooldown = false;
     this.isHitCooldown = false;
     this.isLockPosition = 1; // or 0
+    this.isMovingSoundNowPlaying = false;
+    this.isBackgroundNowPlaying = false;
+    this.sound = new SoundModel();
   }
 
   public setTexture(texture: THREE.Texture) {
@@ -333,17 +350,19 @@ class GameModel {
           const sandBufferGeometry = new THREE.BufferGeometry().fromGeometry(sandGeometry);
           const waterBufferGeometry = new THREE.BufferGeometry().fromGeometry(waterGeometry);
 
-          const mesh = new THREE.Mesh(bufferGeometry, material);
-          mesh.receiveShadow = true;
-          mesh.castShadow = true;
-          mesh.position.setX(xChunk * this.chunkSize * 10);
-          mesh.position.setZ(zChunk * this.chunkSize * 10);
+          const grassMesh = new THREE.Mesh(bufferGeometry, material);
+          grassMesh.receiveShadow = true;
+          grassMesh.castShadow = true;
+          grassMesh.position.setX(xChunk * this.chunkSize * 10);
+          grassMesh.position.setZ(zChunk * this.chunkSize * 10);
+          grassMesh.name = 'grass';
 
           const sandMesh = new THREE.Mesh(sandBufferGeometry, sandMaterial);
           sandMesh.receiveShadow = true;
           sandMesh.castShadow = true;
           sandMesh.position.setX(xChunk * this.chunkSize * 10);
           sandMesh.position.setZ(zChunk * this.chunkSize * 10);
+          sandMesh.name = 'sand';
 
           const water = new THREE.Mesh(waterBufferGeometry, waterMaterial);
           water.receiveShadow = true;
@@ -352,12 +371,12 @@ class GameModel {
           water.position.setZ(zChunk * this.chunkSize * 10);
           water.name = 'water';
 
-          meshMemo.obj = mesh;
+          meshMemo.obj = grassMesh;
           meshMemo.hasObj = true;
           meshMemo.sand = sandMesh;
           meshMemo.water = water;
           if (!meshMemo.markForRemoval) {
-            this.scene.add(mesh);
+            this.scene.add(grassMesh);
             this.scene.add(sandMesh);
             this.scene.add(water);
           }
@@ -461,30 +480,61 @@ class GameModel {
         this.speed.x -= this.direction.x * 400.0 * delta;
       }
 
-      // falling
+      /* RAYCASTING */
       this.raycaster.ray.origin.copy(this.camera.position);
-      const falling = this.raycaster.intersectObjects(this.scene.children);
-      let up = 15;
+      const falling = this.raycaster.intersectObjects(this.scene.children, true);
       if (falling.length) {
-        if (falling[0].object.name === 'water') {
+        /* MOVING PHYSICS & SPEED */
+        const surface = falling[0].object.name;
+        if (surface === 'water') {
           this.speed.y = 0;
           this.raycaster.far = 5;
           this.control.SPEED = 0.75;
-          up = 2.5;
+          this.cameraHeight = 2.5;
         } else {
           this.raycaster.far = 20;
           this.control.SPEED = 1.5;
-          up = 15;
+          this.cameraHeight = 15;
         }
         this.speed.y = Math.max(0, this.speed.y);
         if (this.speed.y <= 0) {
           this.jump = true;
         }
-        if (falling[0].distance < up) {
+        if (falling[0].distance < this.cameraHeight) {
           this.speed.z = 0;
           this.speed.x = 0;
           this.speed.y += 20;
         }
+
+        /* MOVING SOUNDS */
+        const isWASD = this.direction.z || this.direction.x;
+        if (this.sound.surface !== surface && this.isMovingSoundNowPlaying) {
+          this.isMovingSoundNowPlaying = false;
+          this.sound.stopWalkSound();
+        }
+        this.sound.surface = surface;
+        if (isWASD && !this.isMovingSoundNowPlaying && !this.isSpacebarDown) {
+          this.isMovingSoundNowPlaying = true;
+          this.sound.startWalkSound();
+        }
+        if (!isWASD && this.isMovingSoundNowPlaying) {
+          this.isMovingSoundNowPlaying = false;
+          this.sound.stopWalkSound();
+        }
+        if (this.jumpSound && surface !== 'water') {
+          if (this.isMovingSoundNowPlaying) {
+            this.isMovingSoundNowPlaying = false;
+            this.sound.stopWalkSound();
+          }
+          this.jumpSound = false;
+          this.sound.jump();
+        }
+      }
+
+      // background
+      if (!this.isBackgroundNowPlaying && this.sound.backgroundBuffer) {
+        this.sound.backgroundStart();
+        this.isBackgroundNowPlaying = true;
       }
 
       // if player fall down under textures
@@ -497,6 +547,7 @@ class GameModel {
       this.control.moveForward(-this.speed.z * delta);
       this.camera.position.y += (this.speed.y * delta);
     }
+
     this.time = time;
     this.renderer.render(this.scene, this.camera);
     this.stats.end();
