@@ -58,7 +58,7 @@ class MainModel implements MainModelInterface {
   }
 
   public loginThroughToken() {
-    this.login('', '');
+    this.login();
   }
 
   public loginThroughPassword(name: string, password: string, type: string) {
@@ -80,6 +80,12 @@ class MainModel implements MainModelInterface {
     }
   }
 
+  public logOut() {
+    this.rsServerSocket.logOut();
+    const event = new CustomEvent('logOut');
+    document.getElementById('server-menu-id').dispatchEvent(event);
+  }
+
   public signUp(login: String, password: String) {
     this.serverCRUD.create({ login, password })
       .then((data: MyResponse) => {
@@ -87,7 +93,7 @@ class MainModel implements MainModelInterface {
       });
   }
 
-  public login(login: String, password: String) {
+  public login(login: String = '', password: String = '') {
     // this.rsServerSocket = new ServerSocketModel(this.controller);
     this.rsServerSocket.init(login, password);
 

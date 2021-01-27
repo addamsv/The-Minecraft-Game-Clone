@@ -16,6 +16,8 @@ interface MainModelInterface {
 
   loginThroughToken(name: string, password: string, type: string): void;
 
+  logOut(): void;
+
   /**
    *  Send Message To the Heroku Server Through Socket
    * @param x - X coordinate

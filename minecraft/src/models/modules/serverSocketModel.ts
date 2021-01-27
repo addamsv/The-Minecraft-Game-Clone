@@ -71,10 +71,20 @@ class ServerSocketModel implements ServerSocketModelInterface {
         break;
       }
 
+      case 'logOut': {
+        this.send(2 + textMessage);
+        break;
+      }
+
       default: {
         break;
       }
     }
+  }
+
+  public logOut() {
+    localStorage.removeItem('USER_TOKEN');
+    this.sendMessage('{"ask": "logOut"}', 'logOut');
   }
 
   public init(login: any = '', pass: any = '') {
@@ -134,6 +144,12 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private messageReceived(message: any) {
     const mess = JSON.parse(message.data);
+    if (mess.logOutMessage) {
+      this.isRegistered = false;
+      this.ws.close();
+      console.log('the User is logged out: true');
+    }
+
     if (mess.setUserAsRegistered) {
       this.isRegistered = true;
       this.sendMessage('{"ask": "getSetts"}', 'setts');

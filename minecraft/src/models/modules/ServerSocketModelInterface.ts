@@ -5,6 +5,8 @@ interface ServerSocketModelInterface {
 
   init(login: any, password: any): void;
 
+  logOut(): void;
+
   setSeed(seed: String): void;
 
   getSeed(): string;
