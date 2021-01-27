@@ -80,6 +80,12 @@ class MainModel implements MainModelInterface {
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  public exitChangePassMenu() {
+    const event = new CustomEvent('exitChangePassMenu');
+    document.getElementById('server-menu-id').dispatchEvent(event);
+  }
+
   public logOut() {
     this.rsServerSocket.logOut();
     const event = new CustomEvent('logOut');

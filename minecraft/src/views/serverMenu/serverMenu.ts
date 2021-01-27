@@ -38,6 +38,8 @@ class ServerMenu implements ViewsInterface {
 
   private backToMainMenu: HTMLButtonElement;
 
+  private exitChangePassButton: HTMLButtonElement;
+
   private parseMessage: string;
 
   private failMessage: string;
@@ -57,6 +59,8 @@ class ServerMenu implements ViewsInterface {
   private sendNewPasswordFn: any;
 
   private closeServerMenu: any;
+
+  private exitChangePass: any;
 
   constructor(controller: MainControllerInterface, model: MainModelInterface) {
     this.controller = controller;
@@ -79,6 +83,7 @@ class ServerMenu implements ViewsInterface {
     this.or = document.createElement('span');
     this.signUp = document.createElement('button');
     this.backToMainMenu = document.createElement('button');
+    this.exitChangePassButton = document.createElement('button');
 
     this.serverScreen.classList.add('server-screen', 'animated');
     this.serverScreen.id = 'server-menu-id';
@@ -102,6 +107,7 @@ class ServerMenu implements ViewsInterface {
     this.signUp.classList.add('server-btn');
     this.signUp.id = 'signup';
     this.backToMainMenu.classList.add('server-btn', 'back-to-main-menu');
+    this.exitChangePassButton.classList.add('server-btn', 'back-to-main-menu');
 
     this.createMenu();
   }
@@ -134,6 +140,7 @@ class ServerMenu implements ViewsInterface {
     this.or.textContent = languageData.or;
     this.signUp.textContent = languageData.signUp;
     this.backToMainMenu.textContent = languageData.backToMainMenu;
+    this.exitChangePassButton.textContent = languageData.backToMainMenu;
     this.parseMessage = languageData.parseMessage;
     this.failMessage = languageData.failMessage;
     this.errorMessage.textContent = '';
@@ -165,6 +172,7 @@ class ServerMenu implements ViewsInterface {
     this.changePasswordFn = this.model.changePassword.bind(this.model);
     this.sendNewPasswordFn = this.model.sendNewPassword.bind(this.model);
     this.closeServerMenu = this.controller.closeServerMenu.bind(this.controller);
+    this.exitChangePass = this.model.exitChangePassMenu.bind(this.model);
 
     this.getChanges();
   }
@@ -219,14 +227,26 @@ class ServerMenu implements ViewsInterface {
       this.logOut.remove();
       this.or.remove();
       this.changePassword.remove();
+      this.backToMainMenu.remove();
       this.buttonsWrapper.append(this.sendNewPassword);
       this.serverWrapper.append(
         this.newPassword,
         this.buttonsWrapper,
         this.errorMessage,
-        this.backToMainMenu,
+        this.exitChangePassButton,
       );
       this.errorMessage.textContent = 'request to change password';
+    });
+    this.serverScreen.addEventListener('exitChangePassMenu', () => {
+      this.sendNewPassword.remove();
+      this.exitChangePassButton.remove();
+      this.newPassword.remove();
+      this.buttonsWrapper.append(this.changePassword, this.or, this.logOut);
+      this.serverWrapper.append(
+        this.buttonsWrapper,
+        this.errorMessage,
+        this.backToMainMenu,
+      );
     });
   }
 
@@ -246,6 +266,7 @@ class ServerMenu implements ViewsInterface {
     this.logIn.addEventListener('click', this.readInputs);
     this.signUp.addEventListener('click', this.readInputs);
     this.backToMainMenu.addEventListener('click', this.closeServerMenu);
+    this.exitChangePassButton.addEventListener('click', this.exitChangePass);
   }
 
   private removeEventListeners() {
@@ -256,6 +277,7 @@ class ServerMenu implements ViewsInterface {
     this.logIn.removeEventListener('click', this.readViewInputs);
     this.signUp.removeEventListener('click', this.readViewInputs);
     this.backToMainMenu.removeEventListener('click', this.closeServerMenu);
+    this.exitChangePassButton.removeEventListener('click', this.exitChangePass);
   }
 }
 

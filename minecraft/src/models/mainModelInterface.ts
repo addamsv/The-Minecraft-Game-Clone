@@ -12,6 +12,8 @@ interface MainModelInterface {
 
   getSeed(): string;
 
+  exitChangePassMenu(): void;
+
   loginThroughPassword(name: string, password: string, type: string): void;
 
   loginThroughToken(name: string, password: string, type: string): void;
