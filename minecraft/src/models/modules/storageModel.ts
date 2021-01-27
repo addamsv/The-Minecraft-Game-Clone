@@ -1,5 +1,3 @@
-/* eslint-disable no-unused-vars */
-/* eslint-disable class-methods-use-this */
 import StorageModelInterface from './storageModelInterface';
 import ServerSocketModelInterface from './ServerSocketModelInterface';
 import MainControllerInterface from '../../controllers/mainControllerInterface';
