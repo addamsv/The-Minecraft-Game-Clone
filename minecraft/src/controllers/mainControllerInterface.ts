@@ -19,9 +19,13 @@ interface MainControllerInterface {
 
   prepareToStartGame(): void;
 
-  createKeyboardControls(): void;
+  playerControlsDown(event: any): any;
 
-  playerControls(event: any): any;
+  playerControlsUp(event: any): any;
+
+  swordControls(): any;
+
+  // hitControls(): any;
 
   // onKeyDown(event: PlayerEvent): void;
 
