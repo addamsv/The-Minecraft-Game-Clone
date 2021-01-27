@@ -220,7 +220,7 @@ class GameModel {
 
     const cInitialVal = mesh.rotation.y;
     let cPosTo = evDetail.c * Math.PI;
-    /* Can it be approval at all? I cant even imagine */
+
     /* coefficient to make proper rotational pos */
     if (cPosTo > 0) {
       if (cPosTo < 3) {
@@ -229,12 +229,6 @@ class GameModel {
       if (cPosTo < 2.78) {
         cPosTo *= 0.84;
       }
-      // if (cPosTo < 2.13) {
-      //   cPosTo *= 0.73;
-      // }
-      // if (cPosTo < 1.16) {
-      //   cPosTo *= 0.67;
-      // }
     }
     if (cPosTo < 0) {
       if (cPosTo > -3) {
@@ -243,16 +237,8 @@ class GameModel {
       if (cPosTo > -2.78) {
         cPosTo *= 0.84;
       }
-      // if (cPosTo > -2.13) {
-      //   cPosTo *= 0.73;
-      // }
-      // if (cPosTo > -1.16) {
-      //   cPosTo *= 0.67;
-      // }
     }
     const increaseC = cInitialVal < cPosTo ? 0.05 : -0.05;
-
-    console.log(cPosTo);
 
     let isXReturnFlagHoisted = false;
     let isZReturnFlagHoisted = false;
