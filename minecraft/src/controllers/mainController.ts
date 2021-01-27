@@ -1,3 +1,5 @@
+/* eslint-disable class-methods-use-this */
+
 import { MainModelInterface, MainModel } from '../models/mainModel';
 import MainControllerInterface from './mainControllerInterface';
 import MenuView from '../views/menuView';
@@ -74,7 +76,6 @@ class MainController implements MainControllerInterface {
     this.menuView.quitConfirm.attachMenu();
   }
 
-  // eslint-disable-next-line
   quitGame() {
     window.close();
   }
@@ -150,7 +151,6 @@ class MainController implements MainControllerInterface {
           this.gameModel.jumpSound = true;
         }
         this.gameModel.jump = false;
-        this.gameModel.isSpacebarDown = true;
         break;
       }
       case 49: {
@@ -171,7 +171,6 @@ class MainController implements MainControllerInterface {
       case 65: this.gameModel.left = false; break;
       case 83: this.gameModel.backward = false; break;
       case 68: this.gameModel.right = false; break;
-      case 32: this.gameModel.isSpacebarDown = false; break;
       default: break;
     }
   }
