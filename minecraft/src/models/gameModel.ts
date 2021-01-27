@@ -111,6 +111,14 @@ class GameModel {
 
   private startTime: number;
 
+  private sword: THREE.Object3D;
+
+  private swordAnime: any;
+
+  private mixer: THREE.AnimationMixer;
+
+  private clock: THREE.Clock;
+
   constructor(model: MainModelInterface) {
     this.model = model;
     this.createScene();
@@ -154,8 +162,17 @@ class GameModel {
     switch (object.name) {
       case 'smallTree': this.smallTree = object; break;
       case 'largeTree': this.largeTree = object; break;
+      case 'sword': {
+        this.sword = object;
+        this.mixer = new THREE.AnimationMixer(this.sword);
+        break;
+      }
       default: break;
     }
+  }
+
+  public setAnimation(animation: any) {
+    this.swordAnime = animation;
   }
 
   public setPlayer(player: THREE.Object3D) {
@@ -180,7 +197,12 @@ class GameModel {
   public hitSword() {
     if (this.isSword && !this.isHitCooldown) {
       this.isHitCooldown = true;
-      // here should call sword animation
+      this.startSwordCooldown();
+      const hit = this.mixer.clipAction(this.swordAnime);
+      hit.play();
+      setTimeout(() => {
+        hit.stop();
+      }, 625);
       setTimeout(() => {
         this.isHitCooldown = false;
       }, COOLDOWN_TIME);
@@ -189,14 +211,14 @@ class GameModel {
 
   private takeSword() {
     this.isSword = true;
-    // this.scene.add(this.swordMesh);
+    this.scene.add(this.sword);
     this.gameView.addSwordClass();
     this.startSwordCooldown();
   }
 
   private hideSword() {
     this.isSword = false;
-    // this.scene.remove(this.swordMesh);
+    this.scene.remove(this.sword);
     this.gameView.removeSwordClass();
     this.startSwordCooldown();
   }
@@ -424,12 +446,14 @@ class GameModel {
     this.worker.postMessage({ seed: this.seed });
     this.worker.postMessage({ xChunk: 0, zChunk: 0, load: true });
     this.gameLight.startDay();
+    this.clock = new THREE.Clock();
   }
 
   animationFrame() {
     this.stats.begin();
     this.jump = false;
     const time = performance.now();
+    this.mixer.update(this.clock.getDelta());
 
     // how often should send to the server
     const period = 1000; // in ms
@@ -550,6 +574,17 @@ class GameModel {
       this.control.moveRight(-this.speed.x * delta);
       this.control.moveForward(-this.speed.z * delta);
       this.camera.position.y += (this.speed.y * delta);
+
+      if (this.sword) {
+        const targetQuaternion = this.camera.quaternion;
+        if (!this.sword.quaternion.equals(targetQuaternion)) {
+          const step = 2 * delta;
+          this.sword.quaternion.rotateTowards(targetQuaternion, step);
+        }
+        this.sword.position.lerp(this.camera.position, 1);
+        this.sword.translateX(10);
+        this.sword.translateZ(-15);
+      }
     }
 
     this.time = time;
