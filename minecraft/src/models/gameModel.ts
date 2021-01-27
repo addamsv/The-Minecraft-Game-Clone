@@ -1,5 +1,6 @@
+/* eslint-disable import/no-webpack-loader-syntax, import/no-unresolved */
+
 import * as THREE from 'three';
-// eslint-disable-next-line
 import MapWorker from 'worker-loader!./worker';
 import PointerLock from '../controllers/pointerLock/pointerLock';
 import PointerLockInterface from '../controllers/pointerLock/pointerLockInterface';
@@ -10,7 +11,7 @@ import GameLoader from './gameLoader/gameLoader';
 import GameLoaderInterface from './gameLoader/gameLoaderInterface';
 import GameLight from './gameLight/gameLight';
 import PlayerMotion from './playerMotion/playerMotion';
-import SoundModel from './soundModel';
+import SoundModel from './soundModel/soundModel';
 
 const COOLDOWN_TIME = 2000;
 
@@ -49,8 +50,6 @@ class GameModel {
   jump: boolean;
 
   control: PointerLockInterface;
-
-  renderDistance: number;
 
   chunkSize: number;
 
@@ -102,13 +101,15 @@ class GameModel {
 
   sound: SoundModel;
 
-  isMovingSoundNowPlaying: Boolean;
+  isMovingSoundNowPlaying: boolean;
 
-  jumpSound: Boolean;
+  jumpSound: boolean;
 
-  isBackgroundNowPlaying: Boolean;
+  isBackgroundNowPlaying: boolean;
 
-  isSpacebarDown: Boolean;
+  private intersectObjects: boolean;
+
+  private startTime: number;
 
   constructor(model: MainModelInterface) {
     this.model = model;
@@ -124,8 +125,8 @@ class GameModel {
     this.backward = false;
     this.right = false;
     this.jump = false;
+    this.intersectObjects = false;
     this.meshes = {};
-    this.renderDistance = 6;
     this.chunkSize = 16;
     this.connectPlayers();
     this.disconnectPlayers();
@@ -179,7 +180,6 @@ class GameModel {
   public hitSword() {
     if (this.isSword && !this.isHitCooldown) {
       this.isHitCooldown = true;
-      console.log('hit');
       // here should call sword animation
       setTimeout(() => {
         this.isHitCooldown = false;
@@ -286,9 +286,6 @@ class GameModel {
   /* ************************************************ */
 
   generateWorld(seed: string) {
-    setTimeout(() => {
-      this.isLockPosition = 1;
-    }, 13000);
     this.seed = seed;
     this.stats = Stats();
     this.stats.showPanel(0);
@@ -302,7 +299,7 @@ class GameModel {
     this.speed = new THREE.Vector3();
     this.direction = new THREE.Vector3();
 
-    this.camera.position.y = 200;
+    this.camera.position.y = 600;
     this.camera.position.x = (this.chunkSize / 2) * 10;
     this.camera.position.z = (this.chunkSize / 2) * 10;
 
@@ -327,6 +324,13 @@ class GameModel {
 
     this.worker.onmessage = (event: any) => {
       setTimeout(() => {
+        if (event.data.unlockPosition) {
+          this.isLockPosition = 1;
+          this.startTime = performance.now();
+          setTimeout(() => {
+            this.intersectObjects = true;
+          }, COOLDOWN_TIME);
+        }
         const {
           geometry, sandGeometry, waterGeometry, xChunk, zChunk,
         } = event.data;
@@ -465,10 +469,10 @@ class GameModel {
       this.currentChunk.z = newChunkZ;
     }
     if (this.control.isLocked) {
-      const delta = (time - this.time) / 1000;
-      this.speed.x -= this.speed.x * 10.0 * delta * this.isLockPosition;
-      this.speed.z -= this.speed.z * 10.0 * delta * this.isLockPosition;
-      this.speed.y -= 9.8 * 50.0 * delta * this.isLockPosition;
+      const delta = ((time - this.time) / 1000) * this.isLockPosition;
+      this.speed.x -= this.speed.x * 10.0 * delta;
+      this.speed.z -= this.speed.z * 10.0 * delta;
+      this.speed.y -= 9.8 * 50.0 * delta;
       this.direction.z = Number(this.forward) - Number(this.backward);
       this.direction.x = Number(this.right) - Number(this.left);
 
@@ -482,7 +486,7 @@ class GameModel {
 
       /* RAYCASTING */
       this.raycaster.ray.origin.copy(this.camera.position);
-      const falling = this.raycaster.intersectObjects(this.scene.children, true);
+      const falling = this.raycaster.intersectObjects(this.scene.children, this.intersectObjects);
       if (falling.length) {
         /* MOVING PHYSICS & SPEED */
         const surface = falling[0].object.name;
@@ -513,7 +517,7 @@ class GameModel {
           this.sound.stopWalkSound();
         }
         this.sound.surface = surface;
-        if (isWASD && !this.isMovingSoundNowPlaying && !this.isSpacebarDown) {
+        if (isWASD && !this.isMovingSoundNowPlaying) {
           this.isMovingSoundNowPlaying = true;
           this.sound.startWalkSound();
         }
@@ -531,13 +535,13 @@ class GameModel {
         }
       }
 
-      // background
+      /* BACKGROUND MUSIC */
       if (!this.isBackgroundNowPlaying && this.sound.backgroundBuffer) {
         this.sound.backgroundStart();
         this.isBackgroundNowPlaying = true;
       }
 
-      // if player fall down under textures
+      /* DONT FALL UNDER WORLD */
       if (this.camera.position.y < -300) {
         this.camera.position.y = 300;
         this.speed.y = 0;
