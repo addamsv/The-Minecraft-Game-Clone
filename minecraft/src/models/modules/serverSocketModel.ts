@@ -164,7 +164,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
     if (mess.setToken) {
       this.isRegistered = true;
-      const event = new CustomEvent('success');
+      const event = new CustomEvent('success', { detail: { login: mess.login } });
       document.getElementById('server-menu-id').dispatchEvent(event);
       /*
       * Here should add token to storage
@@ -177,7 +177,8 @@ class ServerSocketModel implements ServerSocketModelInterface {
     if (mess.failLogin) {
       console.log(mess.failLogin);
       this.isRegistered = false;
-      const event = new CustomEvent('fail');
+      const event = new CustomEvent('fail', { detail: { fail: mess.failLogin } });
+      // const event = new CustomEvent('fail');
       document.getElementById('server-menu-id').dispatchEvent(event);
     }
 

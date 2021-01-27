@@ -119,12 +119,7 @@ class ServerMenu implements ViewsInterface {
     const USER_TOKEN = localStorage.getItem('USER_TOKEN');
 
     if (USER_TOKEN) {
-      this.buttonsWrapper.append(this.play, this.or, this.logOut);
-      this.serverWrapper.append(
-        this.buttonsWrapper,
-        this.errorMessage,
-        this.backToMainMenu,
-      );
+      this.buttonsWrapperLoggedInType();
     } else {
       this.buttonsWrapper.append(this.logIn, this.or, this.signUp);
       this.serverWrapper.append(
@@ -146,27 +141,29 @@ class ServerMenu implements ViewsInterface {
     this.getChanges();
   }
 
-  // private getServerWrapperLoginNode() {
-  // }
+  private buttonsWrapperLoggedInType() {
+    this.buttonsWrapper.append(this.play, this.or, this.logOut);
+    this.serverWrapper.append(
+      this.buttonsWrapper,
+      this.errorMessage,
+      this.backToMainMenu,
+    );
+  }
 
   private getChanges() {
     this.serverScreen.addEventListener('input-error', () => {
       this.errorMessage.textContent = this.parseMessage;
     });
-    this.serverScreen.addEventListener('success', () => {
+    this.serverScreen.addEventListener('success', (event: CustomEvent) => {
       this.serverWrapper.innerHTML = '';
       this.buttonsWrapper.innerHTML = '';
-      this.buttonsWrapper.append(this.play, this.or, this.logOut);
-      this.serverWrapper.append(
-        this.buttonsWrapper,
-        this.errorMessage,
-        this.backToMainMenu,
-      );
-      this.errorMessage.textContent = 'Registered';
+      this.buttonsWrapperLoggedInType();
+      this.errorMessage.textContent = `You are Registered as "${event.detail.login}"`;
       this.removeMenu();
     });
-    this.serverScreen.addEventListener('fail', () => {
-      this.errorMessage.textContent = this.failMessage;
+    this.serverScreen.addEventListener('fail', (event: CustomEvent) => {
+      // this.errorMessage.textContent = this.failMessage;
+      this.errorMessage.textContent = `fail: ${event.detail.fail}`;
     });
     this.serverScreen.addEventListener('logOut', () => {
       this.play.remove();
