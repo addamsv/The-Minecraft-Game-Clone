@@ -64,7 +64,7 @@ class ServerMenu implements ViewsInterface {
     this.signUp = document.createElement('button');
     this.backToMainMenu = document.createElement('button');
 
-    this.serverScreen.classList.add('server-screen');
+    this.serverScreen.classList.add('server-screen', 'animated');
     this.serverScreen.id = 'server-menu-id';
     this.serverWrapper.classList.add('server-wrapper');
     this.nickname.classList.add('nickname');
