@@ -14,6 +14,8 @@ class ServerMenu implements ViewsInterface {
 
   private password: HTMLInputElement;
 
+  private newPassword: HTMLInputElement;
+
   private errorMessage: HTMLDivElement;
 
   private play: HTMLButtonElement;
@@ -21,6 +23,10 @@ class ServerMenu implements ViewsInterface {
   private logOut: HTMLButtonElement;
 
   private logIn: HTMLButtonElement;
+
+  private changePassword: HTMLButtonElement;
+
+  private sendNewPassword: HTMLButtonElement;
 
   private or: HTMLSpanElement;
 
@@ -38,11 +44,17 @@ class ServerMenu implements ViewsInterface {
 
   private readInputs: any;
 
-  private checkStrings: any;
+  private readNewPasswordInput: any;
+
+  private loginThroughPassword: any;
 
   private tokenLogin: any;
 
   private logOutFn: any;
+
+  private changePasswordFn: any;
+
+  private sendNewPasswordFn: any;
 
   private closeServerMenu: any;
 
@@ -55,11 +67,15 @@ class ServerMenu implements ViewsInterface {
     this.nickname = document.createElement('input');
     this.password = document.createElement('input');
     this.password.type = 'password';
+    this.newPassword = document.createElement('input');
+    this.newPassword.type = 'password';
     this.errorMessage = document.createElement('div');
     this.buttonsWrapper = document.createElement('div');
     this.logOut = document.createElement('button');
     this.play = document.createElement('button');
     this.logIn = document.createElement('button');
+    this.changePassword = document.createElement('button');
+    this.sendNewPassword = document.createElement('button');
     this.or = document.createElement('span');
     this.signUp = document.createElement('button');
     this.backToMainMenu = document.createElement('button');
@@ -69,6 +85,7 @@ class ServerMenu implements ViewsInterface {
     this.serverWrapper.classList.add('server-wrapper');
     this.nickname.classList.add('nickname');
     this.password.classList.add('password');
+    this.newPassword.classList.add('password');
     this.errorMessage.classList.add('error-message');
     this.buttonsWrapper.classList.add('buttons-wrapper');
     this.logOut.classList.add('server-btn');
@@ -77,6 +94,10 @@ class ServerMenu implements ViewsInterface {
     this.play.id = 'play';
     this.logIn.classList.add('server-btn');
     this.logIn.id = 'login';
+    this.changePassword.classList.add('server-btn');
+    this.changePassword.id = 'changePassword';
+    this.sendNewPassword.classList.add('server-btn');
+    this.sendNewPassword.id = 'sendNewPassword';
     this.or.classList.add('or');
     this.signUp.classList.add('server-btn');
     this.signUp.id = 'signup';
@@ -104,9 +125,12 @@ class ServerMenu implements ViewsInterface {
     }
     this.nickname.placeholder = languageData.nickname;
     this.password.placeholder = languageData.password;
+    this.newPassword.placeholder = languageData.newPassword;
     this.logOut.textContent = languageData.logOut;
-    this.play.textContent = languageData.play;
+    this.play.textContent = languageData.connect;
     this.logIn.textContent = languageData.logIn;
+    this.changePassword.textContent = languageData.changePassword;
+    this.sendNewPassword.textContent = languageData.sendNewPassword;
     this.or.textContent = languageData.or;
     this.signUp.textContent = languageData.signUp;
     this.backToMainMenu.textContent = languageData.backToMainMenu;
@@ -134,15 +158,28 @@ class ServerMenu implements ViewsInterface {
     this.serverScreen.append(this.serverWrapper);
 
     this.readInputs = this.readViewInputs.bind(this);
-    this.checkStrings = this.model.loginThroughPassword.bind(this.model);
+    this.readNewPasswordInput = this.readNewPasswordViewInput.bind(this);
+    this.loginThroughPassword = this.model.loginThroughPassword.bind(this.model);
     this.tokenLogin = this.model.loginThroughToken.bind(this.model);
     this.logOutFn = this.model.logOut.bind(this.model);
+    this.changePasswordFn = this.model.changePassword.bind(this.model);
+    this.sendNewPasswordFn = this.model.sendNewPassword.bind(this.model);
     this.closeServerMenu = this.controller.closeServerMenu.bind(this.controller);
+
     this.getChanges();
   }
 
   private buttonsWrapperLoggedInType() {
     this.buttonsWrapper.append(this.play, this.or, this.logOut);
+    this.serverWrapper.append(
+      this.buttonsWrapper,
+      this.errorMessage,
+      this.backToMainMenu,
+    );
+  }
+
+  private buttonsWrapperJustLoggedInType() {
+    this.buttonsWrapper.append(this.changePassword, this.or, this.logOut);
     this.serverWrapper.append(
       this.buttonsWrapper,
       this.errorMessage,
@@ -157,29 +194,55 @@ class ServerMenu implements ViewsInterface {
     this.serverScreen.addEventListener('success', (event: CustomEvent) => {
       this.serverWrapper.innerHTML = '';
       this.buttonsWrapper.innerHTML = '';
-      this.buttonsWrapperLoggedInType();
+      this.buttonsWrapperJustLoggedInType();
       this.errorMessage.textContent = `You are Registered as "${event.detail.login}"`;
       this.removeMenu();
     });
+    this.serverScreen.addEventListener('changePassword', () => {
+      this.serverWrapper.innerHTML = '';
+      this.buttonsWrapper.innerHTML = '';
+      this.buttonsWrapperJustLoggedInType();
+      this.errorMessage.textContent = 'Password is changed';
+      // this.removeMenu();
+    });
     this.serverScreen.addEventListener('fail', (event: CustomEvent) => {
-      // this.errorMessage.textContent = this.failMessage;
       this.errorMessage.textContent = `fail: ${event.detail.fail}`;
     });
     this.serverScreen.addEventListener('logOut', () => {
+      this.changePassword.remove();
       this.play.remove();
       this.logOut.remove();
       this.createMenu();
       this.errorMessage.textContent = 'logged-Out';
     });
+    this.serverScreen.addEventListener('makeChangePasswordMenu', () => {
+      this.logOut.remove();
+      this.or.remove();
+      this.changePassword.remove();
+      this.buttonsWrapper.append(this.sendNewPassword);
+      this.serverWrapper.append(
+        this.newPassword,
+        this.buttonsWrapper,
+        this.errorMessage,
+        this.backToMainMenu,
+      );
+      this.errorMessage.textContent = 'request to change password';
+    });
   }
 
   private readViewInputs(event: any) {
-    this.checkStrings(this.nickname.value, this.password.value, event.target.id);
+    this.loginThroughPassword(this.nickname.value, this.password.value, event.target.id);
+  }
+
+  private readNewPasswordViewInput(event: any) {
+    this.sendNewPasswordFn(this.newPassword.value, event.target.id);
   }
 
   private addEventListeners() {
     this.play.addEventListener('click', this.tokenLogin);
     this.logOut.addEventListener('click', this.logOutFn);
+    this.changePassword.addEventListener('click', this.changePasswordFn);
+    this.sendNewPassword.addEventListener('click', this.readNewPasswordInput);
     this.logIn.addEventListener('click', this.readInputs);
     this.signUp.addEventListener('click', this.readInputs);
     this.backToMainMenu.addEventListener('click', this.closeServerMenu);
@@ -188,6 +251,8 @@ class ServerMenu implements ViewsInterface {
   private removeEventListeners() {
     this.play.removeEventListener('click', this.tokenLogin);
     this.logOut.removeEventListener('click', this.logOutFn);
+    this.changePassword.removeEventListener('click', this.changePasswordFn);
+    this.sendNewPassword.removeEventListener('click', this.readNewPasswordInput);
     this.logIn.removeEventListener('click', this.readViewInputs);
     this.signUp.removeEventListener('click', this.readViewInputs);
     this.backToMainMenu.removeEventListener('click', this.closeServerMenu);

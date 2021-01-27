@@ -86,6 +86,24 @@ class MainModel implements MainModelInterface {
     document.getElementById('server-menu-id').dispatchEvent(event);
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  public changePassword() {
+    const event = new CustomEvent('makeChangePasswordMenu');
+    document.getElementById('server-menu-id').dispatchEvent(event);
+  }
+
+  public sendNewPassword(newPassword: string) {
+    const regex = /\w{3,12}/;
+    if (!regex.test(newPassword)) {
+      const event = new CustomEvent('input-error');
+      document.getElementById('server-menu-id').dispatchEvent(event);
+    } else {
+      this.rsServerSocket.changePassword(newPassword);
+      const event = new CustomEvent('changePassword');
+      document.getElementById('server-menu-id').dispatchEvent(event);
+    }
+  }
+
   public signUp(login: String, password: String) {
     this.serverCRUD.create({ login, password })
       .then((data: MyResponse) => {

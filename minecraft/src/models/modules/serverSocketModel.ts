@@ -76,6 +76,11 @@ class ServerSocketModel implements ServerSocketModelInterface {
         break;
       }
 
+      case 'changePassword': {
+        this.send(0 + textMessage);
+        break;
+      }
+
       default: {
         break;
       }
@@ -85,6 +90,10 @@ class ServerSocketModel implements ServerSocketModelInterface {
   public logOut() {
     localStorage.removeItem('USER_TOKEN');
     this.sendMessage('{"ask": "logOut"}', 'logOut');
+  }
+
+  public changePassword(newPassword: string) {
+    this.sendMessage(`{"ask": "changePassword", "newPassword": "${newPassword}"}`, 'changePassword');
   }
 
   public init(login: any = '', pass: any = '') {

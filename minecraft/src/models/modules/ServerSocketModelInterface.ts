@@ -7,6 +7,8 @@ interface ServerSocketModelInterface {
 
   logOut(): void;
 
+  changePassword(newPassword: string): void;
+
   setSeed(seed: String): void;
 
   getSeed(): string;

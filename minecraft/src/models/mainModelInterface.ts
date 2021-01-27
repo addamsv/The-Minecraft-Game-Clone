@@ -18,6 +18,10 @@ interface MainModelInterface {
 
   logOut(): void;
 
+  changePassword(): void;
+
+  sendNewPassword(newPassword: string): void;
+
   /**
    *  Send Message To the Heroku Server Through Socket
    * @param x - X coordinate
