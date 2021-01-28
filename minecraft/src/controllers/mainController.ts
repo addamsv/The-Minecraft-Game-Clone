@@ -58,6 +58,9 @@ class MainController implements MainControllerInterface {
     }
     if (this.isSingleGameStart) {
       // stop single game & start server
+      this.gameModel.destroyWorld();
+      this.isSingleGameStart = false;
+      this.startServerGame();
     }
     this.gameModel.control.lock();
   }
@@ -70,6 +73,15 @@ class MainController implements MainControllerInterface {
   closeServerMenu() {
     this.menuView.serverMenu.removeMenu();
     this.menuView.mainMenu.attachMenu();
+  }
+
+  public exitServerGame() {
+    // need to show default login here
+    // this.menuView.serverMenu.YOUR_FUNC_HERE();
+    // delete server game world
+    this.gameModel.destroyWorld();
+    // isServerGameStart = false to able to start multiplayer again after new login
+    this.isServerGameStart = false;
   }
 
   openSettingsMenu() {

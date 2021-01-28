@@ -62,6 +62,10 @@ class ServerMenu implements ViewsInterface {
 
   private exitChangePass: any;
 
+  private exitServerGameButton: HTMLButtonElement;
+
+  private exitServerGame: any;
+
   constructor(controller: MainControllerInterface, model: MainModelInterface) {
     this.controller = controller;
     this.model = model;
@@ -84,6 +88,7 @@ class ServerMenu implements ViewsInterface {
     this.signUp = document.createElement('button');
     this.backToMainMenu = document.createElement('button');
     this.exitChangePassButton = document.createElement('button');
+    this.exitServerGameButton = document.createElement('button');
 
     this.serverScreen.classList.add('server-screen', 'animated');
     this.serverScreen.id = 'server-menu-id';
@@ -108,6 +113,7 @@ class ServerMenu implements ViewsInterface {
     this.signUp.id = 'signup';
     this.backToMainMenu.classList.add('server-btn', 'back-to-main-menu');
     this.exitChangePassButton.classList.add('server-btn', 'back-to-main-menu');
+    this.exitServerGameButton.classList.add('server-btn', 'back-to-main-menu');
 
     this.createMenu();
   }
@@ -144,6 +150,7 @@ class ServerMenu implements ViewsInterface {
     this.parseMessage = languageData.parseMessage;
     this.failMessage = languageData.failMessage;
     this.errorMessage.textContent = '';
+    this.exitServerGameButton.textContent = languageData.exitServerGame;
   }
 
   private createMenu() {
@@ -173,6 +180,7 @@ class ServerMenu implements ViewsInterface {
     this.sendNewPasswordFn = this.model.sendNewPassword.bind(this.model);
     this.closeServerMenu = this.controller.closeServerMenu.bind(this.controller);
     this.exitChangePass = this.model.exitChangePassMenu.bind(this.model);
+    this.exitServerGame = this.controller.exitServerGame.bind(this.controller);
 
     this.getChanges();
   }
@@ -189,6 +197,7 @@ class ServerMenu implements ViewsInterface {
   private buttonsWrapperJustLoggedInType() {
     this.buttonsWrapper.append(this.changePassword, this.or, this.logOut);
     this.serverWrapper.append(
+      this.exitServerGameButton,
       this.buttonsWrapper,
       this.errorMessage,
       this.backToMainMenu,
@@ -287,6 +296,7 @@ class ServerMenu implements ViewsInterface {
     this.signUp.addEventListener('click', this.readInputs);
     this.backToMainMenu.addEventListener('click', this.closeServerMenu);
     this.exitChangePassButton.addEventListener('click', this.exitChangePass);
+    this.exitServerGameButton.addEventListener('click', this.exitServerGame);
   }
 
   private removeEventListeners() {
@@ -298,6 +308,7 @@ class ServerMenu implements ViewsInterface {
     this.signUp.removeEventListener('click', this.readViewInputs);
     this.backToMainMenu.removeEventListener('click', this.closeServerMenu);
     this.exitChangePassButton.removeEventListener('click', this.exitChangePass);
+    this.exitServerGameButton.removeEventListener('click', this.exitServerGame);
   }
 }
 

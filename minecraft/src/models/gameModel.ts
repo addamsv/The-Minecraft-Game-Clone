@@ -149,6 +149,13 @@ class GameModel {
     this.model.setPlayerMotion(this.playerMotion);
   }
 
+  public destroyWorld() {
+    while (this.scene.children.length > 0) {
+      this.scene.remove(this.scene.children[0]);
+    }
+    this.renderer.domElement.remove();
+  }
+
   public setTexture(texture: THREE.Texture) {
     switch (texture.name) {
       case 'grassTexture': this.grassTexture = texture; break;

@@ -28,6 +28,7 @@ const languageConfig = {
       backToMainMenu: 'Cancel',
       parseMessage: 'use only a-z, A-Z and 0-9, the length should be between 3 and 12',
       failMessage: 'already in use',
+      exitServerGame: 'Disconnect',
     },
     settinsMenu: {
       langBtn: 'English',
@@ -64,6 +65,7 @@ const languageConfig = {
       backToMainMenu: 'Отмена',
       parseMessage: 'используйте только a-z, A-Z и 0-9, длина должна быть от 3 до 12',
       failMessage: 'имя занято',
+      exitServerGame: 'Отключиться',
     },
     settinsMenu: {
       langBtn: 'Русский',
