@@ -16,7 +16,7 @@ class MainController implements MainControllerInterface {
 
   isSingleGameStart: boolean;
 
-  isServerGameStart: boolean;
+  public isServerGameStart: boolean;
 
   isGamePause: boolean;
 

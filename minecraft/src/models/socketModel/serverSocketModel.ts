@@ -195,7 +195,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
     /*
     * Connect new Player to GameModel
     */
-    if (mess.setNewWsToken) {
+    if (mess.setNewWsToken && this.controller.isServerGameStart) {
       const tokens: Array<string> = mess.setNewWsToken.split('___');
       tokens.forEach((playerToken: string) => {
         if (!this.playersTokens.has(playerToken) && playerToken !== this.WS_TOKEN) {
@@ -267,7 +267,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
         this.areYouMessageOwner(mess.wsToken),
       );
     }
-    if (mess.chatServerMessage) {
+    if (mess.chatServerMessage && this.controller.isServerGameStart) {
       console.log(mess.chatServerMessage);
       this.chatView.appendMessage('SERVER', mess.chatServerMessage, false);
     }

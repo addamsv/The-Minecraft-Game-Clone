@@ -1,6 +1,8 @@
 /* eslint-disable no-unused-vars */
 
 interface MainControllerInterface {
+  isServerGameStart: boolean;
+
   startSingleGame(): any;
   startServerGame(): any;
 
