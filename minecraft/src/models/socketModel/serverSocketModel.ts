@@ -186,9 +186,18 @@ class ServerSocketModel implements ServerSocketModelInterface {
     }
 
     if (mess.failLogin) {
-      console.log(mess.failLogin);
       this.isRegistered = false;
       const event = new CustomEvent('fail', { detail: { fail: mess.failLogin } });
+      document.getElementById('server-menu-id').dispatchEvent(event);
+    }
+
+    if (mess.failChangePassword) {
+      const event = new CustomEvent('fail', { detail: { fail: mess.failChangePassword } });
+      document.getElementById('server-menu-id').dispatchEvent(event);
+    }
+
+    if (mess.failLogOut) {
+      const event = new CustomEvent('fail', { detail: { fail: mess.failLogOut } });
       document.getElementById('server-menu-id').dispatchEvent(event);
     }
 

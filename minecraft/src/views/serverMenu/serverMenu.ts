@@ -62,6 +62,8 @@ class ServerMenu implements ViewsInterface {
 
   private exitChangePass: any;
 
+  private languageData: any;
+
   constructor(controller: MainControllerInterface, model: MainModelInterface) {
     this.controller = controller;
     this.model = model;
@@ -108,6 +110,7 @@ class ServerMenu implements ViewsInterface {
     this.signUp.id = 'signup';
     this.backToMainMenu.classList.add('server-btn', 'back-to-main-menu');
     this.exitChangePassButton.classList.add('server-btn', 'back-to-main-menu');
+    this.languageData = null;
 
     this.createMenu();
   }
@@ -123,26 +126,26 @@ class ServerMenu implements ViewsInterface {
   }
 
   public addTextContent(language: string) {
-    let languageData;
+    // let languageData;
     switch (language) {
-      case 'en': languageData = languageConfig.en.serverMenu; break;
-      case 'ru': languageData = languageConfig.ru.serverMenu; break;
+      case 'en': this.languageData = languageConfig.en.serverMenu; break;
+      case 'ru': this.languageData = languageConfig.ru.serverMenu; break;
       default: break;
     }
-    this.nickname.placeholder = languageData.nickname;
-    this.password.placeholder = languageData.password;
-    this.newPassword.placeholder = languageData.newPassword;
-    this.logOut.textContent = languageData.logOut;
-    this.play.textContent = languageData.connect;
-    this.logIn.textContent = languageData.logIn;
-    this.changePassword.textContent = languageData.changePassword;
-    this.sendNewPassword.textContent = languageData.sendNewPassword;
-    this.or.textContent = languageData.or;
-    this.signUp.textContent = languageData.signUp;
-    this.backToMainMenu.textContent = languageData.backToMainMenu;
-    this.exitChangePassButton.textContent = languageData.backToMainMenu;
-    this.parseMessage = languageData.parseMessage;
-    this.failMessage = languageData.failMessage;
+    this.nickname.placeholder = this.languageData.nickname;
+    this.password.placeholder = this.languageData.password;
+    this.newPassword.placeholder = this.languageData.newPassword;
+    this.logOut.textContent = this.languageData.logOut;
+    this.play.textContent = this.languageData.connect;
+    this.logIn.textContent = this.languageData.logIn;
+    this.changePassword.textContent = this.languageData.changePassword;
+    this.sendNewPassword.textContent = this.languageData.sendNewPassword;
+    this.or.textContent = this.languageData.or;
+    this.signUp.textContent = this.languageData.signUp;
+    this.backToMainMenu.textContent = this.languageData.backToMainMenu;
+    this.exitChangePassButton.textContent = this.languageData.backToMainMenu;
+    this.parseMessage = this.languageData.parseMessage;
+    this.failMessage = this.languageData.failMessage;
     this.errorMessage.textContent = '';
   }
 
@@ -206,7 +209,7 @@ class ServerMenu implements ViewsInterface {
       this.changePasswordFunc();
     });
     this.serverScreen.addEventListener('fail', (event: CustomEvent) => {
-      this.errorMessage.textContent = `fail: ${event.detail.fail}`;
+      this.errorMessage.textContent = `${this.languageData.fail}: ${this.languageData[event.detail.fail]}`;
     });
     this.serverScreen.addEventListener('logOut', () => {
       this.logOutGame();
@@ -223,7 +226,7 @@ class ServerMenu implements ViewsInterface {
     this.serverWrapper.innerHTML = '';
     this.buttonsWrapper.innerHTML = '';
     this.buttonsWrapperJustLoggedInType();
-    this.errorMessage.textContent = `You are Registered as "${event.detail.login}"`;
+    this.errorMessage.textContent = `${this.languageData.registeredAs} "${event.detail.login}"`;
     this.removeMenu();
   }
 
@@ -231,8 +234,7 @@ class ServerMenu implements ViewsInterface {
     this.serverWrapper.innerHTML = '';
     this.buttonsWrapper.innerHTML = '';
     this.buttonsWrapperJustLoggedInType();
-    this.errorMessage.textContent = 'Password is changed';
-    // this.removeMenu();
+    this.errorMessage.textContent = this.languageData.passChanged;
   }
 
   private logOutGame() {
@@ -240,7 +242,7 @@ class ServerMenu implements ViewsInterface {
     this.play.remove();
     this.logOut.remove();
     this.createMenu();
-    this.errorMessage.textContent = 'logged-Out';
+    this.errorMessage.textContent = this.languageData.loggedOut;
   }
 
   private makeChangePasswordMenu() {
@@ -255,7 +257,7 @@ class ServerMenu implements ViewsInterface {
       this.errorMessage,
       this.exitChangePassButton,
     );
-    this.errorMessage.textContent = 'request to change password';
+    this.errorMessage.textContent = this.languageData.changePassRequest;
   }
 
   private exitChangePassMenu() {
