@@ -14,7 +14,9 @@ class MainController implements MainControllerInterface {
 
   gameModel: GameModel;
 
-  isGameStart: boolean;
+  isSingleGameStart: boolean;
+
+  public isServerGameStart: boolean;
 
   isGamePause: boolean;
 
@@ -24,7 +26,8 @@ class MainController implements MainControllerInterface {
 
   constructor() {
     this.model = new MainModel(this);
-    this.isGameStart = false; // should be within the model (isGameStart) - state;
+    this.isSingleGameStart = false;
+    this.isServerGameStart = false;
     this.isGamePause = true;
     this.isOpenChat = false;
     this.menuView = new MenuView(this, this.model);
@@ -32,15 +35,35 @@ class MainController implements MainControllerInterface {
     this.prepareToStartGame();
   }
 
-  startGame() {
-    if (!this.isGameStart) {
+  // public signUpResponse(data: any) {
+  //   this.menuView.serverMenu.setError();
+  // }
+
+  startSingleGame() {
+    if (!this.isSingleGameStart && !this.isServerGameStart) {
       const seed = Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
       this.gameModel.generateWorld(seed);
-      document.body.appendChild(this.gameModel.stats.dom);
       document.body.appendChild(this.gameModel.renderer.domElement);
       this.gameModel.sound.initSounds();
       this.gameModel.animationFrame();
-      this.isGameStart = true;
+      this.isSingleGameStart = true;
+    }
+    this.gameModel.control.lock();
+  }
+
+  startServerGame() {
+    const seed = this.model.getSeed();
+    if (!this.isServerGameStart && !this.isSingleGameStart) {
+      this.gameModel.generateWorld(seed);
+      document.body.appendChild(this.gameModel.renderer.domElement);
+      this.gameModel.sound.initSounds();
+      this.gameModel.animationFrame();
+      this.isServerGameStart = true;
+    }
+    if (this.isSingleGameStart && this.gameModel.isLockPosition) {
+      this.gameModel.destroyWorld();
+      this.isSingleGameStart = false;
+      this.startServerGame();
     }
     this.gameModel.control.lock();
   }
@@ -53,6 +76,14 @@ class MainController implements MainControllerInterface {
   closeServerMenu() {
     this.menuView.serverMenu.removeMenu();
     this.menuView.mainMenu.attachMenu();
+  }
+
+  public logOut() {
+    if (!this.isServerGameStart || this.gameModel.isLockPosition) {
+      this.model.logOut();
+      this.gameModel.destroyWorld();
+      this.isServerGameStart = false;
+    }
   }
 
   openSettingsMenu() {
@@ -98,12 +129,13 @@ class MainController implements MainControllerInterface {
     }
   }
 
-  getChatView() {
+  public getChatView() {
     return this.menuView.chatView;
   }
 
-  prepareToStartGame() {
-    this.gameModel.setGameView(this.menuView.gameView);
+  private prepareToStartGame() {
+    this.model.setView(this.menuView);
+    this.gameModel.setView(this.menuView);
 
     // pointerLock API controls
     const controls = this.gameModel.control;
@@ -112,6 +144,7 @@ class MainController implements MainControllerInterface {
         this.menuView.mainMenu.removeMenu();
         this.menuView.chatView.connect();
         this.menuView.gameView.attachView();
+        this.menuView.statsView.attachMenu();
       }
       this.isGamePause = false;
     });
@@ -121,21 +154,8 @@ class MainController implements MainControllerInterface {
         this.menuView.mainMenu.attachMenu();
         this.menuView.chatView.disconnect();
         this.menuView.gameView.removeView();
+        this.menuView.statsView.removeMenu();
       }
-    });
-
-    // multiplayer controls
-    document.body.addEventListener('startservergame', () => {
-      const seed = this.model.getSeed();
-      if (!this.isGameStart) {
-        this.gameModel.generateWorld(seed);
-        document.body.appendChild(this.gameModel.stats.dom);
-        document.body.appendChild(this.gameModel.renderer.domElement);
-        this.gameModel.sound.initSounds();
-        this.gameModel.animationFrame();
-        this.isGameStart = true;
-      }
-      controls.lock();
     });
   }
 

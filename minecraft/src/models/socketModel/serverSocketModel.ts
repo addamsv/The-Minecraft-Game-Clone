@@ -30,9 +30,9 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private chatView: ChatViewInterface;
 
-  private login: string;
+  private pingSetIntervalID: number;
 
-  private pass: string;
+  public playerMotion: any;
 
   constructor(controller: MainControllerInterface) {
     this.controller = controller;
@@ -45,12 +45,11 @@ class ServerSocketModel implements ServerSocketModelInterface {
     this.GAME_SEED = '';
     this.isGameHost = false;
     this.isConnected = false;
-    this.playersTokens = new Set();
     this.isRegistered = false;
-    this.login = '';
-    this.pass = '';
-
+    this.playersTokens = new Set();
+    this.pingSetIntervalID = null;
     this.HOST = env.socketHost;
+    this.createConnection();
   }
 
   public isHandshaked() {
@@ -59,27 +58,59 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   public sendMessage(textMessage: string, type: String) {
     switch (type) {
-      case 'chatMessage':
+      case 'chatMessage': {
         this.send(`{"userName": "${this.USER_NAME}", "wsToken": "${this.WS_TOKEN}", "chatMessage": "${textMessage}"}`);
         break;
-      case 'gameMessage': break;
-      case 'sysMessage': break;
-      default: break;
+      }
+
+      case 'stat': {
+        this.send(0 + textMessage);
+        break;
+      }
+
+      case 'setts': {
+        this.send(0 + textMessage);
+        break;
+      }
+
+      case 'logOut': {
+        this.send(2 + textMessage);
+        break;
+      }
+
+      case 'changePassword': {
+        this.send(0 + textMessage);
+        break;
+      }
+
+      default: {
+        break;
+      }
     }
+  }
+
+  public logOut() {
+    localStorage.removeItem('USER_TOKEN');
+    this.sendMessage('{"ask": "logOut"}', 'logOut');
+  }
+
+  public changePassword(newPassword: string) {
+    this.sendMessage(`{"ask": "changePassword", "newPassword": "${newPassword}"}`, 'changePassword');
   }
 
   public init(login: any = '', pass: any = '') {
     if (this.ws) {
-      this.ws.close();
+      this.login(login, pass);
+    } else {
+      this.createConnection();
+      setTimeout(() => {
+        if (this.isConnected) {
+          this.login(login, pass);
+          console.log(login);
+          console.log(this.ws);
+        }
+      }, 3000);
     }
-    this.login = login;
-    this.pass = pass;
-
-    this.ws = new WebSocket(this.HOST);
-    this.ws.onopen = this.connectionOpen.bind(this);
-    this.ws.onmessage = this.messageReceived.bind(this);
-    this.ws.onerror = this.connectionError.bind(this);
-    this.ws.onclose = this.connectionClose.bind(this);
   }
 
   public setSeed(seed: string) {
@@ -104,9 +135,16 @@ class ServerSocketModel implements ServerSocketModelInterface {
   /*
   *   @private
   */
+  private createConnection() {
+    this.ws = new WebSocket(this.HOST);
+    this.ws.onopen = this.connectionOpen.bind(this);
+    this.ws.onmessage = this.messageReceived.bind(this);
+    this.ws.onerror = this.connectionError.bind(this);
+    this.ws.onclose = this.connectionClose.bind(this);
+  }
 
   private send(message: string) {
-    if (this.ws && this.isConnected) {
+    if (this.ws && this.isConnected && this.ws.readyState === 1) {
       this.ws.send(message);
     }
   }
@@ -117,8 +155,16 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private messageReceived(message: any) {
     const mess = JSON.parse(message.data);
+    if (mess.logOutMessage) {
+      this.isRegistered = false;
+      this.ws.close();
+      console.log('the User is logged out: true');
+    }
+
     if (mess.setUserAsRegistered) {
       this.isRegistered = true;
+      this.sendMessage('{"ask": "getSetts"}', 'setts');
+      this.sendMessage('{"ask": "getStat"}', 'stat');
       console.log('User is Registered: true');
     }
 
@@ -129,33 +175,41 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
     if (mess.setToken) {
       this.isRegistered = true;
-      const event = new CustomEvent('success');
+      const event = new CustomEvent('success', { detail: { login: mess.login } });
       document.getElementById('server-menu-id').dispatchEvent(event);
       /*
       * Here should add token to storage
        */
+      localStorage.setItem('USER_TOKEN', mess.setToken);
       this.USER_TOKEN = mess.setToken;
       console.log(`this.USER_TOKEN: ${this.USER_TOKEN}`);
     }
 
     if (mess.failLogin) {
-      console.log(mess.failLogin);
       this.isRegistered = false;
-      this.ws.close();
-      const event = new CustomEvent('fail');
+      const event = new CustomEvent('fail', { detail: { fail: mess.failLogin } });
+      document.getElementById('server-menu-id').dispatchEvent(event);
+    }
+
+    if (mess.failChangePassword) {
+      const event = new CustomEvent('fail', { detail: { fail: mess.failChangePassword } });
+      document.getElementById('server-menu-id').dispatchEvent(event);
+    }
+
+    if (mess.failLogOut) {
+      const event = new CustomEvent('fail', { detail: { fail: mess.failLogOut } });
       document.getElementById('server-menu-id').dispatchEvent(event);
     }
 
     /*
     * Connect new Player to GameModel
     */
-    if (mess.setNewWsToken) {
+    if (mess.setNewWsToken && this.controller.isServerGameStart) {
       const tokens: Array<string> = mess.setNewWsToken.split('___');
       tokens.forEach((playerToken: string) => {
         if (!this.playersTokens.has(playerToken) && playerToken !== this.WS_TOKEN) {
           this.playersTokens.add(playerToken);
-          const event = new CustomEvent('connectplayer', { detail: { token: playerToken } });
-          document.body.dispatchEvent(event);
+          this.playerMotion.connectPlayer(playerToken);
         }
       });
     }
@@ -170,8 +224,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
         && mess.gameDisconnectedMessage !== this.WS_TOKEN
       ) {
         this.playersTokens.delete(mess.gameDisconnectedMessage);
-        const event = new CustomEvent('disconnectplayer', { detail: { token: mess.gameDisconnectedMessage } });
-        document.body.dispatchEvent(event);
+        this.playerMotion.disconnectPlayer(mess.gameDisconnectedMessage);
       }
     }
 
@@ -207,12 +260,9 @@ class ServerSocketModel implements ServerSocketModelInterface {
     * Dispatch event with player coordinates to GameModel
     */
     if (mess.gameMessage) {
-      const event = new CustomEvent('moveplayer', {
-        detail: {
-          token: mess.gameMessage, x: mess.x, z: mess.z, y: mess.y, c: mess.c,
-        },
+      this.playerMotion.movePlayer({
+        token: mess.gameMessage, x: mess.x, z: mess.z, y: mess.y, c: mess.c,
       });
-      document.body.dispatchEvent(event);
     }
 
     /*
@@ -226,7 +276,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
         this.areYouMessageOwner(mess.wsToken),
       );
     }
-    if (mess.chatServerMessage) {
+    if (mess.chatServerMessage && this.controller.isServerGameStart) {
       console.log(mess.chatServerMessage);
       this.chatView.appendMessage('SERVER', mess.chatServerMessage, false);
     }
@@ -234,8 +284,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   // eslint-disable-next-line
   private startGame() {
-    const event = new CustomEvent('startservergame');
-    document.body.dispatchEvent(event);
+    this.controller.startServerGame();
   }
 
   private areYouMessageOwner(curWsToken: String) {
@@ -248,30 +297,50 @@ class ServerSocketModel implements ServerSocketModelInterface {
   private connectionOpen() {
     this.isConnected = true;
     this.chatView = this.controller.getChatView();
-    this.loginThroughPass(this.login, this.pass);
+    this.ping();
   }
 
   private connectionError() {
     this.isConnected = false;
-    this.chatView.appendSysMessage('connection Error');
+    if (this.chatView) {
+      this.chatView.appendSysMessage('connection Error');
+    }
   }
 
   private connectionClose() {
     this.isConnected = false;
-    this.ws.close();
-    this.chatView.appendSysMessage('connection closed');
+    clearInterval(this.pingSetIntervalID);
+    if (this.chatView) {
+      this.chatView.appendSysMessage('connection closed');
+    }
+    setTimeout(() => this.createConnection(), 5000);
+  }
+
+  private login(login: any, password: any) {
+    if (login && password) {
+      this.loginThroughPass(login, password);
+      return;
+    }
+    const USER_TOKEN = localStorage.getItem('USER_TOKEN');
+    if (USER_TOKEN) {
+      this.loginThroughToken(USER_TOKEN);
+    }
   }
 
   private loginThroughPass(login: any, password: any) {
     this.send(`0{"ask": "loginThroughPass", "login": "${login}", "password": "${password}"}`);
   }
 
-  private loginThroughToken() {
-    if (this.USER_TOKEN) {
-      this.send(`0{"ask": "register", "userToken": "${this.USER_TOKEN}"}`);
+  private loginThroughToken(token: any) {
+    if (token) {
+      this.send(`0{"ask": "register", "userToken": "${token}"}`);
     } else {
       console.log('User token has not been defined');
     }
+  }
+
+  private ping() {
+    this.pingSetIntervalID = window.setInterval(() => this.send('3'), 30000);
   }
 }
 

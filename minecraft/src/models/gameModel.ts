@@ -6,7 +6,6 @@ import PointerLock from '../controllers/pointerLock/pointerLock';
 import PointerLockInterface from '../controllers/pointerLock/pointerLockInterface';
 import MainModelInterface from './mainModelInterface';
 import settingsConfig from '../configs/settingsConfig';
-import Stats from '../controllers/pointerLock/stats.js';
 import GameLoader from './gameLoader/gameLoader';
 import GameLoaderInterface from './gameLoader/gameLoaderInterface';
 import GameLight from './gameLight/gameLight';
@@ -16,8 +15,6 @@ import SoundModel from './soundModel/soundModel';
 const COOLDOWN_TIME = 2000;
 
 class GameModel {
-  stats: any;
-
   currentChunk: {
     x: number,
     z: number,
@@ -73,9 +70,9 @@ class GameModel {
 
   seed: string;
 
-  connectedPlayers: any;
-
   private gameView: any;
+
+  private statsView: any;
 
   private isLanternCooldown: boolean;
 
@@ -85,7 +82,7 @@ class GameModel {
 
   private isHitCooldown: boolean;
 
-  private isLockPosition: number;
+  public isLockPosition: number;
 
   private gameLoader: GameLoaderInterface;
 
@@ -111,6 +108,8 @@ class GameModel {
 
   private startTime: number;
 
+  private playerMotion: any;
+
   private sword: THREE.Object3D;
 
   private swordAnime: any;
@@ -128,6 +127,7 @@ class GameModel {
     this.gameLoader = new GameLoader(this);
     this.gameLoader.loadTextures();
     this.gameLoader.loadObjects();
+    this.playerMotion = new PlayerMotion(this);
     this.forward = false;
     this.left = false;
     this.backward = false;
@@ -136,18 +136,24 @@ class GameModel {
     this.intersectObjects = false;
     this.meshes = {};
     this.chunkSize = 16;
-    this.connectPlayers();
-    this.disconnectPlayers();
-    this.connectedPlayers = {};
     this.gameView = null;
+    this.statsView = null;
     this.isLanternCooldown = false;
     this.isSword = false;
     this.isSwordCooldown = false;
     this.isHitCooldown = false;
-    this.isLockPosition = 1; // or 0
+    this.isLockPosition = 0; // or 1
     this.isMovingSoundNowPlaying = false;
     this.isBackgroundNowPlaying = false;
     this.sound = new SoundModel();
+    this.model.setPlayerMotion(this.playerMotion);
+  }
+
+  public destroyWorld() {
+    while (this.scene.children.length > 0) {
+      this.scene.remove(this.scene.children[0]);
+    }
+    this.renderer.domElement.remove();
   }
 
   public setTexture(texture: THREE.Texture) {
@@ -171,17 +177,27 @@ class GameModel {
     }
   }
 
+  public loadPlayer(token: string) {
+    this.gameLoader.loadPlayer(token);
+  }
+
+  public setPlayer(player: THREE.Object3D) {
+    this.playerMotion.connectedPlayers[player.name] = player;
+    this.scene.add(player);
+  }
+
   public setAnimation(animation: any) {
     this.swordAnime = animation;
   }
 
-  public setPlayer(player: THREE.Object3D) {
-    this.connectedPlayers[player.name] = player;
-    this.scene.add(player);
+  public removePlayer(token: string) {
+    this.scene.remove(this.playerMotion.connectedPlayers[token]);
+    delete this.playerMotion.connectedPlayers[token];
   }
 
-  public setGameView(gameView: any) {
-    this.gameView = gameView;
+  public setView(views: any) {
+    this.gameView = views.gameView;
+    this.statsView = views.statsView;
   }
 
   public changeSwordStatus() {
@@ -282,35 +298,8 @@ class GameModel {
     this.renderer.domElement.classList.add('renderer');
   }
 
-  /* ****************CODE TO REFACTOR**************** */
-  connectPlayers() {
-    document.body.addEventListener('connectplayer', (event: CustomEvent) => {
-      this.gameLoader.loadPlayer(event.detail.token);
-    });
-    document.body.addEventListener('moveplayer', (event: CustomEvent) => {
-      const mesh = this.connectedPlayers[event.detail.token];
-      if (mesh) {
-        PlayerMotion.smoothPlayerMotion(event.detail, mesh);
-      }
-    });
-  }
-
-  disconnectPlayers() {
-    document.body.addEventListener('disconnectplayer', (event: CustomEvent) => {
-      this.removePlayer(event.detail.token);
-    });
-  }
-
-  removePlayer(token: string) {
-    this.scene.remove(this.connectedPlayers[token]);
-    delete this.connectedPlayers[token];
-  }
-  /* ************************************************ */
-
   generateWorld(seed: string) {
     this.seed = seed;
-    this.stats = Stats();
-    this.stats.showPanel(0);
 
     this.raycaster = new THREE.Raycaster(
       new THREE.Vector3(),
@@ -450,7 +439,6 @@ class GameModel {
   }
 
   animationFrame() {
-    this.stats.begin();
     this.jump = false;
     const time = performance.now();
     this.mixer.update(this.clock.getDelta());
@@ -459,14 +447,22 @@ class GameModel {
     const period = 1000; // in ms
     // send player coordinates to the server
     const pingTime = Math.trunc(time / period);
-    if (this.model.isHandshaked() && this.lastPing !== pingTime) {
-      this.lastPing = pingTime;
-      this.model.sendHeroCoordinates(
-        String(Math.trunc(this.camera.position.x)),
-        String(Math.trunc(this.camera.position.z)),
-        String(Math.trunc(this.camera.position.y)),
-        String(this.camera.quaternion.y),
+    if (this.lastPing !== pingTime) {
+      this.statsView.setFps(Math.round(1000 / (time - this.time)));
+      this.statsView.setPosition(
+        Math.round(this.camera.position.x / 10),
+        Math.round(this.camera.position.z / 10),
       );
+      this.statsView.setTime(pingTime);
+      if (this.model.isHandshaked()) {
+        this.lastPing = pingTime;
+        this.model.sendHeroCoordinates(
+          String(Math.trunc(this.camera.position.x)),
+          String(Math.trunc(this.camera.position.z)),
+          String(Math.trunc(this.camera.position.y)),
+          String(this.camera.quaternion.y),
+        );
+      }
     }
 
     this.gameLight.setSunlightAngle(time);
@@ -589,7 +585,6 @@ class GameModel {
 
     this.time = time;
     this.renderer.render(this.scene, this.camera);
-    this.stats.end();
     requestAnimationFrame(this.animationFrame.bind(this));
   }
 }

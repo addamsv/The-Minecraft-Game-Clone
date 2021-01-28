@@ -81,8 +81,8 @@ class GameLight implements GameLightInterface {
     this.directionalLight.shadow.camera.right = 1000;
     this.directionalLight.shadow.camera.top = 1000;
 
-    this.directionalLight.shadow.mapSize.width = 1024;
-    this.directionalLight.shadow.mapSize.height = 1024;
+    this.directionalLight.shadow.mapSize.width = 2048;
+    this.directionalLight.shadow.mapSize.height = 2048;
 
     this.scene.add(this.directionalLight);
     this.scene.add(this.directionalLight.target);

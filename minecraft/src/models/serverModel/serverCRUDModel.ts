@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { ItemType } from './storageItemType';
+import { ItemType } from '../storageModel/storageItemType';
 import ServerCRUDModelInterface from './serverCRUDModelInterface';
 import env from '../../configs/environmentVars';
 

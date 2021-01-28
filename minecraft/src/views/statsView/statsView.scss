@@ -1,0 +1,21 @@
+.stats-screen {
+  position: absolute;
+  left: 1vw;
+  top: 1vw;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  color: white;
+  padding: 0.3vw 0.7vw 0.3vw 1vw;
+  border-radius: 0 1vw 1vw 1vw;
+  background: rgba(0, 0, 0, 0.404);
+  box-shadow: 0.1vw 0.1vw 0.6vw #0005;
+  float: left;
+  clear: left;
+
+  span {
+    font-family: "PT Mono", monospace;
+    font-size: 1vw;
+    line-height: 1.35vw;
+  }
+}

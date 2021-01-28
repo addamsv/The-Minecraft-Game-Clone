@@ -1,4 +1,4 @@
-import { ItemType } from './storageItemType';
+import { ItemType } from '../storageModel/storageItemType';
 /* eslint-disable no-unused-vars */
 
 interface ServerCRUDModelInterface {

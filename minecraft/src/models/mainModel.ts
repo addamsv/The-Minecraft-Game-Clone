@@ -1,6 +1,7 @@
 import MainModelInterface from './mainModelInterface';
-import { ServerSocketModelInterface, ServerSocketModel } from './modules/serverSocketModel';
-import { ServerCRUDModelInterface, ServerCRUDModel } from './modules/serverCRUDModel';
+import { ServerSocketModelInterface, ServerSocketModel } from './socketModel/serverSocketModel';
+import { ServerCRUDModelInterface, ServerCRUDModel } from './serverModel/serverCRUDModel';
+import { StorageModelInterface, StorageModel } from './storageModel/storageModel';
 import MainControllerInterface from '../controllers/mainControllerInterface';
 // import env from '../configs/environmentVars';
 
@@ -19,13 +20,26 @@ class MainModel implements MainModelInterface {
 
   public serverCRUD: ServerCRUDModelInterface;
 
+  public storageModel: StorageModelInterface;
+
+  private menuView: any;
+
   constructor(controller: MainControllerInterface) {
     this.controller = controller;
     this.response = null;
-    this.rsServerSocket = null;
-
+    this.rsServerSocket = new ServerSocketModel(this.controller);
     this.serverCRUD = new ServerCRUDModel();
-    // console.log(this.serverCRUD.get());
+    this.storageModel = new StorageModel(this.controller);
+  }
+
+  public setView(menuView: any) {
+    this.menuView = menuView;
+  }
+
+  public setPlayerMotion(playerMotion: any) {
+    if (this.rsServerSocket) {
+      this.rsServerSocket.playerMotion = playerMotion;
+    }
   }
 
   public getSocket() {
@@ -52,7 +66,11 @@ class MainModel implements MainModelInterface {
     return this.rsServerSocket ? this.rsServerSocket.getSeed() : '';
   }
 
-  public checkStrings(name: string, password: string, type: string) {
+  public loginThroughToken() {
+    this.login();
+  }
+
+  public loginThroughPassword(name: string, password: string, type: string) {
     const regex = /\w{3,12}/;
     if (!regex.test(name) || !regex.test(password)) {
       const event = new CustomEvent('input-error');
@@ -71,16 +89,48 @@ class MainModel implements MainModelInterface {
     }
   }
 
+  // eslint-disable-next-line class-methods-use-this
+  public exitChangePassMenu() {
+    const event = new CustomEvent('exitChangePassMenu');
+    document.getElementById('server-menu-id').dispatchEvent(event);
+  }
+
+  public logOut() {
+    this.rsServerSocket.logOut();
+    const event = new CustomEvent('logOut');
+    document.getElementById('server-menu-id').dispatchEvent(event);
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  public changePassword() {
+    const event = new CustomEvent('makeChangePasswordMenu');
+    document.getElementById('server-menu-id').dispatchEvent(event);
+  }
+
+  public sendNewPassword(newPassword: string) {
+    const regex = /\w{3,12}/;
+    if (!regex.test(newPassword)) {
+      const event = new CustomEvent('input-error');
+      document.getElementById('server-menu-id').dispatchEvent(event);
+    } else {
+      this.rsServerSocket.changePassword(newPassword);
+      const event = new CustomEvent('changePassword');
+      document.getElementById('server-menu-id').dispatchEvent(event);
+    }
+  }
+
   public signUp(login: String, password: String) {
     this.serverCRUD.create({ login, password })
       .then((data: MyResponse) => {
-        console.log(data, 'SIGN UP RESPONSE');
+        this.menuView.serverMenu.showResponse(data);
       });
   }
 
-  public login(login: String, password: String) {
-    this.rsServerSocket = new ServerSocketModel(this.controller);
+  public login(login: String = '', password: String = '') {
+    // this.rsServerSocket = new ServerSocketModel(this.controller);
     this.rsServerSocket.init(login, password);
+
+    this.storageModel.init(this.rsServerSocket);
   }
 
   // public login(login: String, password: String) {
