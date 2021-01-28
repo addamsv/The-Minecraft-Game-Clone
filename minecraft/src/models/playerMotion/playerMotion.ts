@@ -15,7 +15,24 @@ class PlayerMotion {
     const increaseY = yInitialVal < yPosTo ? 1 : -1;
 
     const cInitialVal = mesh.rotation.y;
-    const cPosTo = evDetail.c * Math.PI;
+    let cPosTo = evDetail.c * Math.PI;
+    /* rotation correction */
+    if (cPosTo > 0) {
+      if (cPosTo < 3) {
+        cPosTo *= 0.96;
+      }
+      if (cPosTo < 2.78) {
+        cPosTo *= 0.84;
+      }
+    }
+    if (cPosTo < 0) {
+      if (cPosTo > -3) {
+        cPosTo *= 0.96;
+      }
+      if (cPosTo > -2.78) {
+        cPosTo *= 0.84;
+      }
+    }
     const increaseC = cInitialVal < cPosTo ? 0.05 : -0.05;
 
     let isXReturnFlagHoisted = false;
@@ -72,7 +89,7 @@ class PlayerMotion {
         }
       }
 
-      /* Cam rotation */
+      /* rotation */
       if (!isCReturnFlagHoisted) {
         if ((increaseC === -0.05 && cPosTo >= mesh.rotation.y)
         || (increaseC === 0.05 && cPosTo <= mesh.rotation.y)) {
