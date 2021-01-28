@@ -1,7 +1,8 @@
+/* eslint-disable no-loop-func, no-restricted-globals */
+
 import * as THREE from 'three';
 import * as Noise from 'simplex-noise';
 
-// eslint-disable-next-line
 const thread: Worker = self as any;
 
 const BLOCK_SIZE = 10;
@@ -213,6 +214,9 @@ thread.addEventListener('message', (event: any) => {
         default: break;
       }
       if (chunk === RENDER_DISTANCE) {
+        thread.postMessage({
+          unlockPosition: true,
+        });
         clearInterval(workerInterval);
       } else {
         const returnChunk = createChunk.load(x, z);
@@ -245,10 +249,8 @@ thread.addEventListener('message', (event: any) => {
     const xBiasRemove = oldChunkX - (RENDER_DISTANCE - 1) * (-xMove);
     const zBiasRemove = oldChunkZ - (RENDER_DISTANCE - 1) * (-zMove);
 
-    // move X axis
     if (xMove && !zMove) {
       for (let i = oldChunkZ - (RENDER_DISTANCE - 1); i < oldChunkZ + RENDER_DISTANCE; i += 1) {
-        // eslint-disable-next-line
         setTimeout(() => {
           const returnChunk = createChunk.load(xBiasAdd, i);
           const { geometry, sandGeometry, waterGeometry } = returnChunk;
@@ -269,10 +271,8 @@ thread.addEventListener('message', (event: any) => {
       }
     }
 
-    // move Z axis
     if (zMove && !xMove) {
       for (let i = oldChunkX - (RENDER_DISTANCE - 1); i < oldChunkX + RENDER_DISTANCE; i += 1) {
-        // eslint-disable-next-line
         setTimeout(() => {
           const returnChunk = createChunk.load(i, zBiasAdd);
           const { geometry, sandGeometry, waterGeometry } = returnChunk;
@@ -293,9 +293,45 @@ thread.addEventListener('message', (event: any) => {
       }
     }
 
-    // move X and Z axis
     if (xMove && zMove) {
-      console.log('NEED TO FIX THIS BUG');
+      for (let i = 0; i <= (RENDER_DISTANCE - 1) * 2; i += 1) {
+        setTimeout(() => {
+          const returnChunk = createChunk.load(xBiasAdd + i * xMove, zBiasAdd);
+          const { geometry, sandGeometry, waterGeometry } = returnChunk;
+          thread.postMessage({
+            geometry,
+            sandGeometry,
+            waterGeometry,
+            xChunk: xBiasAdd + i * xMove,
+            zChunk: zBiasAdd,
+            add: true,
+          });
+          thread.postMessage({
+            xChunk: xBiasRemove - i * xMove,
+            zChunk: zBiasRemove,
+            remove: true,
+          });
+        }, i * DEFAULT_INTERVAL);
+      }
+      for (let i = 1; i <= (RENDER_DISTANCE - 1) * 2; i += 1) {
+        setTimeout(() => {
+          const returnChunk = createChunk.load(xBiasAdd, zBiasAdd + i * zMove);
+          const { geometry, sandGeometry, waterGeometry } = returnChunk;
+          thread.postMessage({
+            geometry,
+            sandGeometry,
+            waterGeometry,
+            xChunk: xBiasAdd,
+            zChunk: zBiasAdd + i * zMove,
+            add: true,
+          });
+          thread.postMessage({
+            xChunk: xBiasRemove,
+            zChunk: zBiasRemove - i * zMove,
+            remove: true,
+          });
+        }, i * DEFAULT_INTERVAL);
+      }
     }
   }
 });

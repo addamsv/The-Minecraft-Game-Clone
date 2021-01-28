@@ -1,3 +1,5 @@
+/* eslint-disable class-methods-use-this */
+
 import { MainModelInterface, MainModel } from '../models/mainModel';
 import MainControllerInterface from './mainControllerInterface';
 import MenuView from '../views/menuView';
@@ -34,9 +36,9 @@ class MainController implements MainControllerInterface {
     if (!this.isGameStart) {
       const seed = Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
       this.gameModel.generateWorld(seed);
-      this.createKeyboardControls();
       document.body.appendChild(this.gameModel.stats.dom);
       document.body.appendChild(this.gameModel.renderer.domElement);
+      this.gameModel.sound.initSounds();
       this.gameModel.animationFrame();
       this.isGameStart = true;
     }
@@ -74,7 +76,6 @@ class MainController implements MainControllerInterface {
     this.menuView.quitConfirm.attachMenu();
   }
 
-  // eslint-disable-next-line
   quitGame() {
     window.close();
   }
@@ -128,9 +129,9 @@ class MainController implements MainControllerInterface {
       const seed = this.model.getSeed();
       if (!this.isGameStart) {
         this.gameModel.generateWorld(seed);
-        this.createKeyboardControls();
         document.body.appendChild(this.gameModel.stats.dom);
         document.body.appendChild(this.gameModel.renderer.domElement);
+        this.gameModel.sound.initSounds();
         this.gameModel.animationFrame();
         this.isGameStart = true;
       }
@@ -138,12 +139,7 @@ class MainController implements MainControllerInterface {
     });
   }
 
-  createKeyboardControls() {
-    document.addEventListener('keydown', this.onKeyDown.bind(this));
-    document.addEventListener('keyup', this.onKeyUp.bind(this));
-  }
-
-  onKeyDown(event: PlayerEvent) {
+  public playerControlsDown(event: PlayerEvent) {
     switch (event.which) {
       case 87: this.gameModel.forward = true; break;
       case 65: this.gameModel.left = true; break;
@@ -152,15 +148,24 @@ class MainController implements MainControllerInterface {
       case 32: {
         if (this.gameModel.jump === true) {
           this.gameModel.speed.y += 150;
+          this.gameModel.jumpSound = true;
         }
         this.gameModel.jump = false;
+        break;
+      }
+      case 49: {
+        this.gameModel.changeLanternStatus();
+        break;
+      }
+      case 50: {
+        this.gameModel.changeSwordStatus();
         break;
       }
       default: break;
     }
   }
 
-  onKeyUp(event: PlayerEvent) {
+  public playerControlsUp(event: PlayerEvent) {
     switch (event.which) {
       case 87: this.gameModel.forward = false; break;
       case 65: this.gameModel.left = false; break;
@@ -170,15 +175,8 @@ class MainController implements MainControllerInterface {
     }
   }
 
-  playerControls(event: any) {
-    switch (event.which) {
-      case 49: {
-        this.gameModel.changeLanternStatus();
-        break;
-      }
-      case 50: break;
-      default: break;
-    }
+  public swordControls() {
+    this.gameModel.hitSword();
   }
 }
 
