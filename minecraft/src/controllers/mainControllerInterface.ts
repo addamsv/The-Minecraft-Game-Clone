@@ -18,19 +18,11 @@ interface MainControllerInterface {
   setChatStatus(message: string): any;
   getChatView(): any;
 
-  prepareToStartGame(): void;
-
   playerControlsDown(event: any): any;
 
   playerControlsUp(event: any): any;
 
   swordControls(): any;
-
-  // hitControls(): any;
-
-  // onKeyDown(event: PlayerEvent): void;
-
-  // onKeyUp(event: PlayerEvent): void;
 }
 
 export default MainControllerInterface;

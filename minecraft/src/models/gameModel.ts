@@ -6,7 +6,6 @@ import PointerLock from '../controllers/pointerLock/pointerLock';
 import PointerLockInterface from '../controllers/pointerLock/pointerLockInterface';
 import MainModelInterface from './mainModelInterface';
 import settingsConfig from '../configs/settingsConfig';
-import Stats from '../controllers/pointerLock/stats.js';
 import GameLoader from './gameLoader/gameLoader';
 import GameLoaderInterface from './gameLoader/gameLoaderInterface';
 import GameLight from './gameLight/gameLight';
@@ -16,8 +15,6 @@ import SoundModel from './soundModel/soundModel';
 const COOLDOWN_TIME = 2000;
 
 class GameModel {
-  stats: any;
-
   currentChunk: {
     x: number,
     z: number,
@@ -75,6 +72,8 @@ class GameModel {
 
   private gameView: any;
 
+  private statsView: any;
+
   private isLanternCooldown: boolean;
 
   private isSword: boolean;
@@ -110,7 +109,7 @@ class GameModel {
   private startTime: number;
 
   private playerMotion: any;
-  
+
   private sword: THREE.Object3D;
 
   private swordAnime: any;
@@ -138,6 +137,7 @@ class GameModel {
     this.meshes = {};
     this.chunkSize = 16;
     this.gameView = null;
+    this.statsView = null;
     this.isLanternCooldown = false;
     this.isSword = false;
     this.isSwordCooldown = false;
@@ -188,8 +188,9 @@ class GameModel {
     delete this.playerMotion.connectedPlayers[token];
   }
 
-  public setGameView(gameView: any) {
-    this.gameView = gameView;
+  public setView(views: any) {
+    this.gameView = views.gameView;
+    this.statsView = views.statsView;
   }
 
   public changeSwordStatus() {
@@ -292,8 +293,6 @@ class GameModel {
 
   generateWorld(seed: string) {
     this.seed = seed;
-    this.stats = Stats();
-    this.stats.showPanel(0);
 
     this.raycaster = new THREE.Raycaster(
       new THREE.Vector3(),
@@ -433,7 +432,6 @@ class GameModel {
   }
 
   animationFrame() {
-    this.stats.begin();
     this.jump = false;
     const time = performance.now();
     this.mixer.update(this.clock.getDelta());
@@ -443,6 +441,7 @@ class GameModel {
     // send player coordinates to the server
     const pingTime = Math.trunc(time / period);
     if (this.model.isHandshaked() && this.lastPing !== pingTime) {
+      this.statsView.setFps(Math.round(1000 / (time - this.time)));
       this.lastPing = pingTime;
       this.model.sendHeroCoordinates(
         String(Math.trunc(this.camera.position.x)),
@@ -572,7 +571,6 @@ class GameModel {
 
     this.time = time;
     this.renderer.render(this.scene, this.camera);
-    this.stats.end();
     requestAnimationFrame(this.animationFrame.bind(this));
   }
 }

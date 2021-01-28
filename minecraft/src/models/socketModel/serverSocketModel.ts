@@ -189,7 +189,6 @@ class ServerSocketModel implements ServerSocketModelInterface {
       console.log(mess.failLogin);
       this.isRegistered = false;
       const event = new CustomEvent('fail', { detail: { fail: mess.failLogin } });
-      // const event = new CustomEvent('fail');
       document.getElementById('server-menu-id').dispatchEvent(event);
     }
 
@@ -276,8 +275,6 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   // eslint-disable-next-line
   private startGame() {
-    // const event = new CustomEvent('startservergame');
-    // document.body.dispatchEvent(event);
     this.controller.startServerGame();
   }
 
