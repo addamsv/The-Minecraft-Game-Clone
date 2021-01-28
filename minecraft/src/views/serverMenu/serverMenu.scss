@@ -4,26 +4,26 @@ $grass-green: rgb(0, 59, 20);
   display: none;
 }
 
-@keyframes server-screen__keyframe {
-  0% {
-    opacity: 0;
-  }
-  20% {
-    opacity: 0.2;
-  }
-  40% {
-    opacity: 0.4;
-  }
-  60% {
-    opacity: 0.6;
-  }
-  80% {
-    opacity: 0.8;
-  }
-  100% {
-    opacity: 1;
-  }
-}
+// @keyframes server-screen__keyframe {
+//   0% {
+//     opacity: 0;
+//   }
+//   20% {
+//     opacity: 0.2;
+//   }
+//   40% {
+//     opacity: 0.4;
+//   }
+//   60% {
+//     opacity: 0.6;
+//   }
+//   80% {
+//     opacity: 0.8;
+//   }
+//   100% {
+//     opacity: 1;
+//   }
+// }
 
 .animated {
   animation-name: server-screen__keyframe;
@@ -67,8 +67,10 @@ $grass-green: rgb(0, 59, 20);
     .error-message {
       height: 6vh;
       width: 100%;
-      color: rgb(212, 0, 0);
+      color: rgb(119, 8, 8);
       text-align: center;
+      font-size: 1.5vw;
+      font-family: "PT Mono", monospace;
     }
     .buttons-wrapper {
       display: flex;

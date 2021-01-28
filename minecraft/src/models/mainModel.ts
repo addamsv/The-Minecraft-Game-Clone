@@ -22,12 +22,18 @@ class MainModel implements MainModelInterface {
 
   public storageModel: StorageModelInterface;
 
+  private menuView: any;
+
   constructor(controller: MainControllerInterface) {
     this.controller = controller;
     this.response = null;
     this.rsServerSocket = new ServerSocketModel(this.controller);
     this.serverCRUD = new ServerCRUDModel();
     this.storageModel = new StorageModel(this.controller);
+  }
+
+  public setView(menuView: any) {
+    this.menuView = menuView;
   }
 
   public setPlayerMotion(playerMotion: any) {
@@ -116,7 +122,7 @@ class MainModel implements MainModelInterface {
   public signUp(login: String, password: String) {
     this.serverCRUD.create({ login, password })
       .then((data: MyResponse) => {
-        console.log(data, 'SIGN UP RESPONSE');
+        this.menuView.serverMenu.showResponse(data);
       });
   }
 

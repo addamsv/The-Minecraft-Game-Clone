@@ -2,6 +2,8 @@
 import StorageModelInterface from './storageModel/storageModelInterface';
 
 interface MainModelInterface {
+  setView(menuView: any): void;
+
   setPlayerMotion(playerMotion: any): void;
 
   storageModel: StorageModelInterface;

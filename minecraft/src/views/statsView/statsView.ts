@@ -25,15 +25,15 @@ class StatsView {
   }
 
   public setFps(fps: number) {
-    this.fps.textContent = `FPS: ${fps}`;
+    this.fps.textContent = `FPS ${fps}`;
   }
 
   public setPosition(x: number, z: number) {
-    this.position.textContent = `you are here: ${x}; ${z}`;
+    this.position.textContent = `you are here ${x}:${z}`;
   }
 
   public setTime(time: number) {
-    this.time.textContent = `you played: ${time} sec`;
+    this.time.textContent = `you played ${Math.trunc(time / 60)} m ${time % 60} s`;
   }
 
   private createMenu() {

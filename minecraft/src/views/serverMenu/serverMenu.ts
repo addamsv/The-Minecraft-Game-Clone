@@ -115,6 +115,14 @@ class ServerMenu implements ViewsInterface {
     this.createMenu();
   }
 
+  public showResponse(data: any) {
+    if (data.statusCode === 200) {
+      this.errorMessage.textContent = `${this.languageData.registeredAs} ${data.login}`;
+    } else {
+      this.errorMessage.textContent = this.languageData.userIsAlreadyRegistered;
+    }
+  }
+
   public attachMenu() {
     document.body.append(this.serverScreen);
     this.addEventListeners();

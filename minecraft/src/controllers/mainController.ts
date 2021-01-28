@@ -35,6 +35,10 @@ class MainController implements MainControllerInterface {
     this.prepareToStartGame();
   }
 
+  // public signUpResponse(data: any) {
+  //   this.menuView.serverMenu.setError();
+  // }
+
   startSingleGame() {
     if (!this.isSingleGameStart && !this.isServerGameStart) {
       const seed = Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
@@ -130,6 +134,7 @@ class MainController implements MainControllerInterface {
   }
 
   private prepareToStartGame() {
+    this.model.setView(this.menuView);
     this.gameModel.setView(this.menuView);
 
     // pointerLock API controls

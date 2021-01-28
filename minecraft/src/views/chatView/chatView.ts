@@ -101,6 +101,16 @@ class ChatView implements ViewsInterface, ChatViewInterface {
 
     this.setChatStatus = this.controller.setChatStatus.bind(this.controller);
     this.chatHandler = this.handleChat.bind(this);
+
+    setTimeout(() => {
+      this.appendMessage('HELP', 'Control player with WASD, spacebar and Shift', false);
+    }, 20000);
+    setTimeout(() => {
+      this.appendMessage('HELP', 'Press 2 to take sword, left click to hit', false);
+    }, 30000);
+    setTimeout(() => {
+      this.appendMessage('HELP', 'Press 1 to light your way at night', false);
+    }, 40000);
   }
 
   handleChat(event: any) {
