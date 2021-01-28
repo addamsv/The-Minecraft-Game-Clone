@@ -200,54 +200,74 @@ class ServerMenu implements ViewsInterface {
       this.errorMessage.textContent = this.parseMessage;
     });
     this.serverScreen.addEventListener('success', (event: CustomEvent) => {
-      this.serverWrapper.innerHTML = '';
-      this.buttonsWrapper.innerHTML = '';
-      this.buttonsWrapperJustLoggedInType();
-      this.errorMessage.textContent = `You are Registered as "${event.detail.login}"`;
-      this.removeMenu();
+      this.successLogIn(event);
     });
     this.serverScreen.addEventListener('changePassword', () => {
-      this.serverWrapper.innerHTML = '';
-      this.buttonsWrapper.innerHTML = '';
-      this.buttonsWrapperJustLoggedInType();
-      this.errorMessage.textContent = 'Password is changed';
-      // this.removeMenu();
+      this.changePasswordFunc();
     });
     this.serverScreen.addEventListener('fail', (event: CustomEvent) => {
       this.errorMessage.textContent = `fail: ${event.detail.fail}`;
     });
     this.serverScreen.addEventListener('logOut', () => {
-      this.changePassword.remove();
-      this.play.remove();
-      this.logOut.remove();
-      this.createMenu();
-      this.errorMessage.textContent = 'logged-Out';
+      this.logOutGame();
     });
     this.serverScreen.addEventListener('makeChangePasswordMenu', () => {
-      this.logOut.remove();
-      this.or.remove();
-      this.changePassword.remove();
-      this.backToMainMenu.remove();
-      this.buttonsWrapper.append(this.sendNewPassword);
-      this.serverWrapper.append(
-        this.newPassword,
-        this.buttonsWrapper,
-        this.errorMessage,
-        this.exitChangePassButton,
-      );
-      this.errorMessage.textContent = 'request to change password';
+      this.makeChangePasswordMenu();
     });
     this.serverScreen.addEventListener('exitChangePassMenu', () => {
-      this.sendNewPassword.remove();
-      this.exitChangePassButton.remove();
-      this.newPassword.remove();
-      this.buttonsWrapper.append(this.changePassword, this.or, this.logOut);
-      this.serverWrapper.append(
-        this.buttonsWrapper,
-        this.errorMessage,
-        this.backToMainMenu,
-      );
+      this.exitChangePassMenu();
     });
+  }
+
+  private successLogIn(event: CustomEvent) {
+    this.serverWrapper.innerHTML = '';
+    this.buttonsWrapper.innerHTML = '';
+    this.buttonsWrapperJustLoggedInType();
+    this.errorMessage.textContent = `You are Registered as "${event.detail.login}"`;
+    this.removeMenu();
+  }
+
+  private changePasswordFunc() {
+    this.serverWrapper.innerHTML = '';
+    this.buttonsWrapper.innerHTML = '';
+    this.buttonsWrapperJustLoggedInType();
+    this.errorMessage.textContent = 'Password is changed';
+    // this.removeMenu();
+  }
+
+  private logOutGame() {
+    this.changePassword.remove();
+    this.play.remove();
+    this.logOut.remove();
+    this.createMenu();
+    this.errorMessage.textContent = 'logged-Out';
+  }
+
+  private makeChangePasswordMenu() {
+    this.logOut.remove();
+    this.or.remove();
+    this.changePassword.remove();
+    this.backToMainMenu.remove();
+    this.buttonsWrapper.append(this.sendNewPassword);
+    this.serverWrapper.append(
+      this.newPassword,
+      this.buttonsWrapper,
+      this.errorMessage,
+      this.exitChangePassButton,
+    );
+    this.errorMessage.textContent = 'request to change password';
+  }
+
+  private exitChangePassMenu() {
+    this.sendNewPassword.remove();
+    this.exitChangePassButton.remove();
+    this.newPassword.remove();
+    this.buttonsWrapper.append(this.changePassword, this.or, this.logOut);
+    this.serverWrapper.append(
+      this.buttonsWrapper,
+      this.errorMessage,
+      this.backToMainMenu,
+    );
   }
 
   private readViewInputs(event: any) {
