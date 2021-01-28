@@ -1,5 +1,5 @@
 import StorageModelInterface from './storageModelInterface';
-import ServerSocketModelInterface from './ServerSocketModelInterface';
+import ServerSocketModelInterface from '../socketModel/ServerSocketModelInterface';
 import MainControllerInterface from '../../controllers/mainControllerInterface';
 
 class StorageModel implements StorageModelInterface {

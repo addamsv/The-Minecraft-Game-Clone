@@ -73,8 +73,6 @@ class GameModel {
 
   seed: string;
 
-  connectedPlayers: any;
-
   private gameView: any;
 
   private isLanternCooldown: boolean;
@@ -111,6 +109,8 @@ class GameModel {
 
   private startTime: number;
 
+  private playerMotion: any;
+
   constructor(model: MainModelInterface) {
     this.model = model;
     this.createScene();
@@ -120,6 +120,7 @@ class GameModel {
     this.gameLoader = new GameLoader(this);
     this.gameLoader.loadTextures();
     this.gameLoader.loadObjects();
+    this.playerMotion = new PlayerMotion(this);
     this.forward = false;
     this.left = false;
     this.backward = false;
@@ -128,9 +129,6 @@ class GameModel {
     this.intersectObjects = false;
     this.meshes = {};
     this.chunkSize = 16;
-    this.connectPlayers();
-    this.disconnectPlayers();
-    this.connectedPlayers = {};
     this.gameView = null;
     this.isLanternCooldown = false;
     this.isSword = false;
@@ -140,6 +138,7 @@ class GameModel {
     this.isMovingSoundNowPlaying = false;
     this.isBackgroundNowPlaying = false;
     this.sound = new SoundModel();
+    this.model.setPlayerMotion(this.playerMotion);
   }
 
   public setTexture(texture: THREE.Texture) {
@@ -158,9 +157,18 @@ class GameModel {
     }
   }
 
-  public setPlayer(player: THREE.Object3D) {
-    this.connectedPlayers[player.name] = player;
+  public loadPlayer(token: string) {
+    this.gameLoader.loadPlayer(token);
+  }
+
+  public setPlayer(player: any) {
+    this.playerMotion.connectedPlayers[player.name] = player;
     this.scene.add(player);
+  }
+
+  public removePlayer(token: string) {
+    this.scene.remove(this.playerMotion.connectedPlayers[token]);
+    delete this.playerMotion.connectedPlayers[token];
   }
 
   public setGameView(gameView: any) {
@@ -258,30 +266,6 @@ class GameModel {
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.domElement.classList.add('renderer');
-  }
-
-  /* ****************CODE TO REFACTOR**************** */
-  connectPlayers() {
-    document.body.addEventListener('connectplayer', (event: CustomEvent) => {
-      this.gameLoader.loadPlayer(event.detail.token);
-    });
-    document.body.addEventListener('moveplayer', (event: CustomEvent) => {
-      const mesh = this.connectedPlayers[event.detail.token];
-      if (mesh) {
-        PlayerMotion.smoothPlayerMotion(event.detail, mesh);
-      }
-    });
-  }
-
-  disconnectPlayers() {
-    document.body.addEventListener('disconnectplayer', (event: CustomEvent) => {
-      this.removePlayer(event.detail.token);
-    });
-  }
-
-  removePlayer(token: string) {
-    this.scene.remove(this.connectedPlayers[token]);
-    delete this.connectedPlayers[token];
   }
 
   generateWorld(seed: string) {

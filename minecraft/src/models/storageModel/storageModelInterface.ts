@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-vars */
-import ServerSocketModelInterface from './ServerSocketModelInterface';
+import ServerSocketModelInterface from '../socketModel/ServerSocketModelInterface';
 
 interface StorageModelInterface {
 

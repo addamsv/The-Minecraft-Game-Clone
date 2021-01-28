@@ -1,7 +1,7 @@
 import MainModelInterface from './mainModelInterface';
-import { ServerSocketModelInterface, ServerSocketModel } from './modules/serverSocketModel';
-import { ServerCRUDModelInterface, ServerCRUDModel } from './modules/serverCRUDModel';
-import { StorageModelInterface, StorageModel } from './modules/storageModel';
+import { ServerSocketModelInterface, ServerSocketModel } from './socketModel/serverSocketModel';
+import { ServerCRUDModelInterface, ServerCRUDModel } from './serverModel/serverCRUDModel';
+import { StorageModelInterface, StorageModel } from './storageModel/storageModel';
 import MainControllerInterface from '../controllers/mainControllerInterface';
 // import env from '../configs/environmentVars';
 
@@ -25,12 +25,15 @@ class MainModel implements MainModelInterface {
   constructor(controller: MainControllerInterface) {
     this.controller = controller;
     this.response = null;
-
     this.rsServerSocket = new ServerSocketModel(this.controller);
-
     this.serverCRUD = new ServerCRUDModel();
-
     this.storageModel = new StorageModel(this.controller);
+  }
+
+  public setPlayerMotion(playerMotion: any) {
+    if (this.rsServerSocket) {
+      this.rsServerSocket.playerMotion = playerMotion;
+    }
   }
 
   public getSocket() {

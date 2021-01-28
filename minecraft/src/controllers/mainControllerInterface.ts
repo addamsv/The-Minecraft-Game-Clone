@@ -1,7 +1,8 @@
 /* eslint-disable no-unused-vars */
 
 interface MainControllerInterface {
-  startGame(): any;
+  startSingleGame(): any;
+  startServerGame(): any;
 
   openServerMenu(): any;
   closeServerMenu(): any;

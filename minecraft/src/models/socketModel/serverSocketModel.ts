@@ -32,6 +32,8 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private pingSetIntervalID: number;
 
+  public playerMotion: any;
+
   constructor(controller: MainControllerInterface) {
     this.controller = controller;
     this.chatView = null;
@@ -199,8 +201,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
       tokens.forEach((playerToken: string) => {
         if (!this.playersTokens.has(playerToken) && playerToken !== this.WS_TOKEN) {
           this.playersTokens.add(playerToken);
-          const event = new CustomEvent('connectplayer', { detail: { token: playerToken } });
-          document.body.dispatchEvent(event);
+          this.playerMotion.connectPlayer(playerToken);
         }
       });
     }
@@ -215,8 +216,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
         && mess.gameDisconnectedMessage !== this.WS_TOKEN
       ) {
         this.playersTokens.delete(mess.gameDisconnectedMessage);
-        const event = new CustomEvent('disconnectplayer', { detail: { token: mess.gameDisconnectedMessage } });
-        document.body.dispatchEvent(event);
+        this.playerMotion.disconnectPlayer(mess.gameDisconnectedMessage);
       }
     }
 
@@ -252,12 +252,9 @@ class ServerSocketModel implements ServerSocketModelInterface {
     * Dispatch event with player coordinates to GameModel
     */
     if (mess.gameMessage) {
-      const event = new CustomEvent('moveplayer', {
-        detail: {
-          token: mess.gameMessage, x: mess.x, z: mess.z, y: mess.y, c: mess.c,
-        },
+      this.playerMotion.movePlayer({
+        token: mess.gameMessage, x: mess.x, z: mess.z, y: mess.y, c: mess.c,
       });
-      document.body.dispatchEvent(event);
     }
 
     /*
@@ -279,8 +276,9 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   // eslint-disable-next-line
   private startGame() {
-    const event = new CustomEvent('startservergame');
-    document.body.dispatchEvent(event);
+    // const event = new CustomEvent('startservergame');
+    // document.body.dispatchEvent(event);
+    this.controller.startServerGame();
   }
 
   private areYouMessageOwner(curWsToken: String) {

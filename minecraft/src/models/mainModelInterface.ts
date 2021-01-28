@@ -1,7 +1,9 @@
 /* eslint-disable no-unused-vars */
-import StorageModelInterface from './modules/storageModelInterface';
+import StorageModelInterface from './storageModel/storageModelInterface';
 
 interface MainModelInterface {
+  setPlayerMotion(playerMotion: any): void;
+
   storageModel: StorageModelInterface;
 
   getSocket(): any;

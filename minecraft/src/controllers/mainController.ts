@@ -32,9 +32,22 @@ class MainController implements MainControllerInterface {
     this.prepareToStartGame();
   }
 
-  startGame() {
+  startSingleGame() {
     if (!this.isGameStart) {
       const seed = Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+      this.gameModel.generateWorld(seed);
+      document.body.appendChild(this.gameModel.stats.dom);
+      document.body.appendChild(this.gameModel.renderer.domElement);
+      this.gameModel.sound.initSounds();
+      this.gameModel.animationFrame();
+      this.isGameStart = true;
+    }
+    this.gameModel.control.lock();
+  }
+
+  startServerGame() {
+    const seed = this.model.getSeed();
+    if (!this.isGameStart) {
       this.gameModel.generateWorld(seed);
       document.body.appendChild(this.gameModel.stats.dom);
       document.body.appendChild(this.gameModel.renderer.domElement);
@@ -122,20 +135,6 @@ class MainController implements MainControllerInterface {
         this.menuView.chatView.disconnect();
         this.menuView.gameView.removeView();
       }
-    });
-
-    // multiplayer controls
-    document.body.addEventListener('startservergame', () => {
-      const seed = this.model.getSeed();
-      if (!this.isGameStart) {
-        this.gameModel.generateWorld(seed);
-        document.body.appendChild(this.gameModel.stats.dom);
-        document.body.appendChild(this.gameModel.renderer.domElement);
-        this.gameModel.sound.initSounds();
-        this.gameModel.animationFrame();
-        this.isGameStart = true;
-      }
-      controls.lock();
     });
   }
 

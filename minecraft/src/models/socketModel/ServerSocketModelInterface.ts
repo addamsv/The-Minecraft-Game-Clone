@@ -1,6 +1,8 @@
 /* eslint-disable no-unused-vars */
 
 interface ServerSocketModelInterface {
+  playerMotion: any;
+
   isHandshaked(): boolean;
 
   init(login: any, password: any): void;
