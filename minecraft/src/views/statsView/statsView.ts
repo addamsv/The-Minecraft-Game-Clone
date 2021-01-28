@@ -5,6 +5,12 @@ class StatsView {
 
   statsScreen: HTMLDivElement;
 
+  fps: HTMLSpanElement;
+
+  time: HTMLSpanElement;
+
+  position: HTMLSpanElement;
+
   constructor(controller: MainControllerInterface) {
     this.controller = controller;
     this.createMenu();
@@ -19,12 +25,26 @@ class StatsView {
   }
 
   public setFps(fps: number) {
-    this.statsScreen.textContent = `FPS: ${fps}`;
+    this.fps.textContent = `FPS: ${fps}`;
+  }
+
+  public setPosition(x: number, z: number) {
+    this.position.textContent = `you are here: ${x}; ${z}`;
+  }
+
+  public setTime(time: number) {
+    this.time.textContent = `you played: ${time} sec`;
   }
 
   private createMenu() {
     this.statsScreen = document.createElement('div');
+    this.fps = document.createElement('span');
+    this.time = document.createElement('span');
+    this.position = document.createElement('span');
+
     this.statsScreen.classList.add('stats-screen');
+
+    this.statsScreen.append(this.fps, this.time, this.position);
   }
 }
 

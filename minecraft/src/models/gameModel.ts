@@ -440,15 +440,22 @@ class GameModel {
     const period = 1000; // in ms
     // send player coordinates to the server
     const pingTime = Math.trunc(time / period);
-    if (this.model.isHandshaked() && this.lastPing !== pingTime) {
+    if (this.lastPing !== pingTime) {
       this.statsView.setFps(Math.round(1000 / (time - this.time)));
-      this.lastPing = pingTime;
-      this.model.sendHeroCoordinates(
-        String(Math.trunc(this.camera.position.x)),
-        String(Math.trunc(this.camera.position.z)),
-        String(Math.trunc(this.camera.position.y)),
-        String(this.camera.quaternion.y),
+      this.statsView.setPosition(
+        Math.round(this.camera.position.x / 10),
+        Math.round(this.camera.position.z / 10),
       );
+      this.statsView.setTime(pingTime);
+      if (this.model.isHandshaked()) {
+        this.lastPing = pingTime;
+        this.model.sendHeroCoordinates(
+          String(Math.trunc(this.camera.position.x)),
+          String(Math.trunc(this.camera.position.z)),
+          String(Math.trunc(this.camera.position.y)),
+          String(this.camera.quaternion.y),
+        );
+      }
     }
 
     this.gameLight.setSunlightAngle(time);
