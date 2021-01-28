@@ -6,7 +6,7 @@ interface MainControllerInterface {
 
   openServerMenu(): any;
   closeServerMenu(): any;
-  exitServerGame(): any;
+  logOut(): any;
 
   openSettingsMenu(): any;
   openQuitConfirm(): any;

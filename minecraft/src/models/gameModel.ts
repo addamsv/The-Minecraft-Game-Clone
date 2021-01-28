@@ -82,7 +82,7 @@ class GameModel {
 
   private isHitCooldown: boolean;
 
-  private isLockPosition: number;
+  public isLockPosition: number;
 
   private gameLoader: GameLoaderInterface;
 
@@ -142,7 +142,7 @@ class GameModel {
     this.isSword = false;
     this.isSwordCooldown = false;
     this.isHitCooldown = false;
-    this.isLockPosition = 1; // or 0
+    this.isLockPosition = 0; // or 1
     this.isMovingSoundNowPlaying = false;
     this.isBackgroundNowPlaying = false;
     this.sound = new SoundModel();
