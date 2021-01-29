@@ -5,9 +5,9 @@ import { StorageModelInterface, StorageModel } from './storageModel/storageModel
 import MainControllerInterface from '../controllers/mainControllerInterface';
 // import env from '../configs/environmentVars';
 
-interface MyResponse extends Response {
-  statusCode: any;
-}
+// interface MyResponse extends Response {
+//   statusCode: any;
+// }
 
 class MainModel implements MainModelInterface {
   controller: MainControllerInterface;
@@ -24,12 +24,30 @@ class MainModel implements MainModelInterface {
 
   private menuView: any;
 
+  private logOutEvent: CustomEvent;
+
+  private disconnectEvent: CustomEvent;
+
+  private makeChangePasswordMenuEvent: CustomEvent;
+
+  private inputErrorEvent: CustomEvent;
+
+  private exitChangePassMenuEvent: CustomEvent;
+
+  private changePasswordEvent: CustomEvent;
+
   constructor(controller: MainControllerInterface) {
     this.controller = controller;
     this.response = null;
     this.rsServerSocket = new ServerSocketModel(this.controller);
     this.serverCRUD = new ServerCRUDModel();
     this.storageModel = new StorageModel(this.controller);
+    this.logOutEvent = new CustomEvent('logOut');
+    this.disconnectEvent = new CustomEvent('disconnect');
+    this.makeChangePasswordMenuEvent = new CustomEvent('makeChangePasswordMenu');
+    this.inputErrorEvent = new CustomEvent('input-error');
+    this.exitChangePassMenuEvent = new CustomEvent('exitChangePassMenu');
+    this.changePasswordEvent = new CustomEvent('changePassword');
   }
 
   public setView(menuView: any) {
@@ -73,8 +91,8 @@ class MainModel implements MainModelInterface {
   public loginThroughPassword(name: string, password: string, type: string) {
     const regex = /\w{3,12}/;
     if (!regex.test(name) || !regex.test(password)) {
-      const event = new CustomEvent('input-error');
-      document.getElementById('server-menu-id').dispatchEvent(event);
+      // const event = new CustomEvent('input-error');
+      document.dispatchEvent(this.inputErrorEvent);
     } else {
       switch (type) {
         case 'login': {
@@ -91,31 +109,38 @@ class MainModel implements MainModelInterface {
 
   // eslint-disable-next-line class-methods-use-this
   public exitChangePassMenu() {
-    const event = new CustomEvent('exitChangePassMenu');
-    document.getElementById('server-menu-id').dispatchEvent(event);
+    // const event = new CustomEvent('exitChangePassMenu');
+    // document.getElementById('server-menu-id')
+    document.dispatchEvent(this.exitChangePassMenuEvent);
+  }
+
+  public disconnect() {
+    this.rsServerSocket.disconnect();
+    // const event = new CustomEvent('disconnect');
+    document.dispatchEvent(this.disconnectEvent);
   }
 
   public logOut() {
     this.rsServerSocket.logOut();
-    const event = new CustomEvent('logOut');
-    document.getElementById('server-menu-id').dispatchEvent(event);
+    // const event = new CustomEvent('logOut');
+    document.dispatchEvent(this.logOutEvent);
   }
 
   // eslint-disable-next-line class-methods-use-this
   public changePassword() {
-    const event = new CustomEvent('makeChangePasswordMenu');
-    document.getElementById('server-menu-id').dispatchEvent(event);
+    // const event = new CustomEvent('makeChangePasswordMenu');
+    document.dispatchEvent(this.makeChangePasswordMenuEvent);
   }
 
   public sendNewPassword(newPassword: string) {
     const regex = /\w{3,12}/;
     if (!regex.test(newPassword)) {
-      const event = new CustomEvent('input-error');
-      document.getElementById('server-menu-id').dispatchEvent(event);
+      // const event = new CustomEvent('input-error');
+      document.dispatchEvent(this.inputErrorEvent);
     } else {
       this.rsServerSocket.changePassword(newPassword);
-      const event = new CustomEvent('changePassword');
-      document.getElementById('server-menu-id').dispatchEvent(event);
+      // const event = new CustomEvent('changePassword');
+      document.dispatchEvent(this.changePasswordEvent);
     }
   }
 
@@ -130,7 +155,6 @@ class MainModel implements MainModelInterface {
   public login(login: String = '', password: String = '') {
     // this.rsServerSocket = new ServerSocketModel(this.controller);
     this.rsServerSocket.init(login, password);
-
     this.storageModel.init(this.rsServerSocket);
   }
 
@@ -143,7 +167,7 @@ class MainModel implements MainModelInterface {
   //       } else {
   //         event = new CustomEvent('fail');
   //       }
-  //       document.getElementById('server-menu-id').dispatchEvent(event);
+  //       document.dispatchEvent(event);
 
   //       const respData: any = data;
   //       this.rsServerSocket = new ServerSocketModel(this.controller, respData.token);
