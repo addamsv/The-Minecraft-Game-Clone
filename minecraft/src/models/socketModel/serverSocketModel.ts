@@ -97,16 +97,12 @@ class ServerSocketModel implements ServerSocketModelInterface {
   public logOut() {
     localStorage.removeItem('USER_TOKEN');
     this.sendMessage('{"ask": "logOut"}', 'logOut');
-    if (!this.playersTokens.has(this.WS_TOKEN)) {
-      this.playersTokens.delete(this.WS_TOKEN);
-    }
+    this.playersTokens.clear();
   }
 
   public disconnect() {
     this.sendMessage('{"ask": "logOut"}', 'logOut');
-    if (!this.playersTokens.has(this.WS_TOKEN)) {
-      this.playersTokens.delete(this.WS_TOKEN);
-    }
+    this.playersTokens.clear();
   }
 
   public signUp(login: any, password: any) {
@@ -127,8 +123,6 @@ class ServerSocketModel implements ServerSocketModelInterface {
       setTimeout(() => {
         if (this.isConnected) {
           this.login(login, pass);
-          console.log(login);
-          console.log(this.ws);
         }
       }, 3000);
     }
@@ -178,14 +172,20 @@ class ServerSocketModel implements ServerSocketModelInterface {
     const mess = JSON.parse(message.data);
     if (mess.logOutMessage) {
       this.isRegistered = false;
+      this.isGameHost = false;
       this.ws.close();
       console.log('the User is logged out: true');
+    }
+
+    if (mess.mesChangePassword) {
+      const event = new CustomEvent('mess', { detail: { mess: mess.mesChangePassword } });
+      this.serverMenuIdEvent(event);
     }
 
     if (mess.setUserAsRegistered) {
       this.isRegistered = true;
       this.sendMessage('{"ask": "setSetts"}', 'setts');
-      // this.sendMessage('{"ask": "getSetts"}', 'setts');
+      this.sendMessage('{"ask": "getSetts"}', 'setts');
       console.log('User is Registered: true');
     }
 
@@ -197,10 +197,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
     if (mess.setToken) {
       this.isRegistered = true;
       const event = new CustomEvent('success', { detail: { login: mess.login } });
-      document.getElementById('server-menu-id').dispatchEvent(event);
-      /*
-      * Here should add token to storage
-       */
+      this.serverMenuIdEvent(event);
       localStorage.setItem('USER_TOKEN', mess.setToken);
       this.USER_TOKEN = mess.setToken;
       console.log(`this.USER_TOKEN: ${this.USER_TOKEN}`);
@@ -208,28 +205,25 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
     if (mess.failLogin) {
       this.isRegistered = false;
-      const event = new CustomEvent('fail', { detail: { fail: mess.failLogin } });
-      document.getElementById('server-menu-id').dispatchEvent(event);
+      this.isGameHost = false;
+      this.dispatchCustomFailEvent(mess.failLogin);
     }
 
     if (mess.failChangePassword) {
-      const event = new CustomEvent('fail', { detail: { fail: mess.failChangePassword } });
-      document.getElementById('server-menu-id').dispatchEvent(event);
+      this.dispatchCustomFailEvent(mess.failChangePassword);
     }
 
     if (mess.failLogOut) {
-      const event = new CustomEvent('fail', { detail: { fail: mess.failLogOut } });
-      document.getElementById('server-menu-id').dispatchEvent(event);
+      this.dispatchCustomFailEvent(mess.failLogOut);
     }
 
     if (mess.failSignIn) {
-      const event = new CustomEvent('fail', { detail: { fail: mess.failSignIn } });
-      document.getElementById('server-menu-id').dispatchEvent(event);
+      this.dispatchCustomFailEvent(mess.failSignIn);
     }
 
     if (mess.mesSignIn) {
       const event = new CustomEvent('mess', { detail: { mess: mess.mesSignIn } });
-      document.getElementById('server-menu-id').dispatchEvent(event);
+      this.serverMenuIdEvent(event);
     }
 
     /*
@@ -239,6 +233,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
       const tokens: Array<string> = mess.setNewWsToken.split('___');
       tokens.forEach((playerToken: string) => {
         if (!this.playersTokens.has(playerToken) && playerToken !== this.WS_TOKEN) {
+          console.log(`${mess.setNewWsToken} ${playerToken}`);
           this.playersTokens.add(playerToken);
           this.playerMotion.connectPlayer(playerToken);
         }
@@ -252,8 +247,9 @@ class ServerSocketModel implements ServerSocketModelInterface {
     if (mess.gameDisconnectedMessage) {
       if (
         this.playersTokens.has(mess.gameDisconnectedMessage)
-        && mess.gameDisconnectedMessage !== this.WS_TOKEN
+        // && mess.gameDisconnectedMessage !== this.WS_TOKEN
       ) {
+        console.log(`disconnectPlayer: ${mess.gameDisconnectedMessage}`);
         this.playersTokens.delete(mess.gameDisconnectedMessage);
         this.playerMotion.disconnectPlayer(mess.gameDisconnectedMessage);
       }
@@ -266,19 +262,25 @@ class ServerSocketModel implements ServerSocketModelInterface {
       this.USER_AMOUNT = mess.setUserMount;
 
       // Start game for HOST
-      if (this.USER_AMOUNT === '1') {
-        this.setSeed(Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1));
-        this.isGameHost = true;
-        this.startGame();
-      }
-      this.sendSeed();
+      // if (this.USER_AMOUNT === '1') {
+      //   this.setSeed(Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1));
+      //   this.isGameHost = true;
+      //   this.startGame();
+      // }
+      // this.sendSeed();
+    }
+
+    if (mess.setHost && this.isRegistered) {
+      this.isGameHost = mess.setHost === 'host';
+      console.log(`isHost: ${mess.setHost === 'host'}`);
     }
 
     /*
     * Start game for CONNECTED
     */
-    if (mess.setSeed && !this.isGameHost && this.isRegistered) {
+    if (mess.setSeed && this.isRegistered) { // && !this.isGameHost
       this.GAME_SEED = mess.setSeed;
+      console.log(`mess.setSeed: ${mess.setSeed}`);
       this.startGame();
     }
 
@@ -311,6 +313,16 @@ class ServerSocketModel implements ServerSocketModelInterface {
       console.log(mess.chatServerMessage);
       this.chatView.appendMessage('SERVER', mess.chatServerMessage, false);
     }
+  }
+
+  // eslint-disable-next-line
+  private dispatchCustomFailEvent(event: any) {
+    this.serverMenuIdEvent(new CustomEvent('fail', { detail: { fail: event } }));
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private serverMenuIdEvent(event: any) {
+    document.dispatchEvent(event);
   }
 
   // eslint-disable-next-line
