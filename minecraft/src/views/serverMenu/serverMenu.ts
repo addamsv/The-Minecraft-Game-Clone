@@ -22,6 +22,8 @@ class ServerMenu implements ViewsInterface {
 
   private logOut: HTMLButtonElement;
 
+  private disconnect: HTMLButtonElement;
+
   private logIn: HTMLButtonElement;
 
   private changePassword: HTMLButtonElement;
@@ -54,6 +56,8 @@ class ServerMenu implements ViewsInterface {
 
   private logOutFn: any;
 
+  private disconnectFn: any;
+
   private changePasswordFn: any;
 
   private sendNewPasswordFn: any;
@@ -63,6 +67,8 @@ class ServerMenu implements ViewsInterface {
   private exitChangePass: any;
 
   private languageData: any;
+
+  private isListenersAdded: boolean;
 
   constructor(controller: MainControllerInterface, model: MainModelInterface) {
     this.controller = controller;
@@ -78,6 +84,7 @@ class ServerMenu implements ViewsInterface {
     this.errorMessage = document.createElement('div');
     this.buttonsWrapper = document.createElement('div');
     this.logOut = document.createElement('button');
+    this.disconnect = document.createElement('button');
     this.play = document.createElement('button');
     this.logIn = document.createElement('button');
     this.changePassword = document.createElement('button');
@@ -97,6 +104,8 @@ class ServerMenu implements ViewsInterface {
     this.buttonsWrapper.classList.add('buttons-wrapper');
     this.logOut.classList.add('server-btn');
     this.logOut.id = 'logOut';
+    this.disconnect.classList.add('server-btn');
+    this.disconnect.id = 'disconnect';
     this.play.classList.add('server-btn');
     this.play.id = 'play';
     this.logIn.classList.add('server-btn');
@@ -111,6 +120,8 @@ class ServerMenu implements ViewsInterface {
     this.backToMainMenu.classList.add('server-btn', 'back-to-main-menu');
     this.exitChangePassButton.classList.add('server-btn', 'back-to-main-menu');
     this.languageData = null;
+
+    this.isListenersAdded = false;
 
     this.createMenu();
   }
@@ -144,6 +155,7 @@ class ServerMenu implements ViewsInterface {
     this.password.placeholder = this.languageData.password;
     this.newPassword.placeholder = this.languageData.newPassword;
     this.logOut.textContent = this.languageData.logOut;
+    this.disconnect.textContent = this.languageData.exitServerGame;
     this.play.textContent = this.languageData.connect;
     this.logIn.textContent = this.languageData.logIn;
     this.changePassword.textContent = this.languageData.changePassword;
@@ -180,6 +192,7 @@ class ServerMenu implements ViewsInterface {
     this.loginThroughPassword = this.model.loginThroughPassword.bind(this.model);
     this.tokenLogin = this.model.loginThroughToken.bind(this.model);
     this.logOutFn = this.controller.logOut.bind(this.controller);
+    this.disconnectFn = this.controller.disconnect.bind(this.controller);
     this.changePasswordFn = this.model.changePassword.bind(this.model);
     this.sendNewPasswordFn = this.model.sendNewPassword.bind(this.model);
     this.closeServerMenu = this.controller.closeServerMenu.bind(this.controller);
@@ -198,7 +211,7 @@ class ServerMenu implements ViewsInterface {
   }
 
   private buttonsWrapperJustLoggedInType() {
-    this.buttonsWrapper.append(this.changePassword, this.or, this.logOut);
+    this.buttonsWrapper.append(this.changePassword, this.or, this.disconnect);
     this.serverWrapper.append(
       this.buttonsWrapper,
       this.errorMessage,
@@ -207,28 +220,37 @@ class ServerMenu implements ViewsInterface {
   }
 
   private getChanges() {
-    this.serverScreen.addEventListener('input-error', () => {
+    if (this.isListenersAdded) {
+      return;
+    }
+    this.isListenersAdded = true;
+    // window || this.serverScreen
+    document.addEventListener('input-error', () => {
       this.errorMessage.textContent = this.parseMessage;
     });
-    this.serverScreen.addEventListener('success', (event: CustomEvent) => {
+    document.addEventListener('success', (event: CustomEvent) => {
       this.successLogIn(event);
     });
-    this.serverScreen.addEventListener('changePassword', () => {
+    document.addEventListener('changePassword', () => {
       this.changePasswordFunc();
     });
-    this.serverScreen.addEventListener('fail', (event: CustomEvent) => {
+    document.addEventListener('fail', (event: CustomEvent) => {
       this.errorMessage.textContent = `${this.languageData.fail}: ${this.languageData[event.detail.fail]}`;
     });
-    this.serverScreen.addEventListener('mess', (event: CustomEvent) => {
+    document.addEventListener('mess', (event: CustomEvent) => {
       this.errorMessage.textContent = `${this.languageData[event.detail.mess]}`;
     });
-    this.serverScreen.addEventListener('logOut', () => {
+    document.addEventListener('logOut', () => {
       this.logOutGame();
     });
-    this.serverScreen.addEventListener('makeChangePasswordMenu', () => {
+    document.addEventListener('disconnect', () => {
+      console.log('exitServerGame');
+      this.exitServerGame();
+    });
+    document.addEventListener('makeChangePasswordMenu', () => {
       this.makeChangePasswordMenu();
     });
-    this.serverScreen.addEventListener('exitChangePassMenu', () => {
+    document.addEventListener('exitChangePassMenu', () => {
       this.exitChangePassMenu();
     });
   }
@@ -256,8 +278,16 @@ class ServerMenu implements ViewsInterface {
     this.errorMessage.textContent = this.languageData.loggedOut;
   }
 
+  private exitServerGame() {
+    this.changePassword.remove();
+    this.play.remove();
+    this.disconnect.remove();
+    this.createMenu();
+    this.errorMessage.textContent = this.languageData.loggedOut;
+  }
+
   private makeChangePasswordMenu() {
-    this.logOut.remove();
+    this.disconnect.remove();
     this.or.remove();
     this.changePassword.remove();
     this.backToMainMenu.remove();
@@ -275,7 +305,7 @@ class ServerMenu implements ViewsInterface {
     this.sendNewPassword.remove();
     this.exitChangePassButton.remove();
     this.newPassword.remove();
-    this.buttonsWrapper.append(this.changePassword, this.or, this.logOut);
+    this.buttonsWrapper.append(this.changePassword, this.or, this.disconnect);
     this.serverWrapper.append(
       this.buttonsWrapper,
       this.errorMessage,
@@ -292,8 +322,10 @@ class ServerMenu implements ViewsInterface {
   }
 
   private addEventListeners() {
+    this.removeEventListeners();
     this.play.addEventListener('click', this.tokenLogin);
     this.logOut.addEventListener('click', this.logOutFn);
+    this.disconnect.addEventListener('click', this.disconnectFn);
     this.changePassword.addEventListener('click', this.changePasswordFn);
     this.sendNewPassword.addEventListener('click', this.readNewPasswordInput);
     this.logIn.addEventListener('click', this.readInputs);
@@ -305,6 +337,7 @@ class ServerMenu implements ViewsInterface {
   private removeEventListeners() {
     this.play.removeEventListener('click', this.tokenLogin);
     this.logOut.removeEventListener('click', this.logOutFn);
+    this.disconnect.removeEventListener('click', this.disconnectFn);
     this.changePassword.removeEventListener('click', this.changePasswordFn);
     this.sendNewPassword.removeEventListener('click', this.readNewPasswordInput);
     this.logIn.removeEventListener('click', this.readViewInputs);
