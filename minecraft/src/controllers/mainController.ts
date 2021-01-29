@@ -86,6 +86,15 @@ class MainController implements MainControllerInterface {
     }
   }
 
+  public disconnect() {
+    if (!this.isServerGameStart || this.gameModel.isLockPosition) {
+      console.log('mainController disconnect');
+      this.model.disconnect();
+      this.gameModel.destroyWorld();
+      this.isServerGameStart = false;
+    }
+  }
+
   openSettingsMenu() {
     this.menuView.mainMenu.removeMenu();
     this.menuView.settingsMenu.attachMenu();
