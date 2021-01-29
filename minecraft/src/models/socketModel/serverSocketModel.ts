@@ -12,7 +12,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private USER_TOKEN: String;
 
-  private WS_TOKEN: String;
+  private WS_TOKEN: string;
 
   private USER_AMOUNT: String;
 
@@ -83,6 +83,11 @@ class ServerSocketModel implements ServerSocketModelInterface {
         break;
       }
 
+      case 'signUp': {
+        this.send(0 + textMessage);
+        break;
+      }
+
       default: {
         break;
       }
@@ -92,6 +97,22 @@ class ServerSocketModel implements ServerSocketModelInterface {
   public logOut() {
     localStorage.removeItem('USER_TOKEN');
     this.sendMessage('{"ask": "logOut"}', 'logOut');
+    if (!this.playersTokens.has(this.WS_TOKEN)) {
+      this.playersTokens.delete(this.WS_TOKEN);
+    }
+  }
+
+  public disconnect() {
+    this.sendMessage('{"ask": "logOut"}', 'logOut');
+    if (!this.playersTokens.has(this.WS_TOKEN)) {
+      this.playersTokens.delete(this.WS_TOKEN);
+    }
+  }
+
+  public signUp(login: any, password: any) {
+    if (login && password) {
+      this.sendMessage(`{"ask": "signUp", "login": "${login}", "password": "${password}"}`, 'signUp');
+    }
   }
 
   public changePassword(newPassword: string) {
@@ -163,8 +184,8 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
     if (mess.setUserAsRegistered) {
       this.isRegistered = true;
-      this.sendMessage('{"ask": "getSetts"}', 'setts');
-      this.sendMessage('{"ask": "getStat"}', 'stat');
+      this.sendMessage('{"ask": "setSetts"}', 'setts');
+      // this.sendMessage('{"ask": "getSetts"}', 'setts');
       console.log('User is Registered: true');
     }
 
@@ -201,10 +222,20 @@ class ServerSocketModel implements ServerSocketModelInterface {
       document.getElementById('server-menu-id').dispatchEvent(event);
     }
 
+    if (mess.failSignIn) {
+      const event = new CustomEvent('fail', { detail: { fail: mess.failSignIn } });
+      document.getElementById('server-menu-id').dispatchEvent(event);
+    }
+
+    if (mess.mesSignIn) {
+      const event = new CustomEvent('mess', { detail: { mess: mess.mesSignIn } });
+      document.getElementById('server-menu-id').dispatchEvent(event);
+    }
+
     /*
     * Connect new Player to GameModel
     */
-    if (mess.setNewWsToken && this.controller.isServerGameStart) {
+    if (mess.setNewWsToken) { // && this.controller.isServerGameStart
       const tokens: Array<string> = mess.setNewWsToken.split('___');
       tokens.forEach((playerToken: string) => {
         if (!this.playersTokens.has(playerToken) && playerToken !== this.WS_TOKEN) {

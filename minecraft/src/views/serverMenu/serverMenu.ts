@@ -219,6 +219,9 @@ class ServerMenu implements ViewsInterface {
     this.serverScreen.addEventListener('fail', (event: CustomEvent) => {
       this.errorMessage.textContent = `${this.languageData.fail}: ${this.languageData[event.detail.fail]}`;
     });
+    this.serverScreen.addEventListener('mess', (event: CustomEvent) => {
+      this.errorMessage.textContent = `${this.languageData[event.detail.mess]}`;
+    });
     this.serverScreen.addEventListener('logOut', () => {
       this.logOutGame();
     });

@@ -15,6 +15,7 @@ const languageConfig = {
       noBtn: 'No',
     },
     serverMenu: {
+      signed: 'You are successfully registered',
       registeredAs: 'You are Registered as',
       passChanged: 'Password is changed',
       changePassRequest: 'Request to change password',
@@ -62,6 +63,7 @@ const languageConfig = {
       noBtn: 'Нет',
     },
     serverMenu: {
+      signed: 'Вы успешно зарегистрированы',
       registeredAs: 'Вы зарегистрированы как',
       passChanged: 'Пароль изменён',
       changePassRequest: 'Изменение пароля',

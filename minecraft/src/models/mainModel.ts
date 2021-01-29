@@ -120,10 +120,11 @@ class MainModel implements MainModelInterface {
   }
 
   public signUp(login: String, password: String) {
-    this.serverCRUD.create({ login, password })
-      .then((data: MyResponse) => {
-        this.menuView.serverMenu.showResponse(data);
-      });
+    this.rsServerSocket.signUp(login, password);
+    // this.serverCRUD.create({ login, password })
+    //   .then((data: MyResponse) => {
+    //     this.menuView.serverMenu.showResponse(data);
+    //   });
   }
 
   public login(login: String = '', password: String = '') {
