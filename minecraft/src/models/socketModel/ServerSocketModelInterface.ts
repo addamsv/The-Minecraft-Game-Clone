@@ -11,6 +11,8 @@ interface ServerSocketModelInterface {
 
   logOut(): void;
 
+  disconnect(): void;
+
   changePassword(newPassword: string): void;
 
   setSeed(seed: String): void;
