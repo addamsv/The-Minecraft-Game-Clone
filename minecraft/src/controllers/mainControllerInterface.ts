@@ -9,6 +9,7 @@ interface MainControllerInterface {
   openServerMenu(): any;
   closeServerMenu(): any;
   logOut(): any;
+  disconnect(): any;
 
   openSettingsMenu(): any;
   openQuitConfirm(): any;
