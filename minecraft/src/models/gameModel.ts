@@ -99,6 +99,8 @@ class GameModel {
 
   isShiftPressed: Boolean;
 
+  isRunning: Boolean;
+
   constructor(model: MainModelInterface) {
     this.model = model;
     this.createScene();
@@ -124,6 +126,7 @@ class GameModel {
     this.isSwordCooldown = false;
     this.isHitCooldown = false;
     this.isLockPosition = 1; // or 0
+    this.isRunning = false;
   }
 
   public setTexture(texture: THREE.Texture) {
@@ -457,19 +460,10 @@ class GameModel {
 
       this.direction.normalize();
       if (this.forward || this.backward) {
-        if (this.isShiftPressed) {
-          this.speed.z -= this.direction.z * 800.0 * delta;
-        } else {
-          this.speed.z -= this.direction.z * 400.0 * delta;
-        }
+        this.speed.z -= this.direction.z * 400.0 * delta;
       }
       if (this.left || this.right) {
-        if (this.isShiftPressed) {
-          this.speed.x -= this.direction.x * 800.0 * delta;
-        } else {
-          this.speed.x -= this.direction.x * 400.0 * delta;
-        }
-
+        this.speed.x -= this.direction.x * 400.0 * delta;
       }
 
       // falling
@@ -502,6 +496,15 @@ class GameModel {
       if (this.camera.position.y < -300) {
         this.camera.position.y = 300;
         this.speed.y = 0;
+      }
+
+      // running
+      if (this.isShiftPressed && (!this.isRunning || falling.length)) {
+        this.control.SPEED *= 2;
+        this.isRunning = true;
+      } else if (!this.isShiftPressed && this.isRunning) {
+        this.control.SPEED /= 2;
+        this.isRunning = false;
       }
 
       this.control.moveRight(-this.speed.x * delta);
