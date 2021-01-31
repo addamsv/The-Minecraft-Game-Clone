@@ -35,6 +35,10 @@ class MainController implements MainControllerInterface {
     this.gameModel = new GameModel(this.model);
     this.prepareToStartGame();
   }
+  
+  public getMenuView() {
+    return this.menuView;
+  }
 
   startSingleGame() {
     if (!this.isSingleGameStart && !this.isServerGameStart) {
@@ -78,6 +82,15 @@ class MainController implements MainControllerInterface {
   public logOut() {
     if (!this.isServerGameStart || this.gameModel.isLockPosition) {
       this.model.logOut();
+      this.gameModel.destroyWorld();
+      this.isServerGameStart = false;
+    }
+  }
+
+  public disconnect() {
+    if (!this.isServerGameStart || this.gameModel.isLockPosition) {
+      console.log('mainController disconnect');
+      this.model.disconnect();
       this.gameModel.destroyWorld();
       this.isServerGameStart = false;
     }
@@ -139,9 +152,9 @@ class MainController implements MainControllerInterface {
     }
   }
 
-  public getChatView() {
-    return this.menuView.chatView;
-  }
+  // public getChatView() {
+  //   return this.menuView.chatView;
+  // }
 
   private prepareToStartGame() {
     this.model.setView(this.menuView);
