@@ -41,9 +41,12 @@ const languageConfig = {
       exitServerGame: 'Disconnect',
     },
     settinsMenu: {
-      langBtn: 'English',
+      musicLabel: 'Music: ',
+      soundsLabel: 'Sounds: ',
+      brightnessLabel: 'Brightness: ',
       rangeLabel: 'Distance: ',
       fovLabel: 'fov: ',
+      langBtn: 'Language: English',
     },
   },
   ru: {
@@ -88,9 +91,12 @@ const languageConfig = {
       exitServerGame: 'Отключиться',
     },
     settinsMenu: {
-      langBtn: 'Русский',
+      musicLabel: 'Музыка: ',
+      soundsLabel: 'Звуки: ',
+      brightnessLabel: 'Яркость: ',
       rangeLabel: 'Дальность видимости: ',
       fovLabel: 'Угол обзора: ',
+      langBtn: 'Язык: Русский',
     },
   },
 };

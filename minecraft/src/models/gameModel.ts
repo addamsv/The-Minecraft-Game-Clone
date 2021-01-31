@@ -94,7 +94,7 @@ class GameModel {
 
   private largeTree: THREE.Object3D;
 
-  private gameLight: any;
+  public gameLight: any;
 
   sound: SoundModel;
 
@@ -119,6 +119,7 @@ class GameModel {
   private clock: THREE.Clock;
 
   constructor(model: MainModelInterface) {
+    this.startTime = performance.now();
     this.model = model;
     this.createScene();
     this.cameraHeight = 15;
@@ -440,7 +441,7 @@ class GameModel {
 
   animationFrame() {
     this.jump = false;
-    const time = performance.now();
+    const time = performance.now(); // - this.startTime;
     this.mixer.update(this.clock.getDelta());
 
     // how often should send to the server

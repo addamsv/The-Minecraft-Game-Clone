@@ -1,4 +1,19 @@
 const settingsConfig = {
+  music: {
+    min: '0',
+    max: '1',
+    cur: '0.5',
+  },
+  brightness: {
+    min: '0.1',
+    max: '1',
+    cur: '0.5',
+  },
+  sounds: {
+    min: '0',
+    max: '1',
+    cur: '0.5',
+  },
   far: {
     min: '300',
     max: '1800',
@@ -9,11 +24,6 @@ const settingsConfig = {
     max: '135',
     cur: '75',
   },
-  // brightness: {
-  //   min: '0.1',
-  //   max: '2',
-  //   cur: '1.8',
-  // },
   // gameSeed: '',
   // gameMobs: '',
   // coordinates: {

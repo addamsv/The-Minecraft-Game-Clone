@@ -1,3 +1,5 @@
+import settingsConfig from '../../configs/settingsConfig';
+
 class SoundModel {
     audioContext: AudioContext;
 
@@ -24,6 +26,8 @@ class SoundModel {
     gainNodeBackground: GainNode;
 
     public surface: string;
+
+    private moveVolume: number;
 
     initSounds() {
       this.audioContext = new window.AudioContext();
@@ -69,11 +73,15 @@ class SoundModel {
         });
     }
 
+    public setBackgroundVolume() {
+      this.gainNodeBackground.gain.value = 0.3 * Number(settingsConfig.music.cur);
+    }
+
     startWalkSound() {
       this.audioBufferSourceNode = this.audioContext.createBufferSource();
       this.audioBufferSourceNode.loop = true;
       this.audioBufferSourceNode.playbackRate.value = 1.2;
-      let volume = 0.3;
+      this.moveVolume = 0.3 * Number(settingsConfig.sounds.cur);
       switch (this.surface) {
         case 'grass': {
           this.audioBufferSourceNode.buffer = this.walkGrassBuffer;
@@ -85,14 +93,14 @@ class SoundModel {
         }
         case 'water': {
           this.audioBufferSourceNode.buffer = this.swimBuffer;
-          volume *= 0.2;
+          this.moveVolume *= 0.2;
           break;
         }
         default: break;
       }
 
       this.gainNodeMove = this.audioContext.createGain();
-      this.gainNodeMove.gain.value = volume;
+      this.gainNodeMove.gain.value = this.moveVolume;
       this.gainNodeMove.connect(this.audioContext.destination);
       this.audioBufferSourceNode.connect(this.gainNodeMove);
 
@@ -109,7 +117,7 @@ class SoundModel {
       this.audioBufferSourceNode.buffer = this.jumpBuffer;
 
       this.gainNodeJump = this.audioContext.createGain();
-      this.gainNodeJump.gain.value = 0.1;
+      this.gainNodeJump.gain.value = 0.15 * Number(settingsConfig.sounds.cur);
       this.gainNodeJump.connect(this.audioContext.destination);
       this.audioBufferSourceNode.connect(this.gainNodeJump);
 
@@ -122,7 +130,7 @@ class SoundModel {
       this.audioBufferSourceNodeBackground.loop = true;
 
       this.gainNodeBackground = this.audioContext.createGain();
-      this.gainNodeBackground.gain.value = 0.2;
+      this.setBackgroundVolume();
       this.gainNodeBackground.connect(this.audioContext.destination);
       this.audioBufferSourceNodeBackground.connect(this.gainNodeBackground);
 
