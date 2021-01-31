@@ -118,6 +118,8 @@ class GameModel {
 
   private clock: THREE.Clock;
 
+  public isShiftPressed: Boolean;
+
   constructor(model: MainModelInterface) {
     this.startTime = performance.now();
     this.model = model;
@@ -566,6 +568,11 @@ class GameModel {
       if (this.camera.position.y < -300) {
         this.camera.position.y = 300;
         this.speed.y = 0;
+      }
+
+      // running
+      if (this.isShiftPressed && falling.length) {
+        this.control.SPEED *= 1.5;
       }
 
       this.control.moveRight(-this.speed.x * delta);

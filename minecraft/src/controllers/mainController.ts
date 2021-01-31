@@ -191,6 +191,10 @@ class MainController implements MainControllerInterface {
         this.gameModel.changeSwordStatus();
         break;
       }
+      case 16: {
+        this.gameModel.isShiftPressed = true;
+        break;
+      }
       default: break;
     }
   }
@@ -201,6 +205,7 @@ class MainController implements MainControllerInterface {
       case 65: this.gameModel.left = false; break;
       case 83: this.gameModel.backward = false; break;
       case 68: this.gameModel.right = false; break;
+      case 16: this.gameModel.isShiftPressed = false; break;
       default: break;
     }
   }
