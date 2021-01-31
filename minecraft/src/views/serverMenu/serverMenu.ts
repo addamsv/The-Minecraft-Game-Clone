@@ -87,9 +87,9 @@ class ServerMenu implements ViewsInterface {
     this.backToMainMenu = document.createElement('button');
     this.exitChangePassButton = document.createElement('button');
 
-    this.serverScreen.classList.add('server-screen', 'animated');
+    this.serverScreen.classList.add('server-screen');
     this.serverScreen.id = 'server-menu-id';
-    this.serverWrapper.classList.add('server-wrapper');
+    this.serverWrapper.classList.add('server-wrapper', 'animated');
     this.nickname.classList.add('nickname');
     this.password.classList.add('password');
     this.newPassword.classList.add('password');

@@ -60,7 +60,7 @@ class MainMenu implements ViewsInterface {
     this.quitBtn = document.createElement('button');
 
     this.mainMenuScreen.classList.add('main-menu-screen');
-    btnsWrapper.classList.add('btns-wrapper');
+    btnsWrapper.classList.add('btns-wrapper', 'animated');
     this.playBtn.classList.add('main-menu-btn', 'play-btn');
     this.serverBtn.classList.add('main-menu-btn', 'server-btn');
     this.settingsBtn.classList.add('main-menu-btn', 'settings-btn');

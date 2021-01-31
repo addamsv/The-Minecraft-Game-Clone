@@ -115,9 +115,9 @@ class SettingsMenu implements ViewsInterface {
 
     this.settingsMenuScreen.id = 'settings-screen-id';
     this.settingsMenuScreen.classList.add('settings-menu-screen');
-    settingsWrapper.classList.add('settings-wrapper');
+    settingsWrapper.classList.add('settings-wrapper', 'animated');
     this.langBtn.classList.add('lang-btn');
-    this.okBtn.classList.add('ok-btn');
+    this.okBtn.classList.add('ok-btn', 'animated');
 
     settingsWrapper.append(rangeWrapper, fovWrapper, this.langBtn);
     this.settingsMenuScreen.append(settingsWrapper, this.okBtn);
