@@ -7,7 +7,11 @@ interface ServerSocketModelInterface {
 
   init(login: any, password: any): void;
 
+  signUp(login: any, password: any): void;
+
   logOut(): void;
+
+  disconnect(): void;
 
   changePassword(newPassword: string): void;
 

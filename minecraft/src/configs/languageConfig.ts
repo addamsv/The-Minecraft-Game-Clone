@@ -15,6 +15,7 @@ const languageConfig = {
       noBtn: 'No',
     },
     serverMenu: {
+      signed: 'You are successfully registered',
       registeredAs: 'You are Registered as',
       passChanged: 'Password is changed',
       changePassRequest: 'Request to change password',
@@ -41,9 +42,12 @@ const languageConfig = {
       exitServerGame: 'Disconnect',
     },
     settinsMenu: {
-      langBtn: 'English',
+      musicLabel: 'Music: ',
+      soundsLabel: 'Sounds: ',
+      brightnessLabel: 'Brightness: ',
       rangeLabel: 'Distance: ',
       fovLabel: 'fov: ',
+      langBtn: 'Language: English',
     },
   },
   ru: {
@@ -62,6 +66,7 @@ const languageConfig = {
       noBtn: 'Нет',
     },
     serverMenu: {
+      signed: 'Вы успешно зарегистрированы',
       registeredAs: 'Вы зарегистрированы как',
       passChanged: 'Пароль изменён',
       changePassRequest: 'Изменение пароля',
@@ -88,9 +93,12 @@ const languageConfig = {
       exitServerGame: 'Отключиться',
     },
     settinsMenu: {
-      langBtn: 'Русский',
+      musicLabel: 'Музыка: ',
+      soundsLabel: 'Звуки: ',
+      brightnessLabel: 'Яркость: ',
       rangeLabel: 'Дальность видимости: ',
       fovLabel: 'Угол обзора: ',
+      langBtn: 'Язык: Русский',
     },
   },
 };

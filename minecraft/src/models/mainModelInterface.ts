@@ -24,6 +24,8 @@ interface MainModelInterface {
 
   logOut(): void;
 
+  disconnect(): void;
+
   changePassword(): void;
 
   sendNewPassword(newPassword: string): void;

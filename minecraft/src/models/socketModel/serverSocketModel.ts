@@ -1,7 +1,7 @@
 import ServerSocketModelInterface from './ServerSocketModelInterface';
 import env from '../../configs/environmentVars';
 import MainControllerInterface from '../../controllers/mainControllerInterface';
-import ChatViewInterface from '../../views/chatView/chatViewInterface';
+// import ChatViewInterface from '../../views/chatView/chatViewInterface';
 
 class ServerSocketModel implements ServerSocketModelInterface {
   private controller: MainControllerInterface;
@@ -12,7 +12,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private USER_TOKEN: String;
 
-  private WS_TOKEN: String;
+  private WS_TOKEN: string;
 
   private USER_AMOUNT: String;
 
@@ -28,15 +28,17 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private playersTokens: Set<string>;
 
-  private chatView: ChatViewInterface;
+  // private chatView: ChatViewInterface;
 
   private pingSetIntervalID: number;
 
   public playerMotion: any;
 
+  private menuView: any;
+
   constructor(controller: MainControllerInterface) {
     this.controller = controller;
-    this.chatView = null;
+    // this.chatView = null;
     this.ws = null;
     this.WS_TOKEN = '';
     this.USER_NAME = '';
@@ -83,6 +85,11 @@ class ServerSocketModel implements ServerSocketModelInterface {
         break;
       }
 
+      case 'signUp': {
+        this.send(0 + textMessage);
+        break;
+      }
+
       default: {
         break;
       }
@@ -92,6 +99,18 @@ class ServerSocketModel implements ServerSocketModelInterface {
   public logOut() {
     localStorage.removeItem('USER_TOKEN');
     this.sendMessage('{"ask": "logOut"}', 'logOut');
+    this.playersTokens.clear();
+  }
+
+  public disconnect() {
+    this.sendMessage('{"ask": "logOut"}', 'logOut');
+    this.playersTokens.clear();
+  }
+
+  public signUp(login: any, password: any) {
+    if (login && password) {
+      this.sendMessage(`{"ask": "signUp", "login": "${login}", "password": "${password}"}`, 'signUp');
+    }
   }
 
   public changePassword(newPassword: string) {
@@ -106,8 +125,6 @@ class ServerSocketModel implements ServerSocketModelInterface {
       setTimeout(() => {
         if (this.isConnected) {
           this.login(login, pass);
-          console.log(login);
-          console.log(this.ws);
         }
       }, 3000);
     }
@@ -157,14 +174,20 @@ class ServerSocketModel implements ServerSocketModelInterface {
     const mess = JSON.parse(message.data);
     if (mess.logOutMessage) {
       this.isRegistered = false;
+      this.isGameHost = false;
       this.ws.close();
       console.log('the User is logged out: true');
     }
 
+    if (mess.mesChangePassword) {
+      const event = new CustomEvent('mess', { detail: { mess: mess.mesChangePassword } });
+      this.serverMenuIdEvent(event);
+    }
+
     if (mess.setUserAsRegistered) {
       this.isRegistered = true;
+      this.sendMessage('{"ask": "setSetts"}', 'setts');
       this.sendMessage('{"ask": "getSetts"}', 'setts');
-      this.sendMessage('{"ask": "getStat"}', 'stat');
       console.log('User is Registered: true');
     }
 
@@ -176,10 +199,7 @@ class ServerSocketModel implements ServerSocketModelInterface {
     if (mess.setToken) {
       this.isRegistered = true;
       const event = new CustomEvent('success', { detail: { login: mess.login } });
-      document.getElementById('server-menu-id').dispatchEvent(event);
-      /*
-      * Here should add token to storage
-       */
+      this.serverMenuIdEvent(event);
       localStorage.setItem('USER_TOKEN', mess.setToken);
       this.USER_TOKEN = mess.setToken;
       console.log(`this.USER_TOKEN: ${this.USER_TOKEN}`);
@@ -187,27 +207,35 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
     if (mess.failLogin) {
       this.isRegistered = false;
-      const event = new CustomEvent('fail', { detail: { fail: mess.failLogin } });
-      document.getElementById('server-menu-id').dispatchEvent(event);
+      this.isGameHost = false;
+      this.dispatchCustomFailEvent(mess.failLogin);
     }
 
     if (mess.failChangePassword) {
-      const event = new CustomEvent('fail', { detail: { fail: mess.failChangePassword } });
-      document.getElementById('server-menu-id').dispatchEvent(event);
+      this.dispatchCustomFailEvent(mess.failChangePassword);
     }
 
     if (mess.failLogOut) {
-      const event = new CustomEvent('fail', { detail: { fail: mess.failLogOut } });
-      document.getElementById('server-menu-id').dispatchEvent(event);
+      this.dispatchCustomFailEvent(mess.failLogOut);
+    }
+
+    if (mess.failSignIn) {
+      this.dispatchCustomFailEvent(mess.failSignIn);
+    }
+
+    if (mess.mesSignIn) {
+      const event = new CustomEvent('mess', { detail: { mess: mess.mesSignIn } });
+      this.serverMenuIdEvent(event);
     }
 
     /*
     * Connect new Player to GameModel
     */
-    if (mess.setNewWsToken && this.controller.isServerGameStart) {
+    if (mess.setNewWsToken) { // && this.controller.isServerGameStart
       const tokens: Array<string> = mess.setNewWsToken.split('___');
       tokens.forEach((playerToken: string) => {
         if (!this.playersTokens.has(playerToken) && playerToken !== this.WS_TOKEN) {
+          console.log(`${mess.setNewWsToken} ${playerToken}`);
           this.playersTokens.add(playerToken);
           this.playerMotion.connectPlayer(playerToken);
         }
@@ -221,8 +249,9 @@ class ServerSocketModel implements ServerSocketModelInterface {
     if (mess.gameDisconnectedMessage) {
       if (
         this.playersTokens.has(mess.gameDisconnectedMessage)
-        && mess.gameDisconnectedMessage !== this.WS_TOKEN
+        // && mess.gameDisconnectedMessage !== this.WS_TOKEN
       ) {
+        console.log(`disconnectPlayer: ${mess.gameDisconnectedMessage}`);
         this.playersTokens.delete(mess.gameDisconnectedMessage);
         this.playerMotion.disconnectPlayer(mess.gameDisconnectedMessage);
       }
@@ -235,19 +264,25 @@ class ServerSocketModel implements ServerSocketModelInterface {
       this.USER_AMOUNT = mess.setUserMount;
 
       // Start game for HOST
-      if (this.USER_AMOUNT === '1') {
-        this.setSeed(Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1));
-        this.isGameHost = true;
-        this.startGame();
-      }
-      this.sendSeed();
+      // if (this.USER_AMOUNT === '1') {
+      //   this.setSeed(Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1));
+      //   this.isGameHost = true;
+      //   this.startGame();
+      // }
+      // this.sendSeed();
+    }
+
+    if (mess.setHost && this.isRegistered) {
+      this.isGameHost = mess.setHost === 'host';
+      console.log(`isHost: ${mess.setHost === 'host'}`);
     }
 
     /*
     * Start game for CONNECTED
     */
-    if (mess.setSeed && !this.isGameHost && this.isRegistered) {
+    if (mess.setSeed && this.isRegistered) { // && !this.isGameHost
       this.GAME_SEED = mess.setSeed;
+      console.log(`mess.setSeed: ${mess.setSeed}`);
       this.startGame();
     }
 
@@ -269,17 +304,31 @@ class ServerSocketModel implements ServerSocketModelInterface {
     *  Chat messages
     */
     if (mess.chatMessage) {
-      console.log(mess.chatMessage);
-      this.chatView.appendMessage(
+      // this.chatView.appendMessage(
+      //   mess.userName,
+      //   mess.chatMessage,
+      //   this.areYouMessageOwner(mess.wsToken),
+      // );
+      this.menuView.chatView.appendMessage(
         mess.userName,
         mess.chatMessage,
         this.areYouMessageOwner(mess.wsToken),
       );
     }
     if (mess.chatServerMessage && this.controller.isServerGameStart) {
-      console.log(mess.chatServerMessage);
-      this.chatView.appendMessage('SERVER', mess.chatServerMessage, false);
+      // this.chatView.appendMessage('SERVER', mess.chatServerMessage, false);
+      this.menuView.chatView.appendMessage('SERVER', mess.chatServerMessage, false);
     }
+  }
+
+  // eslint-disable-next-line
+  private dispatchCustomFailEvent(event: any) {
+    this.serverMenuIdEvent(new CustomEvent('fail', { detail: { fail: event } }));
+  }
+
+  // eslint-disable-next-line class-methods-use-this
+  private serverMenuIdEvent(event: any) {
+    document.dispatchEvent(event);
   }
 
   // eslint-disable-next-line
@@ -296,22 +345,29 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private connectionOpen() {
     this.isConnected = true;
-    this.chatView = this.controller.getChatView();
+    // this.chatView = this.controller.getChatView();
+    this.menuView = this.controller.getMenuView();
     this.ping();
   }
 
   private connectionError() {
     this.isConnected = false;
-    if (this.chatView) {
-      this.chatView.appendSysMessage('connection Error');
+    // if (this.chatView) {
+    //   this.chatView.appendSysMessage('connection Error');
+    // }
+    if (this.menuView) {
+      this.menuView.chatView.appendSysMessage('connection Error');
     }
   }
 
   private connectionClose() {
     this.isConnected = false;
     clearInterval(this.pingSetIntervalID);
-    if (this.chatView) {
-      this.chatView.appendSysMessage('connection closed');
+    // if (this.chatView) {
+    //   this.chatView.appendSysMessage('connection closed');
+    // }
+    if (this.menuView) {
+      this.menuView.chatView.appendSysMessage('connection closed');
     }
     setTimeout(() => this.createConnection(), 5000);
   }

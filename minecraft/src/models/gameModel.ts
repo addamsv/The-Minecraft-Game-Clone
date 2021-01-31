@@ -94,7 +94,7 @@ class GameModel {
 
   private largeTree: THREE.Object3D;
 
-  private gameLight: any;
+  public gameLight: any;
 
   sound: SoundModel;
 
@@ -118,7 +118,10 @@ class GameModel {
 
   private clock: THREE.Clock;
 
+  public isShiftPressed: Boolean;
+
   constructor(model: MainModelInterface) {
+    this.startTime = performance.now();
     this.model = model;
     this.createScene();
     this.cameraHeight = 15;
@@ -440,7 +443,7 @@ class GameModel {
 
   animationFrame() {
     this.jump = false;
-    const time = performance.now();
+    const time = performance.now(); // - this.startTime;
     this.mixer.update(this.clock.getDelta());
 
     // how often should send to the server
@@ -453,9 +456,9 @@ class GameModel {
         Math.round(this.camera.position.x / 10),
         Math.round(this.camera.position.z / 10),
       );
+      this.lastPing = pingTime;
       this.statsView.setTime(pingTime);
       if (this.model.isHandshaked()) {
-        this.lastPing = pingTime;
         this.model.sendHeroCoordinates(
           String(Math.trunc(this.camera.position.x)),
           String(Math.trunc(this.camera.position.z)),
@@ -565,6 +568,11 @@ class GameModel {
       if (this.camera.position.y < -300) {
         this.camera.position.y = 300;
         this.speed.y = 0;
+      }
+
+      // running
+      if (this.isShiftPressed && falling.length) {
+        this.control.SPEED *= 1.5;
       }
 
       this.control.moveRight(-this.speed.x * delta);
