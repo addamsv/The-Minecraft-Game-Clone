@@ -118,9 +118,7 @@ class GameModel {
 
   private clock: THREE.Clock;
 
-  isShiftPressed: Boolean;
-
-  isRunning: Boolean;
+  public isShiftPressed: Boolean;
 
   constructor(model: MainModelInterface) {
     this.startTime = performance.now();
@@ -147,7 +145,6 @@ class GameModel {
     this.isSword = false;
     this.isSwordCooldown = false;
     this.isHitCooldown = false;
-    this.isRunning = false;
     this.isLockPosition = 0; // or 1
     this.isMovingSoundNowPlaying = false;
     this.isBackgroundNowPlaying = false;
@@ -574,12 +571,8 @@ class GameModel {
       }
 
       // running
-      if (this.isShiftPressed && (!this.isRunning || falling.length)) {
-        this.control.SPEED *= 2;
-        this.isRunning = true;
-      } else if (!this.isShiftPressed && this.isRunning) {
-        this.control.SPEED /= 2;
-        this.isRunning = false;
+      if (this.isShiftPressed && falling.length) {
+        this.control.SPEED *= 1.5;
       }
 
       this.control.moveRight(-this.speed.x * delta);
