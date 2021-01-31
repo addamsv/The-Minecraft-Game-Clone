@@ -453,9 +453,9 @@ class GameModel {
         Math.round(this.camera.position.x / 10),
         Math.round(this.camera.position.z / 10),
       );
+      this.lastPing = pingTime;
       this.statsView.setTime(pingTime);
       if (this.model.isHandshaked()) {
-        this.lastPing = pingTime;
         this.model.sendHeroCoordinates(
           String(Math.trunc(this.camera.position.x)),
           String(Math.trunc(this.camera.position.z)),

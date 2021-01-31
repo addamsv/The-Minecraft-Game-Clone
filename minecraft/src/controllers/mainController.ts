@@ -35,9 +35,9 @@ class MainController implements MainControllerInterface {
     this.prepareToStartGame();
   }
 
-  // public signUpResponse(data: any) {
-  //   this.menuView.serverMenu.setError();
-  // }
+  public getMenuView() {
+    return this.menuView;
+  }
 
   startSingleGame() {
     if (!this.isSingleGameStart && !this.isServerGameStart) {
@@ -138,9 +138,9 @@ class MainController implements MainControllerInterface {
     }
   }
 
-  public getChatView() {
-    return this.menuView.chatView;
-  }
+  // public getChatView() {
+  //   return this.menuView.chatView;
+  // }
 
   private prepareToStartGame() {
     this.model.setView(this.menuView);

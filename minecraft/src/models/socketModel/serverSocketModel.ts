@@ -1,7 +1,7 @@
 import ServerSocketModelInterface from './ServerSocketModelInterface';
 import env from '../../configs/environmentVars';
 import MainControllerInterface from '../../controllers/mainControllerInterface';
-import ChatViewInterface from '../../views/chatView/chatViewInterface';
+// import ChatViewInterface from '../../views/chatView/chatViewInterface';
 
 class ServerSocketModel implements ServerSocketModelInterface {
   private controller: MainControllerInterface;
@@ -28,15 +28,17 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private playersTokens: Set<string>;
 
-  private chatView: ChatViewInterface;
+  // private chatView: ChatViewInterface;
 
   private pingSetIntervalID: number;
 
   public playerMotion: any;
 
+  private menuView: any;
+
   constructor(controller: MainControllerInterface) {
     this.controller = controller;
-    this.chatView = null;
+    // this.chatView = null;
     this.ws = null;
     this.WS_TOKEN = '';
     this.USER_NAME = '';
@@ -302,16 +304,20 @@ class ServerSocketModel implements ServerSocketModelInterface {
     *  Chat messages
     */
     if (mess.chatMessage) {
-      console.log(mess.chatMessage);
-      this.chatView.appendMessage(
+      // this.chatView.appendMessage(
+      //   mess.userName,
+      //   mess.chatMessage,
+      //   this.areYouMessageOwner(mess.wsToken),
+      // );
+      this.menuView.chatView.appendMessage(
         mess.userName,
         mess.chatMessage,
         this.areYouMessageOwner(mess.wsToken),
       );
     }
     if (mess.chatServerMessage && this.controller.isServerGameStart) {
-      console.log(mess.chatServerMessage);
-      this.chatView.appendMessage('SERVER', mess.chatServerMessage, false);
+      // this.chatView.appendMessage('SERVER', mess.chatServerMessage, false);
+      this.menuView.chatView.appendMessage('SERVER', mess.chatServerMessage, false);
     }
   }
 
@@ -339,22 +345,29 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private connectionOpen() {
     this.isConnected = true;
-    this.chatView = this.controller.getChatView();
+    // this.chatView = this.controller.getChatView();
+    this.menuView = this.controller.getMenuView();
     this.ping();
   }
 
   private connectionError() {
     this.isConnected = false;
-    if (this.chatView) {
-      this.chatView.appendSysMessage('connection Error');
+    // if (this.chatView) {
+    //   this.chatView.appendSysMessage('connection Error');
+    // }
+    if (this.menuView) {
+      this.menuView.chatView.appendSysMessage('connection Error');
     }
   }
 
   private connectionClose() {
     this.isConnected = false;
     clearInterval(this.pingSetIntervalID);
-    if (this.chatView) {
-      this.chatView.appendSysMessage('connection closed');
+    // if (this.chatView) {
+    //   this.chatView.appendSysMessage('connection closed');
+    // }
+    if (this.menuView) {
+      this.menuView.chatView.appendSysMessage('connection closed');
     }
     setTimeout(() => this.createConnection(), 5000);
   }

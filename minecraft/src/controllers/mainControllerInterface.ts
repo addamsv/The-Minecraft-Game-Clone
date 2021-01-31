@@ -20,13 +20,15 @@ interface MainControllerInterface {
   closeQuitConfirm(): any;
 
   setChatStatus(message: string): any;
-  getChatView(): any;
+  // getChatView(): any;
 
   playerControlsDown(event: any): any;
 
   playerControlsUp(event: any): any;
 
   swordControls(): any;
+
+  getMenuView(): any;
 }
 
 export default MainControllerInterface;
