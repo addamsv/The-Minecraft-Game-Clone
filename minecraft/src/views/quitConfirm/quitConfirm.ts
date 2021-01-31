@@ -53,7 +53,7 @@ class QuitConfirm implements ViewsInterface {
     this.noBtn = document.createElement('button');
 
     this.quitConfirmScreen.classList.add('quit-confirm-screen');
-    quitConfirmWrapper.classList.add('quit-confirm-wrapper');
+    quitConfirmWrapper.classList.add('quit-confirm-wrapper', 'animated');
     this.confirmMessage.classList.add('confirm-message');
     btnsWrapper.classList.add('btns-wrapper');
     this.yesBtn.classList.add('yes-btn');

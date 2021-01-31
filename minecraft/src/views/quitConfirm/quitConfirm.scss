@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+@import "../opacityAnime.scss";
 
 $grass-green: rgb(0, 59, 20);
 
@@ -50,10 +50,6 @@ $grass-green: rgb(0, 59, 20);
         font-size: 1.4vw;
       }
 
-      // .no-btn {
-      //   font-size: 3vw;
-      // }
-
       .yes-btn:hover,
       .no-btn:hover {
         cursor: pointer;
@@ -61,8 +57,4 @@ $grass-green: rgb(0, 59, 20);
       }
     }
   }
-}
-
-.hide {
-  display: none;
 }

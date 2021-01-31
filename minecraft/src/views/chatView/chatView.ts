@@ -89,7 +89,7 @@ class ChatView implements ViewsInterface, ChatViewInterface {
     this.input.placeholder = 'Please Enter Your Message';
     this.input.autofocus = true;
 
-    this.container.classList.add('chat-container');
+    this.container.classList.add('chat-container', 'animated');
     this.scrollContainer.classList.add('scroll-container');
     this.sockContainer.classList.add('sock-container');
     this.sockInfo.classList.add('sock-info');

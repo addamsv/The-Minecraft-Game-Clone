@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
+@import "../opacityAnime.scss";
 
 $grass-green: rgb(0, 59, 20);
 $texture-path: "../../assets/textures/blocks/";
@@ -75,8 +75,4 @@ $texture-path: "../../assets/textures/blocks/";
       background-size: 100%;
     }
   }
-}
-
-.hide {
-  display: none;
 }

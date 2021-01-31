@@ -42,7 +42,7 @@ class StatsView {
     this.time = document.createElement('span');
     this.position = document.createElement('span');
 
-    this.statsScreen.classList.add('stats-screen');
+    this.statsScreen.classList.add('stats-screen', 'animated');
 
     this.statsScreen.append(this.fps, this.time, this.position);
   }

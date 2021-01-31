@@ -40,7 +40,7 @@ class GameView implements GameViewInterface {
     this.lightControl = document.createElement('span');
     this.swordControl = document.createElement('span');
 
-    this.playerInterface.classList.add('player-interface');
+    this.playerInterface.classList.add('player-interface', 'animated');
     this.lightCooldown.classList.add('cooldown');
     this.swordCooldown.classList.add('cooldown');
     this.lightIcon.classList.add('light');
