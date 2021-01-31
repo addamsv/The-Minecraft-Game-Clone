@@ -4,6 +4,7 @@ import { MainModelInterface, MainModel } from '../models/mainModel';
 import MainControllerInterface from './mainControllerInterface';
 import MenuView from '../views/menuView';
 import GameModel from '../models/gameModel';
+import settingsConfig from '../configs/settingsConfig';
 
 interface PlayerEvent extends Event {
   which: number;
@@ -34,7 +35,7 @@ class MainController implements MainControllerInterface {
     this.gameModel = new GameModel(this.model);
     this.prepareToStartGame();
   }
-
+  
   public getMenuView() {
     return this.menuView;
   }
@@ -98,6 +99,19 @@ class MainController implements MainControllerInterface {
   openSettingsMenu() {
     this.menuView.mainMenu.removeMenu();
     this.menuView.settingsMenu.attachMenu();
+  }
+
+  public changeVolumeSettings(music: number, sounds: number) {
+    settingsConfig.music.cur = String(music / 100);
+    settingsConfig.sounds.cur = String(sounds / 100);
+    if (this.gameModel.sound.gainNodeBackground) {
+      this.gameModel.sound.setBackgroundVolume();
+    }
+  }
+
+  public changeLightSettings(brightness: number) {
+    settingsConfig.brightness.cur = String(brightness / 100);
+    this.gameModel.gameLight.setBrightness();
   }
 
   changeCameraSettings(far: number, fov: number) {
@@ -190,6 +204,10 @@ class MainController implements MainControllerInterface {
         this.gameModel.changeSwordStatus();
         break;
       }
+      case 16: {
+        this.gameModel.isShiftPressed = true;
+        break;
+      }
       default: break;
     }
   }
@@ -200,6 +218,7 @@ class MainController implements MainControllerInterface {
       case 65: this.gameModel.left = false; break;
       case 83: this.gameModel.backward = false; break;
       case 68: this.gameModel.right = false; break;
+      case 16: this.gameModel.isShiftPressed = false; break;
       default: break;
     }
   }

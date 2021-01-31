@@ -13,6 +13,8 @@ interface MainControllerInterface {
 
   openSettingsMenu(): any;
   openQuitConfirm(): any;
+  changeVolumeSettings(music: number, sounds: number): any;
+  changeLightSettings(brightness: number): any;
   changeCameraSettings(far: number, fov: number): any;
   closeSettingsMenu(): any;
 
