@@ -1,6 +1,13 @@
 /* eslint-disable no-unused-vars */
+import StorageModelInterface from './storageModel/storageModelInterface';
 
 interface MainModelInterface {
+  setView(menuView: any): void;
+
+  setPlayerMotion(playerMotion: any): void;
+
+  storageModel: StorageModelInterface;
+
   getSocket(): any;
 
   isHandshaked(): boolean;
@@ -9,7 +16,17 @@ interface MainModelInterface {
 
   getSeed(): string;
 
-  checkStrings(name: string, password: string, type: string): void;
+  exitChangePassMenu(): void;
+
+  loginThroughPassword(name: string, password: string, type: string): void;
+
+  loginThroughToken(name: string, password: string, type: string): void;
+
+  logOut(): void;
+
+  changePassword(): void;
+
+  sendNewPassword(newPassword: string): void;
 
   /**
    *  Send Message To the Heroku Server Through Socket

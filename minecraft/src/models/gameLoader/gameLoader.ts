@@ -57,6 +57,20 @@ class GameLoader implements GameLoaderInterface {
         this.gameModel.setObject(largeTree);
       },
     );
+    this.gltfLoader.load(
+      './assets/meshes/sword.glb',
+      (gltf: any) => {
+        const sword = gltf.scene;
+        const swordAnime = gltf.animations[0];
+        sword.traverse((node: THREE.Mesh) => {
+          node.receiveShadow = true;
+        });
+        sword.scale.set(3, 3, 3);
+        sword.name = 'sword';
+        this.gameModel.setObject(sword);
+        this.gameModel.setAnimation(swordAnime);
+      },
+    );
   }
 
   public loadPlayer(token: string) {

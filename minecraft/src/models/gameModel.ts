@@ -1,27 +1,28 @@
+/* eslint-disable import/no-webpack-loader-syntax, import/no-unresolved */
+
 import * as THREE from 'three';
-// eslint-disable-next-line
 import MapWorker from 'worker-loader!./worker';
 import PointerLock from '../controllers/pointerLock/pointerLock';
 import PointerLockInterface from '../controllers/pointerLock/pointerLockInterface';
 import MainModelInterface from './mainModelInterface';
 import settingsConfig from '../configs/settingsConfig';
-import Stats from '../controllers/pointerLock/stats.js';
 import GameLoader from './gameLoader/gameLoader';
 import GameLoaderInterface from './gameLoader/gameLoaderInterface';
 import GameLight from './gameLight/gameLight';
 import PlayerMotion from './playerMotion/playerMotion';
+import SoundModel from './soundModel/soundModel';
 
 const COOLDOWN_TIME = 2000;
 
 class GameModel {
-  stats: any;
-
   currentChunk: {
     x: number,
     z: number,
   }
 
   camera: THREE.PerspectiveCamera;
+
+  private cameraHeight: number;
 
   scene: THREE.Scene;
 
@@ -47,8 +48,6 @@ class GameModel {
 
   control: PointerLockInterface;
 
-  renderDistance: number;
-
   chunkSize: number;
 
   meshes: any;
@@ -71,9 +70,9 @@ class GameModel {
 
   seed: string;
 
-  connectedPlayers: any;
-
   private gameView: any;
+
+  private statsView: any;
 
   private isLanternCooldown: boolean;
 
@@ -83,7 +82,7 @@ class GameModel {
 
   private isHitCooldown: boolean;
 
-  private isLockPosition: number;
+  public isLockPosition: number;
 
   private gameLoader: GameLoaderInterface;
 
@@ -95,38 +94,72 @@ class GameModel {
 
   private largeTree: THREE.Object3D;
 
-  private gameLight: any;
+  public gameLight: any;
+
+  sound: SoundModel;
+
+  isMovingSoundNowPlaying: boolean;
+
+  jumpSound: boolean;
+
+  isBackgroundNowPlaying: boolean;
+
+  private intersectObjects: boolean;
+
+  private startTime: number;
+
+  private playerMotion: any;
+
+  private sword: THREE.Object3D;
+
+  private swordAnime: any;
+
+  private mixer: THREE.AnimationMixer;
+
+  private clock: THREE.Clock;
 
   isShiftPressed: Boolean;
 
   isRunning: Boolean;
 
   constructor(model: MainModelInterface) {
+    this.startTime = performance.now();
     this.model = model;
     this.createScene();
+    this.cameraHeight = 15;
     this.gameLight = new GameLight(this);
     this.gameLight.createLight();
     this.gameLoader = new GameLoader(this);
     this.gameLoader.loadTextures();
     this.gameLoader.loadObjects();
+    this.playerMotion = new PlayerMotion(this);
     this.forward = false;
     this.left = false;
     this.backward = false;
     this.right = false;
     this.jump = false;
+    this.intersectObjects = false;
     this.meshes = {};
-    this.renderDistance = 6;
     this.chunkSize = 16;
-    this.connectPlayers();
-    this.disconnectPlayers();
-    this.connectedPlayers = {};
     this.gameView = null;
+    this.statsView = null;
     this.isLanternCooldown = false;
     this.isSword = false;
     this.isSwordCooldown = false;
     this.isHitCooldown = false;
-    this.isLockPosition = 1; // or 0
     this.isRunning = false;
+    this.isLockPosition = 0; // or 1
+    this.isMovingSoundNowPlaying = false;
+    this.isBackgroundNowPlaying = false;
+    this.sound = new SoundModel();
+    this.model.setPlayerMotion(this.playerMotion);
+  }
+
+  public destroyWorld() {
+    while (this.scene.children.length > 0) {
+      this.scene.remove(this.scene.children[0]);
+    }
+    this.renderer.domElement.remove();
   }
 
   public setTexture(texture: THREE.Texture) {
@@ -141,17 +174,36 @@ class GameModel {
     switch (object.name) {
       case 'smallTree': this.smallTree = object; break;
       case 'largeTree': this.largeTree = object; break;
+      case 'sword': {
+        this.sword = object;
+        this.mixer = new THREE.AnimationMixer(this.sword);
+        break;
+      }
       default: break;
     }
   }
 
+  public loadPlayer(token: string) {
+    this.gameLoader.loadPlayer(token);
+  }
+
   public setPlayer(player: THREE.Object3D) {
-    this.connectedPlayers[player.name] = player;
+    this.playerMotion.connectedPlayers[player.name] = player;
     this.scene.add(player);
   }
 
-  public setGameView(gameView: any) {
-    this.gameView = gameView;
+  public setAnimation(animation: any) {
+    this.swordAnime = animation;
+  }
+
+  public removePlayer(token: string) {
+    this.scene.remove(this.playerMotion.connectedPlayers[token]);
+    delete this.playerMotion.connectedPlayers[token];
+  }
+
+  public setView(views: any) {
+    this.gameView = views.gameView;
+    this.statsView = views.statsView;
   }
 
   public changeSwordStatus() {
@@ -167,8 +219,12 @@ class GameModel {
   public hitSword() {
     if (this.isSword && !this.isHitCooldown) {
       this.isHitCooldown = true;
-      console.log('hit');
-      // here should call sword animation
+      this.startSwordCooldown();
+      const hit = this.mixer.clipAction(this.swordAnime);
+      hit.play();
+      setTimeout(() => {
+        hit.stop();
+      }, 625);
       setTimeout(() => {
         this.isHitCooldown = false;
       }, COOLDOWN_TIME);
@@ -177,14 +233,14 @@ class GameModel {
 
   private takeSword() {
     this.isSword = true;
-    // this.scene.add(this.swordMesh);
+    this.scene.add(this.sword);
     this.gameView.addSwordClass();
     this.startSwordCooldown();
   }
 
   private hideSword() {
     this.isSword = false;
-    // this.scene.remove(this.swordMesh);
+    this.scene.remove(this.sword);
     this.gameView.removeSwordClass();
     this.startSwordCooldown();
   }
@@ -248,38 +304,8 @@ class GameModel {
     this.renderer.domElement.classList.add('renderer');
   }
 
-  /* ****************CODE TO REFACTOR**************** */
-  connectPlayers() {
-    document.body.addEventListener('connectplayer', (event: CustomEvent) => {
-      this.gameLoader.loadPlayer(event.detail.token);
-    });
-    document.body.addEventListener('moveplayer', (event: CustomEvent) => {
-      const mesh = this.connectedPlayers[event.detail.token];
-      if (mesh) {
-        PlayerMotion.smoothPlayerMotion(event.detail, mesh);
-      }
-    });
-  }
-
-  disconnectPlayers() {
-    document.body.addEventListener('disconnectplayer', (event: CustomEvent) => {
-      this.removePlayer(event.detail.token);
-    });
-  }
-
-  removePlayer(token: string) {
-    this.scene.remove(this.connectedPlayers[token]);
-    delete this.connectedPlayers[token];
-  }
-  /* ************************************************ */
-
   generateWorld(seed: string) {
-    setTimeout(() => {
-      this.isLockPosition = 1;
-    }, 13000);
     this.seed = seed;
-    this.stats = Stats();
-    this.stats.showPanel(0);
 
     this.raycaster = new THREE.Raycaster(
       new THREE.Vector3(),
@@ -290,7 +316,7 @@ class GameModel {
     this.speed = new THREE.Vector3();
     this.direction = new THREE.Vector3();
 
-    this.camera.position.y = 200;
+    this.camera.position.y = 600;
     this.camera.position.x = (this.chunkSize / 2) * 10;
     this.camera.position.z = (this.chunkSize / 2) * 10;
 
@@ -315,6 +341,13 @@ class GameModel {
 
     this.worker.onmessage = (event: any) => {
       setTimeout(() => {
+        if (event.data.unlockPosition) {
+          this.isLockPosition = 1;
+          this.startTime = performance.now();
+          setTimeout(() => {
+            this.intersectObjects = true;
+          }, COOLDOWN_TIME);
+        }
         const {
           geometry, sandGeometry, waterGeometry, xChunk, zChunk,
         } = event.data;
@@ -338,17 +371,19 @@ class GameModel {
           const sandBufferGeometry = new THREE.BufferGeometry().fromGeometry(sandGeometry);
           const waterBufferGeometry = new THREE.BufferGeometry().fromGeometry(waterGeometry);
 
-          const mesh = new THREE.Mesh(bufferGeometry, material);
-          mesh.receiveShadow = true;
-          mesh.castShadow = true;
-          mesh.position.setX(xChunk * this.chunkSize * 10);
-          mesh.position.setZ(zChunk * this.chunkSize * 10);
+          const grassMesh = new THREE.Mesh(bufferGeometry, material);
+          grassMesh.receiveShadow = true;
+          grassMesh.castShadow = true;
+          grassMesh.position.setX(xChunk * this.chunkSize * 10);
+          grassMesh.position.setZ(zChunk * this.chunkSize * 10);
+          grassMesh.name = 'grass';
 
           const sandMesh = new THREE.Mesh(sandBufferGeometry, sandMaterial);
           sandMesh.receiveShadow = true;
           sandMesh.castShadow = true;
           sandMesh.position.setX(xChunk * this.chunkSize * 10);
           sandMesh.position.setZ(zChunk * this.chunkSize * 10);
+          sandMesh.name = 'sand';
 
           const water = new THREE.Mesh(waterBufferGeometry, waterMaterial);
           water.receiveShadow = true;
@@ -357,12 +392,12 @@ class GameModel {
           water.position.setZ(zChunk * this.chunkSize * 10);
           water.name = 'water';
 
-          meshMemo.obj = mesh;
+          meshMemo.obj = grassMesh;
           meshMemo.hasObj = true;
           meshMemo.sand = sandMesh;
           meshMemo.water = water;
           if (!meshMemo.markForRemoval) {
-            this.scene.add(mesh);
+            this.scene.add(grassMesh);
             this.scene.add(sandMesh);
             this.scene.add(water);
           }
@@ -406,25 +441,34 @@ class GameModel {
     this.worker.postMessage({ seed: this.seed });
     this.worker.postMessage({ xChunk: 0, zChunk: 0, load: true });
     this.gameLight.startDay();
+    this.clock = new THREE.Clock();
   }
 
   animationFrame() {
-    this.stats.begin();
     this.jump = false;
-    const time = performance.now();
+    const time = performance.now(); // - this.startTime;
+    this.mixer.update(this.clock.getDelta());
 
     // how often should send to the server
     const period = 1000; // in ms
     // send player coordinates to the server
     const pingTime = Math.trunc(time / period);
-    if (this.model.isHandshaked() && this.lastPing !== pingTime) {
-      this.lastPing = pingTime;
-      this.model.sendHeroCoordinates(
-        String(Math.trunc(this.camera.position.x)),
-        String(Math.trunc(this.camera.position.z)),
-        String(Math.trunc(this.camera.position.y)),
-        String(this.camera.quaternion.y),
+    if (this.lastPing !== pingTime) {
+      this.statsView.setFps(Math.round(1000 / (time - this.time)));
+      this.statsView.setPosition(
+        Math.round(this.camera.position.x / 10),
+        Math.round(this.camera.position.z / 10),
       );
+      this.statsView.setTime(pingTime);
+      if (this.model.isHandshaked()) {
+        this.lastPing = pingTime;
+        this.model.sendHeroCoordinates(
+          String(Math.trunc(this.camera.position.x)),
+          String(Math.trunc(this.camera.position.z)),
+          String(Math.trunc(this.camera.position.y)),
+          String(this.camera.quaternion.y),
+        );
+      }
     }
 
     this.gameLight.setSunlightAngle(time);
@@ -451,10 +495,10 @@ class GameModel {
       this.currentChunk.z = newChunkZ;
     }
     if (this.control.isLocked) {
-      const delta = (time - this.time) / 1000;
-      this.speed.x -= this.speed.x * 10.0 * delta * this.isLockPosition;
-      this.speed.z -= this.speed.z * 10.0 * delta * this.isLockPosition;
-      this.speed.y -= 9.8 * 50.0 * delta * this.isLockPosition;
+      const delta = ((time - this.time) / 1000) * this.isLockPosition;
+      this.speed.x -= this.speed.x * 10.0 * delta;
+      this.speed.z -= this.speed.z * 10.0 * delta;
+      this.speed.y -= 9.8 * 50.0 * delta;
       this.direction.z = Number(this.forward) - Number(this.backward);
       this.direction.x = Number(this.right) - Number(this.left);
 
@@ -466,33 +510,64 @@ class GameModel {
         this.speed.x -= this.direction.x * 400.0 * delta;
       }
 
-      // falling
+      /* RAYCASTING */
       this.raycaster.ray.origin.copy(this.camera.position);
-      const falling = this.raycaster.intersectObjects(this.scene.children);
-      let up = 15;
+      const falling = this.raycaster.intersectObjects(this.scene.children, this.intersectObjects);
       if (falling.length) {
-        if (falling[0].object.name === 'water') {
+        /* MOVING PHYSICS & SPEED */
+        const surface = falling[0].object.name;
+        if (surface === 'water') {
           this.speed.y = 0;
           this.raycaster.far = 5;
           this.control.SPEED = 0.75;
-          up = 2.5;
+          this.cameraHeight = 2.5;
         } else {
           this.raycaster.far = 20;
           this.control.SPEED = 1.5;
-          up = 15;
+          this.cameraHeight = 15;
         }
         this.speed.y = Math.max(0, this.speed.y);
         if (this.speed.y <= 0) {
           this.jump = true;
         }
-        if (falling[0].distance < up) {
+        if (falling[0].distance < this.cameraHeight) {
           this.speed.z = 0;
           this.speed.x = 0;
           this.speed.y += 20;
         }
+
+        /* MOVING SOUNDS */
+        const isWASD = this.direction.z || this.direction.x;
+        if (this.sound.surface !== surface && this.isMovingSoundNowPlaying) {
+          this.isMovingSoundNowPlaying = false;
+          this.sound.stopWalkSound();
+        }
+        this.sound.surface = surface;
+        if (isWASD && !this.isMovingSoundNowPlaying) {
+          this.isMovingSoundNowPlaying = true;
+          this.sound.startWalkSound();
+        }
+        if (!isWASD && this.isMovingSoundNowPlaying) {
+          this.isMovingSoundNowPlaying = false;
+          this.sound.stopWalkSound();
+        }
+        if (this.jumpSound && surface !== 'water') {
+          if (this.isMovingSoundNowPlaying) {
+            this.isMovingSoundNowPlaying = false;
+            this.sound.stopWalkSound();
+          }
+          this.jumpSound = false;
+          this.sound.jump();
+        }
       }
 
-      // if player fall down under textures
+      /* BACKGROUND MUSIC */
+      if (!this.isBackgroundNowPlaying && this.sound.backgroundBuffer) {
+        this.sound.backgroundStart();
+        this.isBackgroundNowPlaying = true;
+      }
+
+      /* DONT FALL UNDER WORLD */
       if (this.camera.position.y < -300) {
         this.camera.position.y = 300;
         this.speed.y = 0;
@@ -510,10 +585,21 @@ class GameModel {
       this.control.moveRight(-this.speed.x * delta);
       this.control.moveForward(-this.speed.z * delta);
       this.camera.position.y += (this.speed.y * delta);
+
+      if (this.sword) {
+        const targetQuaternion = this.camera.quaternion;
+        if (!this.sword.quaternion.equals(targetQuaternion)) {
+          const step = 2 * delta;
+          this.sword.quaternion.rotateTowards(targetQuaternion, step);
+        }
+        this.sword.position.lerp(this.camera.position, 1);
+        this.sword.translateX(10);
+        this.sword.translateZ(-15);
+      }
     }
+
     this.time = time;
     this.renderer.render(this.scene, this.camera);
-    this.stats.end();
     requestAnimationFrame(this.animationFrame.bind(this));
   }
 }

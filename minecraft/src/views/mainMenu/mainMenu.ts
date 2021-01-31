@@ -69,7 +69,7 @@ class MainMenu implements ViewsInterface {
     btnsWrapper.append(this.playBtn, this.serverBtn, this.settingsBtn, this.quitBtn);
     this.mainMenuScreen.append(btnsWrapper);
 
-    this.startGame = this.controller.startGame.bind(this.controller);
+    this.startGame = this.controller.startSingleGame.bind(this.controller);
     this.openServerMenu = this.controller.openServerMenu.bind(this.controller);
     this.openSettingsMenu = this.controller.openSettingsMenu.bind(this.controller);
     this.openQuitConfirm = this.controller.openQuitConfirm.bind(this.controller);

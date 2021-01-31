@@ -1,13 +1,19 @@
 /* eslint-disable no-unused-vars */
 
 interface MainControllerInterface {
-  startGame(): any;
+  isServerGameStart: boolean;
+
+  startSingleGame(): any;
+  startServerGame(): any;
 
   openServerMenu(): any;
   closeServerMenu(): any;
+  logOut(): any;
 
   openSettingsMenu(): any;
   openQuitConfirm(): any;
+  changeVolumeSettings(music: number, sounds: number): any;
+  changeLightSettings(brightness: number): any;
   changeCameraSettings(far: number, fov: number): any;
   closeSettingsMenu(): any;
 
@@ -17,19 +23,11 @@ interface MainControllerInterface {
   setChatStatus(message: string): any;
   getChatView(): any;
 
-  prepareToStartGame(): void;
-
   playerControlsDown(event: any): any;
 
   playerControlsUp(event: any): any;
 
   swordControls(): any;
-
-  // hitControls(): any;
-
-  // onKeyDown(event: PlayerEvent): void;
-
-  // onKeyUp(event: PlayerEvent): void;
 }
 
 export default MainControllerInterface;

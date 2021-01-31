@@ -1,5 +1,3 @@
-@import url("https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap");
-
 $grass-green: rgb(0, 59, 20);
 
 .settings-menu-screen {
@@ -21,19 +19,32 @@ $grass-green: rgb(0, 59, 20);
     flex-direction: column;
     justify-content: space-evenly;
 
+    .volume-wrapper {
+      display: flex;
+      justify-content: space-between;
+
+      .music-wrapper,
+      .sounds-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        width: 46%;
+      }
+    }
+
     .input-wrapper {
       display: flex;
       flex-wrap: wrap;
       justify-content: center;
+    }
 
-      .label-input {
-        margin-top: -2vw;
-        align-items: center;
-        font-family: "Press Start 2P", cursive;
-        font-size: 1vw;
-        color: $grass-green;
-        pointer-events: none;
-      }
+    .label-input {
+      margin-top: -2vw;
+      align-items: center;
+      font-family: "Press Start 2P", cursive;
+      font-size: 1vw;
+      color: $grass-green;
+      pointer-events: none;
     }
   }
 
@@ -61,10 +72,6 @@ $grass-green: rgb(0, 59, 20);
   }
 }
 
-.hide {
-  display: none;
-}
-
 input[type="range"] {
   -webkit-appearance: none;
   width: 100%;
@@ -85,4 +92,9 @@ input[type="range"]::-webkit-slider-thumb {
   outline: 3px rgba(0, 0, 0, 0.04) solid;
   cursor: pointer;
   -webkit-appearance: none;
+}
+
+input {
+  margin: 0;
+  padding: 0;
 }

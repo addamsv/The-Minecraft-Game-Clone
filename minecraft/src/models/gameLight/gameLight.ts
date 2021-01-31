@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import settingsConfig from '../../configs/settingsConfig';
 import GameLightInterface from './gameLightInterface';
 
 const SIN_MYLTIPLY = 0.00001;
@@ -45,7 +46,10 @@ class GameLight implements GameLightInterface {
 
   private bindIterateHexes: any;
 
+  private brightness: number;
+
   constructor(gameModel: any) {
+    this.setBrightness();
     this.gameModel = gameModel;
     this.scene = gameModel.scene;
     this.isNight = false;
@@ -59,12 +63,25 @@ class GameLight implements GameLightInterface {
     this.sunIsAtZero = false;
   }
 
+  public setBrightness() {
+    this.brightness = Number(settingsConfig.brightness.cur);
+    if (this.directionalLight) {
+      this.directionalLight.intensity = 2 * this.brightness;
+      this.pointLight.intensity = 4 * this.brightness;
+      if (this.isNight && !this.currentHex) {
+        this.ambientLight.intensity = 0.1 * this.brightness;
+      } else {
+        this.ambientLight.intensity = 0.3 * this.brightness;
+      }
+    }
+  }
+
   public createLight() {
     this.scene.fog = new THREE.FogExp2(0x121B1F, 0.001);
-    this.ambientLight = new THREE.AmbientLight(0xcccccc, 0.8);
+    this.ambientLight = new THREE.AmbientLight(0xcccccc, 0.1 * this.brightness);
     this.scene.add(this.ambientLight);
 
-    this.directionalLight = new THREE.DirectionalLight(0xffffff, 1);
+    this.directionalLight = new THREE.DirectionalLight(0xffffff, 2 * this.brightness);
     const sphere = new THREE.SphereBufferGeometry(64, 16, 8);
     this.sunMesh = new THREE.Mesh(sphere, new THREE.MeshBasicMaterial(
       { color: 0xffffff, fog: false },
@@ -81,13 +98,13 @@ class GameLight implements GameLightInterface {
     this.directionalLight.shadow.camera.right = 1000;
     this.directionalLight.shadow.camera.top = 1000;
 
-    this.directionalLight.shadow.mapSize.width = 1024;
-    this.directionalLight.shadow.mapSize.height = 1024;
+    this.directionalLight.shadow.mapSize.width = 2048;
+    this.directionalLight.shadow.mapSize.height = 2048;
 
     this.scene.add(this.directionalLight);
     this.scene.add(this.directionalLight.target);
 
-    this.pointLight = new THREE.PointLight(0xFAEBA3, 2, 100, 1);
+    this.pointLight = new THREE.PointLight(0xFAEBA3, 4 * this.brightness, 100, 1);
     this.pointLight.shadow.camera.far = 100;
   }
 
@@ -140,9 +157,9 @@ class GameLight implements GameLightInterface {
     this.scene.fog.color.setHex(skyHex);
     this.currentHex += 1;
     if (this.isMorning) {
-      this.ambientLight.intensity = 0.1 + 0.05 * this.currentHex;
+      this.ambientLight.intensity = (0.1 + 0.05) * this.brightness * this.currentHex;
     } else {
-      this.ambientLight.intensity = 0.35 - 0.05 * this.currentHex;
+      this.ambientLight.intensity = (0.3 - 0.05) * this.brightness * this.currentHex;
     }
     if (!this.sunHexes[this.currentHex] || !this.skyHexes[this.currentHex]) {
       clearInterval(this.hexInterval);
@@ -185,7 +202,7 @@ class GameLight implements GameLightInterface {
   private setDay() {
     this.scene.background = new THREE.Color(0x121B1F);
 
-    this.ambientLight.intensity = 0.1;
+    this.ambientLight.intensity = 0.1 * this.brightness;
     this.ambientLight.color = new THREE.Color(0xcccccc);
 
     this.directionalLight.color.setHex(0xD71B1B);
@@ -201,7 +218,7 @@ class GameLight implements GameLightInterface {
     this.scene.fog = new THREE.FogExp2(0x000000, 0.001);
     this.scene.background = new THREE.Color(0x000000);
 
-    this.ambientLight.intensity = 0.1;
+    this.ambientLight.intensity = 0.1 * this.brightness;
     this.ambientLight.color = new THREE.Color(0xffffff);
 
     this.scene.remove(this.directionalLight);

@@ -1,3 +1,5 @@
+/* eslint-disable no-param-reassign */
+
 import MainControllerInterface from '../../controllers/mainControllerInterface';
 import MainModelInterface from '../../models/mainModelInterface';
 import ViewsInterface from '../viewsInterface';
@@ -34,7 +36,10 @@ class ChatView implements ViewsInterface, ChatViewInterface {
     this.scrollContainer.scrollTop = this.scrollContainer.scrollHeight;
   }
 
-  public appendMessage(name: String, message: string, areYouMessageOwner: boolean) {
+  public appendMessage(name: string, message: string, areYouMessageOwner: boolean) {
+    if (name === 'undefined') {
+      name = `student${Math.floor(Math.random() * 6) + 1}`;
+    }
     const NODE = this.getHTMLMessageContainer(name, message, areYouMessageOwner);
 
     this.sockInfo.append(NODE);
@@ -81,11 +86,6 @@ class ChatView implements ViewsInterface, ChatViewInterface {
     this.sockInfo = document.createElement('div');
     this.input = document.createElement('textarea');
 
-    // this.container.id = 'chat-container';
-    // this.scrollContainer.id = 'scroll-container';
-    // this.sockContainer.id = 'sock-container';
-    // this.sockInfo.id = 'sock-info';
-    // this.input.id = 'sock-msg';
     this.input.placeholder = 'Please Enter Your Message';
     this.input.autofocus = true;
 
@@ -101,6 +101,16 @@ class ChatView implements ViewsInterface, ChatViewInterface {
 
     this.setChatStatus = this.controller.setChatStatus.bind(this.controller);
     this.chatHandler = this.handleChat.bind(this);
+
+    setTimeout(() => {
+      this.appendMessage('HELP', 'Control player with WASD, spacebar and Shift', false);
+    }, 20000);
+    setTimeout(() => {
+      this.appendMessage('HELP', 'Press 2 to take sword, left click to hit', false);
+    }, 30000);
+    setTimeout(() => {
+      this.appendMessage('HELP', 'Press 1 to light your way at night', false);
+    }, 40000);
   }
 
   handleChat(event: any) {

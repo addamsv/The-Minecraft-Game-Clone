@@ -10,6 +10,7 @@ import settingsConfig from '../configs/settingsConfig';
 import GameViewInterface from './gameView/gameViewInterface';
 import ViewsInterface from './viewsInterface';
 import MenuViewInterface from './menuViewInteface';
+import StatsView from './statsView';
 
 class MenuView implements MenuViewInterface {
   gameView: GameViewInterface;
@@ -24,6 +25,8 @@ class MenuView implements MenuViewInterface {
 
   chatView: ChatView;
 
+  statsView: StatsView;
+
   constructor(controller: MainControllerInterface, model: MainModelInterface) {
     this.gameView = new GameView(controller);
     this.mainMenu = new MainMenu(controller);
@@ -32,6 +35,7 @@ class MenuView implements MenuViewInterface {
     this.settingsMenu = new SettingsMenu(controller, this);
     this.quitConfirm = new QuitConfirm(controller);
     this.chatView = new ChatView(controller, model);
+    this.statsView = new StatsView(controller);
     this.checkLocalLanguage();
   }
 
