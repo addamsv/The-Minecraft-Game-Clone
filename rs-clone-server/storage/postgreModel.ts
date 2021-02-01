@@ -1,8 +1,13 @@
 /* eslint-disable class-methods-use-this */
 import * as initKnex from 'knex';
-import { ItemType } from '../types/item';
 import appConfig from '../app-config';
 import PostgreInterface from './postgreModelInterface';
+
+type ItemType = {
+  id: string;
+  password: string;
+  login: string;
+}
 
 class Postgre implements PostgreInterface {
   private knex: any;
@@ -16,7 +21,8 @@ class Postgre implements PostgreInterface {
   }
 
   public async listAll() {
-    const list = await this.knex(appConfig.collectionName).select();
+    const list = await this.knex(appConfig.collectionName)
+      .select('login', 'nickname');
 
     return list;
   }

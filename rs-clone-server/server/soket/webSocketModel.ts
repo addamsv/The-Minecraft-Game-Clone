@@ -3,9 +3,9 @@
 import { Server } from 'ws';
 import * as jwt from 'jsonwebtoken';
 import { v4 as uuid } from 'uuid';
-import appConfig from '../app-config';
+import appConfig from '../../app-config';
 import WebSocketModelInterface from './webSocketModelInterface';
-import { PostgreInterface, Postgre } from '../storage/postgreModel';
+import { PostgreInterface, Postgre } from '../../storage/postgreModel';
 
 interface PayloadInterface extends Object {
   id: string;
