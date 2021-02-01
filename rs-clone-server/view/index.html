@@ -271,8 +271,7 @@
                 // document.cookie = 'X-Authorization=' + this.USER_TOKEN + '; path=/';
                 // this.ws = new WebSocket(`ws://${this.USER_TOKEN}@127.0.0.1:3001/`);
                 // this.ws = new WebSocket('ws://127.0.0.1:3001', null, { "headers": myHeaders});
-                this.ws = new WebSocket(`wss://${HOST}`);//
-
+                this.ws = new WebSocket(`ws://${HOST}`);//
                 this.ws.onopen = this.connectionOpen.bind(this); 
                 this.ws.onmessage = this.messageReceived.bind(this); 
                 this.ws.onerror = this.connectionError.bind(this);
@@ -378,12 +377,13 @@
         }
 
 
-
-        const LOCAL_MODE = false;
+        const LOCAL_MODE = true;
         const HOST = LOCAL_MODE ? '127.0.0.1:3001' : 'rs-clone-server.herokuapp.com';
-
-        auth("User1", "Admin123");
-
+        if (LOCAL_MODE) {
+            new MCWebSocket('').init();
+        } else {
+            auth("User1", "Admin123");
+        }
         
     </script>
 </body>

@@ -3,15 +3,21 @@
 import * as express from 'express';
 import * as logger from 'morgan';
 import * as cors from 'cors';
-// import * as http from 'http';
-import authRouter from '../routes/auth';
-import playersRouter from '../routes/players';
 import HttpServerModelInterface from './httpServerModelInterface';
+import AuthRouter from './routs/authRouter';
+import PlayersRouter from './routs/playersRouter';
+import RoutesInterface from './routs/routesInterface';
 
 class HttpServerModel implements HttpServerModelInterface {
   private app: any;
 
+  private authRouter: RoutesInterface;
+
+  private playersRouter: PlayersRouter;
+
   constructor() {
+    this.authRouter = new AuthRouter();
+    this.playersRouter = new PlayersRouter();
     this.expressApp();
   }
 
@@ -58,8 +64,8 @@ class HttpServerModel implements HttpServerModelInterface {
   }
 
   private routes() {
-    this.app.use('/auth', authRouter);
-    this.app.use('/players', playersRouter);
+    this.app.use('/auth', this.authRouter.getRouts());
+    this.app.use('/players', this.playersRouter.getRouts());
   }
 }
 

@@ -2,8 +2,8 @@
 /* eslint-disable class-methods-use-this */
 import dbg from 'debug';
 import * as http from 'http';
-import { WebSocketModelInterface, WebSocketModel } from './webSocketModel';
-import { HttpServerModelInterface, HttpServerModel } from './httpServerModel';
+import { WebSocketModelInterface, WebSocketModel } from './soket/webSocketModel';
+import { HttpServerModelInterface, HttpServerModel } from './express/httpServerModel';
 import AppServerInterface from './appServerInterface';
 
 class AppServer implements AppServerInterface {
