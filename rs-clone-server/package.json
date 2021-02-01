@@ -4,8 +4,8 @@
   "private": true,
   "scripts": {
     "lint": "eslint -c .eslintrc.js --ext .ts ./ --fix",
-    "ts": "node -r ts-node/register bin/www.ts",
-    "start": "node dist/bin/www.js",
+    "ts": "node -r ts-node/register app.ts",
+    "start": "node dist/app.js",
     "build": "tsc",
     "postinstall": "npm run build"
   },

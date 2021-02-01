@@ -1,12 +1,9 @@
 import { v4 as uuid } from 'uuid';
-import { Router } from 'express';
-// import * as jwt from 'jsonwebtoken';
+import * as express from 'express';
 import * as bodyParser from 'body-parser';
-// import * as storage from '../storage/mongo';
 import * as pg from '../storage/postgre';
-// import appConfig from '../app-config';
 
-const router = Router();
+const router = express.Router();
 
 router.use(bodyParser.json());
 

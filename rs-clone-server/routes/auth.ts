@@ -1,12 +1,17 @@
 import { v4 as uuid } from 'uuid';
-import { Router } from 'express';
+// import { Router } from 'express';
+import * as express from 'express';
+import * as cors from 'cors';
 import * as jwt from 'jsonwebtoken';
 import * as bodyParser from 'body-parser';
 // import * as storage from '../storage/mongo';
 import * as pg from '../storage/postgre';
 import appConfig from '../app-config';
 
-const router = Router();
+const app = express();
+app.use(cors());
+
+const router = express.Router();
 
 router.use(bodyParser.json());
 
@@ -21,13 +26,19 @@ router.post('/reg/', async (req, res) => {
   if (items === undefined) {
     body.id = uuid();
 
-    const newBody = await pg.create(body);
+    const pgResp = await pg.create(body);
 
-    newBody.token = jwt.sign({ id: body.id, login: body.login }, appConfig.TOKEN_KEY, { expiresIn: '30d' });
-    newBody.statusCode = 200;
-    newBody.name = body.login;
-
-    res.json(newBody);
+    if (pgResp) {
+      body.token = jwt.sign({ id: body.id, login: body.login }, appConfig.TOKEN_KEY, { expiresIn: '30d' });
+      body.statusCode = 200;
+      body.name = body.login;
+      res.json(body);
+    } else {
+      res.json({
+        statusCode: 401,
+        message: 'DB error',
+      });
+    }
   } else {
     res.json({
       statusCode: 401,
