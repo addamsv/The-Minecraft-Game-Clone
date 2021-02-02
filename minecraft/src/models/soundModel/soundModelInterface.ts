@@ -38,6 +38,8 @@ interface soundModelInterface {
     backgroundStart(): void;
 
     backgroundStop(): void;
+
+    surface: any;
 }
 
 export default soundModelInterface;

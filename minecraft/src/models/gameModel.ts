@@ -11,6 +11,7 @@ import GameLoaderInterface from './gameLoader/gameLoaderInterface';
 import GameLight from './gameLight/gameLight';
 import PlayerMotion from './playerMotion/playerMotion';
 import SoundModel from './soundModel/soundModel';
+import soundModelInterface from './soundModel/soundModelInterface';
 
 const COOLDOWN_TIME = 2000;
 
@@ -96,7 +97,7 @@ class GameModel {
 
   public gameLight: any;
 
-  sound: SoundModel;
+  sound: soundModelInterface;
 
   isMovingSoundNowPlaying: boolean;
 
