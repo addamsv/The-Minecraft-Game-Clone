@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-/* eslint-disable class-methods-use-this */
 import { Server } from 'ws';
 import * as jwt from 'jsonwebtoken';
 import { v4 as uuid } from 'uuid';
@@ -104,7 +102,9 @@ class WebSocketModel implements WebSocketModelInterface {
       }
 
       case '3': {
-        // console.log('ping');
+        /**
+         * here should locate statistics code ('ping')
+         */
         break;
       }
       default: break;
@@ -114,7 +114,9 @@ class WebSocketModel implements WebSocketModelInterface {
   private onRegisterCommon(wss, ws, userName) {
     const websocket = ws;
     websocket.isRegistered = true;
-    // req.headers['sec-websocket-key'];
+    /**
+     * If you use your own domain name: req.headers['sec-websocket-key'];
+     */
     websocket.token = this.getUserID(wss.clients);
     websocket.userName = userName;
 
@@ -151,7 +153,7 @@ class WebSocketModel implements WebSocketModelInterface {
     if (mess.newPassword) {
       const item = await this.postgre.updatePassword(websocket.id, mess.newPassword);
       if (item) {
-        websocket.send('{"mesChangePassword": "passChanged"}'); // Password was successfully changed
+        websocket.send('{"mesChangePassword": "passChanged"}');
         console.log('Password was successfully changed');
       } else {
         websocket.send('{"failChangePassword": "wasWrongBD"}');
@@ -211,12 +213,9 @@ class WebSocketModel implements WebSocketModelInterface {
         if (item.login === mess.login && item.password === mess.password) {
           const { id } = item;
           const { login } = item;
-          // console.log(`id ${id}`);
           if (!this.isUserAlreadyRegistered(wss.clients, id)) {
             this.onRegisterCommon(wss, ws, mess.login);
-            // websocket.isRegistered = true;
             websocket.id = id;
-            // websocket.userName = mess.login;
             const token = jwt.sign({ id, login }, appConfig.TOKEN_KEY, { expiresIn: '30d' });
             this.postgre.setToken(id, token);
             websocket.send(`{"chatServerMessage": "you are registered as ${mess.login}!", "login": "${login}", "setToken": "${token}"}`);

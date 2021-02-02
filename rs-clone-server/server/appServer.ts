@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-/* eslint-disable class-methods-use-this */
 import dbg from 'debug';
 import * as http from 'http';
 import { WebSocketModelInterface, WebSocketModel } from './soket/webSocketModel';
