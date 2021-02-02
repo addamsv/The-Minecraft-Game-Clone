@@ -35,7 +35,7 @@ class MainController implements MainControllerInterface {
     this.gameModel = new GameModel(this.model);
     this.prepareToStartGame();
   }
-
+  
   public getMenuView() {
     return this.menuView;
   }
