@@ -25,6 +25,8 @@ interface soundModelInterface {
 
     gainNodeBackground: GainNode;
 
+    surface: any;
+
     initSounds(): void;
 
     setBackgroundVolume(): void;
@@ -38,8 +40,6 @@ interface soundModelInterface {
     backgroundStart(): void;
 
     backgroundStop(): void;
-
-    surface: any;
 }
 
 export default soundModelInterface;
