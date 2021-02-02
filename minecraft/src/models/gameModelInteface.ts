@@ -1,8 +1,73 @@
 /* eslint-disable no-unused-vars */
 
 import * as THREE from 'three';
+import SoundModel from './soundModel/soundModel';
+import PointerLockInterface from '../controllers/pointerLock/pointerLockInterface';
+import MainModelInterface from './mainModelInterface';
 
 interface GameModelInterace {
+
+  camera: THREE.PerspectiveCamera;
+
+  scene: THREE.Scene;
+
+  renderer: THREE.WebGLRenderer;
+
+  raycaster: THREE.Raycaster;
+
+  time: number;
+
+  speed: THREE.Vector3;
+
+  direction: THREE.Vector3;
+
+  forward: boolean;
+
+  left: boolean;
+
+  backward: boolean;
+
+  right: boolean;
+
+  jump: boolean;
+
+  control: PointerLockInterface;
+
+  chunkSize: number;
+
+  meshes: any;
+
+  model: MainModelInterface;
+
+  lastPing: number;
+
+  ambientLight: THREE.AmbientLight;
+
+  directionalLight: THREE.DirectionalLight;
+
+  pointLight: THREE.PointLight;
+
+  lastChange: number;
+
+  worker: Worker;
+
+  workerInterval: any;
+
+  seed: string;
+
+  isLockPosition: number;
+
+  gameLight: any;
+
+  sound: SoundModel;
+
+  isMovingSoundNowPlaying: boolean;
+
+  jumpSound: boolean;
+
+  isBackgroundNowPlaying: boolean;
+
+  isShiftPressed: Boolean;
 
   destroyWorld(): void;
 
