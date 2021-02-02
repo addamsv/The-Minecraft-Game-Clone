@@ -1,15 +1,34 @@
 /* eslint-disable no-unused-vars */
 
+import * as THREE from 'three';
+
 interface GameModelInterace {
+
+  destroyWorld(): void;
+
+  setTexture(texture: THREE.Texture): void;
+
+  setObject(object: THREE.Object3D): void;
+
+  loadPlayer(token: string): void;
+
+  setPlayer(player: THREE.Object3D): void;
+
+  setAnimation(animation: any): void;
+
+  removePlayer(token: string): void;
+
+  setView(views: any): void;
+
+  changeSwordStatus(): void;
+
+  hitSword(): void;
+
+  changeLanternStatus(): void;
+
   createScene(): void;
 
-  connectPlayers(): void;
-
-  createNewPlayer(token: string): void;
-
   generateWorld(seed: string): void;
-
-  changeLight(): void;
 
   animationFrame(): void;
 
