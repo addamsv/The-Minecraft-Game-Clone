@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-vars */
 
 import * as THREE from 'three';
-import SoundModel from './soundModel/soundModel';
+import SoundModelInterface from './soundModel/soundModelInterface';
 import PointerLockInterface from '../controllers/pointerLock/pointerLockInterface';
 import MainModelInterface from './mainModelInterface';
 
@@ -59,7 +59,7 @@ interface GameModelInterace {
 
   gameLight: any;
 
-  sound: SoundModel;
+  sound: SoundModelInterface;
 
   isMovingSoundNowPlaying: boolean;
 

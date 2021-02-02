@@ -24,4 +24,20 @@ interface soundModelInterface {
     gainNodeJump: GainNode;
 
     gainNodeBackground: GainNode;
+
+    initSounds(): void;
+
+    setBackgroundVolume(): void;
+
+    startWalkSound(): void;
+
+    stopWalkSound(): void;
+
+    jump(): void;
+
+    backgroundStart(): void;
+
+    backgroundStop(): void;
 }
+
+export default soundModelInterface;
