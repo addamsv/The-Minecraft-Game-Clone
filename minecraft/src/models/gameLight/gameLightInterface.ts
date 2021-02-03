@@ -3,6 +3,7 @@ import * as THREE from 'three';
 
 interface GameLightInterface {
   isNight: boolean;
+  setBrightness(): void;
   createLight(): void;
   setSunligntPosition(position: THREE.Vector3): void;
   setSunlightAngle(time: number): void;

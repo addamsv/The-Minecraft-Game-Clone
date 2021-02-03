@@ -1,31 +1,11 @@
 /* eslint-disable no-unused-vars */
 
-interface soundModelInterface {
-    audioContext: AudioContext;
-
-    audioBufferSourceNode: AudioBufferSourceNode;
-
-    audioBufferSourceNodeJump: AudioBufferSourceNode;
-
-    audioBufferSourceNodeBackground: AudioBufferSourceNode;
-
-    walkGrassBuffer: AudioBuffer;
-
-    walkSandBuffer: AudioBuffer;
-
-    swimBuffer: AudioBuffer;
-
-    jumpBuffer: AudioBuffer;
-
+interface SoundModelInterface {
     backgroundBuffer: AudioBuffer;
-
-    gainNodeMove: GainNode;
-
-    gainNodeJump: GainNode;
 
     gainNodeBackground: GainNode;
 
-    surface: any;
+    surface: string;
 
     initSounds(): void;
 
@@ -42,4 +22,4 @@ interface soundModelInterface {
     backgroundStop(): void;
 }
 
-export default soundModelInterface;
+export default SoundModelInterface;
