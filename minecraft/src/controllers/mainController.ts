@@ -178,6 +178,20 @@ class MainController implements MainControllerInterface {
     });
   }
 
+  private saveGame() {
+    localStorage.setItem(
+      'rscloneMinecraftSeed',
+      this.gameModel.seed,
+    );
+    localStorage.setItem(
+      'rscloneMinecraftCoordinates',
+      JSON.stringify({
+        x: this.gameModel.camera.position.x,
+        z: this.gameModel.camera.position.z,
+      }),
+    );
+  }
+
   public playerControlsDown(event: PlayerEvent) {
     switch (event.which) {
       case 87: this.gameModel.forward = true; break;

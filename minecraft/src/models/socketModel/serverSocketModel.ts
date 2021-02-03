@@ -1,7 +1,8 @@
+/* eslint-disable class-methods-use-this */
+
 import ServerSocketModelInterface from './ServerSocketModelInterface';
 import env from '../../configs/environmentVars';
 import MainControllerInterface from '../../controllers/mainControllerInterface';
-// import ChatViewInterface from '../../views/chatView/chatViewInterface';
 
 class ServerSocketModel implements ServerSocketModelInterface {
   private controller: MainControllerInterface;
@@ -28,8 +29,6 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private playersTokens: Set<string>;
 
-  // private chatView: ChatViewInterface;
-
   private pingSetIntervalID: number;
 
   public playerMotion: any;
@@ -38,7 +37,6 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   constructor(controller: MainControllerInterface) {
     this.controller = controller;
-    // this.chatView = null;
     this.ws = null;
     this.WS_TOKEN = '';
     this.USER_NAME = '';
@@ -176,7 +174,6 @@ class ServerSocketModel implements ServerSocketModelInterface {
       this.isRegistered = false;
       this.isGameHost = false;
       this.ws.close();
-      console.log('the User is logged out: true');
     }
 
     if (mess.mesChangePassword) {
@@ -188,12 +185,10 @@ class ServerSocketModel implements ServerSocketModelInterface {
       this.isRegistered = true;
       this.sendMessage('{"ask": "setSetts"}', 'setts');
       this.sendMessage('{"ask": "getSetts"}', 'setts');
-      console.log('User is Registered: true');
     }
 
     if (mess.setWsToken) {
       this.WS_TOKEN = mess.setWsToken;
-      console.log(`this.WS_TOKEN: ${this.WS_TOKEN}`);
     }
 
     if (mess.setToken) {
@@ -202,7 +197,6 @@ class ServerSocketModel implements ServerSocketModelInterface {
       this.serverMenuIdEvent(event);
       localStorage.setItem('USER_TOKEN', mess.setToken);
       this.USER_TOKEN = mess.setToken;
-      console.log(`this.USER_TOKEN: ${this.USER_TOKEN}`);
     }
 
     if (mess.failLogin) {
@@ -231,11 +225,10 @@ class ServerSocketModel implements ServerSocketModelInterface {
     /*
     * Connect new Player to GameModel
     */
-    if (mess.setNewWsToken) { // && this.controller.isServerGameStart
+    if (mess.setNewWsToken) {
       const tokens: Array<string> = mess.setNewWsToken.split('___');
       tokens.forEach((playerToken: string) => {
         if (!this.playersTokens.has(playerToken) && playerToken !== this.WS_TOKEN) {
-          console.log(`${mess.setNewWsToken} ${playerToken}`);
           this.playersTokens.add(playerToken);
           this.playerMotion.connectPlayer(playerToken);
         }
@@ -243,15 +236,11 @@ class ServerSocketModel implements ServerSocketModelInterface {
     }
 
     /**
-     * Dispatch event for remote disconnected player
+     * Delete remote disconnected player
      *  retrieve player token
      */
     if (mess.gameDisconnectedMessage) {
-      if (
-        this.playersTokens.has(mess.gameDisconnectedMessage)
-        // && mess.gameDisconnectedMessage !== this.WS_TOKEN
-      ) {
-        console.log(`disconnectPlayer: ${mess.gameDisconnectedMessage}`);
+      if (this.playersTokens.has(mess.gameDisconnectedMessage)) {
         this.playersTokens.delete(mess.gameDisconnectedMessage);
         this.playerMotion.disconnectPlayer(mess.gameDisconnectedMessage);
       }
@@ -274,25 +263,22 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
     if (mess.setHost && this.isRegistered) {
       this.isGameHost = mess.setHost === 'host';
-      console.log(`isHost: ${mess.setHost === 'host'}`);
     }
 
     /*
     * Start game for CONNECTED
     */
-    if (mess.setSeed && this.isRegistered) { // && !this.isGameHost
+    if (mess.setSeed && this.isRegistered) {
       this.GAME_SEED = mess.setSeed;
-      console.log(`mess.setSeed: ${mess.setSeed}`);
       this.startGame();
     }
 
     if (mess.setUserName) {
       this.USER_NAME = mess.setUserName;
-      console.log(`this.USER_NAME: ${this.USER_NAME}`);
     }
 
     /*
-    * Dispatch event with player coordinates to GameModel
+    * player coordinates to GameModel
     */
     if (mess.gameMessage) {
       this.playerMotion.movePlayer({
@@ -304,11 +290,6 @@ class ServerSocketModel implements ServerSocketModelInterface {
     *  Chat messages
     */
     if (mess.chatMessage) {
-      // this.chatView.appendMessage(
-      //   mess.userName,
-      //   mess.chatMessage,
-      //   this.areYouMessageOwner(mess.wsToken),
-      // );
       this.menuView.chatView.appendMessage(
         mess.userName,
         mess.chatMessage,
@@ -316,22 +297,18 @@ class ServerSocketModel implements ServerSocketModelInterface {
       );
     }
     if (mess.chatServerMessage && this.controller.isServerGameStart) {
-      // this.chatView.appendMessage('SERVER', mess.chatServerMessage, false);
       this.menuView.chatView.appendMessage('SERVER', mess.chatServerMessage, false);
     }
   }
 
-  // eslint-disable-next-line
   private dispatchCustomFailEvent(event: any) {
     this.serverMenuIdEvent(new CustomEvent('fail', { detail: { fail: event } }));
   }
 
-  // eslint-disable-next-line class-methods-use-this
   private serverMenuIdEvent(event: any) {
     document.dispatchEvent(event);
   }
 
-  // eslint-disable-next-line
   private startGame() {
     this.controller.startServerGame();
   }
@@ -345,16 +322,12 @@ class ServerSocketModel implements ServerSocketModelInterface {
 
   private connectionOpen() {
     this.isConnected = true;
-    // this.chatView = this.controller.getChatView();
     this.menuView = this.controller.getMenuView();
     this.ping();
   }
 
   private connectionError() {
     this.isConnected = false;
-    // if (this.chatView) {
-    //   this.chatView.appendSysMessage('connection Error');
-    // }
     if (this.menuView) {
       this.menuView.chatView.appendSysMessage('connection Error');
     }
@@ -363,9 +336,6 @@ class ServerSocketModel implements ServerSocketModelInterface {
   private connectionClose() {
     this.isConnected = false;
     clearInterval(this.pingSetIntervalID);
-    // if (this.chatView) {
-    //   this.chatView.appendSysMessage('connection closed');
-    // }
     if (this.menuView) {
       this.menuView.chatView.appendSysMessage('connection closed');
     }
@@ -390,8 +360,6 @@ class ServerSocketModel implements ServerSocketModelInterface {
   private loginThroughToken(token: any) {
     if (token) {
       this.send(`0{"ask": "register", "userToken": "${token}"}`);
-    } else {
-      console.log('User token has not been defined');
     }
   }
 

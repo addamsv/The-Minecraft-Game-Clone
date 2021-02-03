@@ -16,6 +16,8 @@ interface GameModelInterace {
 
   renderer: WebGLRenderer;
 
+  seed: string;
+
   speed: Vector3;
 
   forward: boolean;

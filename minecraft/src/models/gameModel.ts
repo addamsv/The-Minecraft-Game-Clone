@@ -58,19 +58,9 @@ class GameModel implements GameModelInterace {
 
   private lastPing: number;
 
-  private ambientLight: THREE.AmbientLight;
-
-  private directionalLight: THREE.DirectionalLight;
-
-  private pointLight: THREE.PointLight;
-
-  private lastChange: number;
-
   private worker: Worker;
 
-  private workerInterval: any;
-
-  private seed: string;
+  public seed: string;
 
   private gameView: any;
 
@@ -108,8 +98,6 @@ class GameModel implements GameModelInterace {
 
   private intersectObjects: boolean;
 
-  private startTime: number;
-
   private playerMotion: any;
 
   private sword: THREE.Object3D;
@@ -123,7 +111,6 @@ class GameModel implements GameModelInterace {
   public isShiftPressed: boolean;
 
   constructor(model: MainModelInterface) {
-    this.startTime = performance.now();
     this.model = model;
     this.createScene();
     this.cameraHeight = 15;
@@ -295,7 +282,7 @@ class GameModel implements GameModelInterace {
 
     this.scene = new THREE.Scene();
 
-    this.renderer = new THREE.WebGLRenderer(); // { powerPreference: 'high-performance' }
+    this.renderer = new THREE.WebGLRenderer();
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMap.enabled = true;
@@ -342,7 +329,6 @@ class GameModel implements GameModelInterace {
       setTimeout(() => {
         if (event.data.unlockPosition) {
           this.isLockPosition = 1;
-          this.startTime = performance.now();
           setTimeout(() => {
             this.intersectObjects = true;
           }, COOLDOWN_TIME);
@@ -438,14 +424,18 @@ class GameModel implements GameModelInterace {
     };
 
     this.worker.postMessage({ seed: this.seed });
-    this.worker.postMessage({ xChunk: 0, zChunk: 0, load: true });
+    this.worker.postMessage({
+      xChunk: this.currentChunk.x,
+      zChunk: this.currentChunk.z,
+      load: true,
+    });
     this.gameLight.startDay();
     this.clock = new THREE.Clock();
   }
 
   public animationFrame() {
     this.jump = false;
-    const time = performance.now(); // - this.startTime;
+    const time = performance.now();
     this.mixer.update(this.clock.getDelta());
 
     // how often should send to the server
