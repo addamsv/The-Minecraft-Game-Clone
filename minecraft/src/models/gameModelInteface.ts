@@ -1,25 +1,24 @@
 /* eslint-disable no-unused-vars */
 
-import * as THREE from 'three';
+import {
+  PerspectiveCamera,
+  WebGLRenderer,
+  Vector3,
+  Texture,
+  Object3D,
+} from 'three';
 import SoundModelInterface from './soundModel/soundModelInterface';
 import PointerLockInterface from '../controllers/pointerLock/pointerLockInterface';
-import MainModelInterface from './mainModelInterface';
+import GameLightInterface from './gameLight/gameLightInterface';
 
 interface GameModelInterace {
+  camera: PerspectiveCamera;
 
-  camera: THREE.PerspectiveCamera;
+  renderer: WebGLRenderer;
 
-  scene: THREE.Scene;
+  seed: string;
 
-  renderer: THREE.WebGLRenderer;
-
-  raycaster: THREE.Raycaster;
-
-  time: number;
-
-  speed: THREE.Vector3;
-
-  direction: THREE.Vector3;
+  speed: Vector3;
 
   forward: boolean;
 
@@ -33,51 +32,25 @@ interface GameModelInterace {
 
   control: PointerLockInterface;
 
-  chunkSize: number;
-
-  meshes: any;
-
-  model: MainModelInterface;
-
-  lastPing: number;
-
-  ambientLight: THREE.AmbientLight;
-
-  directionalLight: THREE.DirectionalLight;
-
-  pointLight: THREE.PointLight;
-
-  lastChange: number;
-
-  worker: Worker;
-
-  workerInterval: any;
-
-  seed: string;
-
-  isLockPosition: number;
-
-  gameLight: any;
-
   sound: SoundModelInterface;
-
-  isMovingSoundNowPlaying: boolean;
 
   jumpSound: boolean;
 
-  isBackgroundNowPlaying: boolean;
+  isLockPosition: number;
 
-  isShiftPressed: Boolean;
+  isShiftPressed: boolean;
+
+  gameLight: GameLightInterface;
 
   destroyWorld(): void;
 
-  setTexture(texture: THREE.Texture): void;
+  setTexture(texture: Texture): void;
 
-  setObject(object: THREE.Object3D): void;
+  setObject(object: Object3D): void;
 
   loadPlayer(token: string): void;
 
-  setPlayer(player: THREE.Object3D): void;
+  setPlayer(player: Object3D): void;
 
   setAnimation(animation: any): void;
 
@@ -90,8 +63,6 @@ interface GameModelInterace {
   hitSword(): void;
 
   changeLanternStatus(): void;
-
-  createScene(): void;
 
   generateWorld(seed: string): void;
 

@@ -95,6 +95,14 @@ class SettingsMenu implements ViewsInterface {
   }
 
   private createMenu() {
+    if (localStorage.getItem('rscloneMinecraftSettings')) {
+      const localConfig = JSON.parse(localStorage.getItem('rscloneMinecraftSettings'));
+      settingsConfig.brightness = localConfig.brightness;
+      settingsConfig.music = localConfig.music;
+      settingsConfig.sounds = localConfig.sounds;
+      settingsConfig.far = localConfig.far;
+      settingsConfig.fov = localConfig.fov;
+    }
     this.settingsMenuScreen = document.createElement('div');
     const settingsWrapper = document.createElement('div');
     this.langBtn = document.createElement('button');
@@ -229,22 +237,27 @@ class SettingsMenu implements ViewsInterface {
   }
 
   private changeVolume() {
+    settingsConfig.music.cur = `${Number(this.musicInput.value) / 100}`;
+    settingsConfig.sounds.cur = `${Number(this.soundsInput.value) / 100}`;
     this.musicValue.textContent = `${this.musicInput.value} %`;
     this.soundsValue.textContent = `${this.soundsInput.value} %`;
     this.changeVolumeSettings(this.musicInput.value, this.soundsInput.value);
   }
 
   private changeBrightness() {
+    settingsConfig.brightness.cur = `${Number(this.brightnessInput.value) / 100}`;
     this.brightnessValue.textContent = `${this.brightnessInput.value} %`;
     this.changeLightSettings(this.brightnessInput.value);
   }
 
   private changeRange() {
+    settingsConfig.far.cur = this.rangeInput.value;
     this.rangeValue.textContent = this.rangeInput.value;
     this.changeCameraSettings(this.rangeInput.value, this.fovInput.value);
   }
 
   private changeFov() {
+    settingsConfig.fov.cur = this.fovInput.value;
     this.fovValue.textContent = this.fovInput.value;
     this.changeCameraSettings(this.rangeInput.value, this.fovInput.value);
   }

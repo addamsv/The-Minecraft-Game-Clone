@@ -99,11 +99,11 @@ class PointerLock extends EventDispatcher implements PointerLockInterface {
     this.domElement.ownerDocument.addEventListener('pointerlockchange', this.onPointerlockChange.bind(this));
   }
 
-  // private disconnect() {
-  //   this.domElement.ownerDocument.removeEventListener('mousemove', this.onMouseMove);
-  //   this.domElement.ownerDocument
-  //     .removeEventListener('pointerlockchange', this.onPointerlockChange);
-  // }
+  private disconnect() {
+    this.domElement.ownerDocument.removeEventListener('mousemove', this.onMouseMove);
+    this.domElement.ownerDocument
+      .removeEventListener('pointerlockchange', this.onPointerlockChange);
+  }
 }
 
 export default PointerLock;

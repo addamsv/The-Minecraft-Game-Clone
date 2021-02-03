@@ -11,65 +11,56 @@ import GameLoaderInterface from './gameLoader/gameLoaderInterface';
 import GameLight from './gameLight/gameLight';
 import PlayerMotion from './playerMotion/playerMotion';
 import SoundModel from './soundModel/soundModel';
-import soundModelInterface from './soundModel/soundModelInterface';
+import SoundModelInterface from './soundModel/soundModelInterface';
+import GameModelInterace from './gameModelInteface';
 
 const COOLDOWN_TIME = 2000;
 
-class GameModel {
-  currentChunk: {
+class GameModel implements GameModelInterace {
+  private currentChunk: {
     x: number,
     z: number,
   }
 
-  camera: THREE.PerspectiveCamera;
+  public camera: THREE.PerspectiveCamera;
 
   private cameraHeight: number;
 
-  scene: THREE.Scene;
+  private scene: THREE.Scene;
 
-  renderer: THREE.WebGLRenderer;
+  public renderer: THREE.WebGLRenderer;
 
-  raycaster: THREE.Raycaster;
+  private raycaster: THREE.Raycaster;
 
-  time: number;
+  private time: number;
 
-  speed: THREE.Vector3;
+  public speed: THREE.Vector3;
 
-  direction: THREE.Vector3;
+  private direction: THREE.Vector3;
 
-  forward: boolean;
+  public forward: boolean;
 
-  left: boolean;
+  public left: boolean;
 
-  backward: boolean;
+  public backward: boolean;
 
-  right: boolean;
+  public right: boolean;
 
-  jump: boolean;
+  public jump: boolean;
 
-  control: PointerLockInterface;
+  public control: PointerLockInterface;
 
-  chunkSize: number;
+  private chunkSize: number;
 
-  meshes: any;
+  private meshes: any;
 
-  model: MainModelInterface;
+  private model: MainModelInterface;
 
-  lastPing: number;
+  private lastPing: number;
 
-  ambientLight: THREE.AmbientLight;
+  private worker: Worker;
 
-  directionalLight: THREE.DirectionalLight;
-
-  pointLight: THREE.PointLight;
-
-  lastChange: number;
-
-  worker: Worker;
-
-  workerInterval: any;
-
-  seed: string;
+  public seed: string;
 
   private gameView: any;
 
@@ -97,17 +88,15 @@ class GameModel {
 
   public gameLight: any;
 
-  sound: soundModelInterface;
+  public sound: SoundModelInterface;
 
-  isMovingSoundNowPlaying: boolean;
+  private isMovingSoundNowPlaying: boolean;
 
-  jumpSound: boolean;
+  public jumpSound: boolean;
 
-  isBackgroundNowPlaying: boolean;
+  private isBackgroundNowPlaying: boolean;
 
   private intersectObjects: boolean;
-
-  private startTime: number;
 
   private playerMotion: any;
 
@@ -119,10 +108,9 @@ class GameModel {
 
   private clock: THREE.Clock;
 
-  public isShiftPressed: Boolean;
+  public isShiftPressed: boolean;
 
   constructor(model: MainModelInterface) {
-    this.startTime = performance.now();
     this.model = model;
     this.createScene();
     this.cameraHeight = 15;
@@ -283,7 +271,7 @@ class GameModel {
     }, COOLDOWN_TIME);
   }
 
-  createScene() {
+  private createScene() {
     this.camera = new THREE.PerspectiveCamera(
       Number(settingsConfig.fov.cur),
       window.innerWidth / window.innerHeight,
@@ -294,7 +282,7 @@ class GameModel {
 
     this.scene = new THREE.Scene();
 
-    this.renderer = new THREE.WebGLRenderer(); // { powerPreference: 'high-performance' }
+    this.renderer = new THREE.WebGLRenderer();
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.shadowMap.enabled = true;
@@ -302,7 +290,7 @@ class GameModel {
     this.renderer.domElement.classList.add('renderer');
   }
 
-  generateWorld(seed: string) {
+  public generateWorld(seed: string) {
     this.seed = seed;
 
     this.raycaster = new THREE.Raycaster(
@@ -341,7 +329,6 @@ class GameModel {
       setTimeout(() => {
         if (event.data.unlockPosition) {
           this.isLockPosition = 1;
-          this.startTime = performance.now();
           setTimeout(() => {
             this.intersectObjects = true;
           }, COOLDOWN_TIME);
@@ -437,14 +424,18 @@ class GameModel {
     };
 
     this.worker.postMessage({ seed: this.seed });
-    this.worker.postMessage({ xChunk: 0, zChunk: 0, load: true });
+    this.worker.postMessage({
+      xChunk: this.currentChunk.x,
+      zChunk: this.currentChunk.z,
+      load: true,
+    });
     this.gameLight.startDay();
     this.clock = new THREE.Clock();
   }
 
-  animationFrame() {
+  public animationFrame() {
     this.jump = false;
-    const time = performance.now(); // - this.startTime;
+    const time = performance.now();
     this.mixer.update(this.clock.getDelta());
 
     // how often should send to the server

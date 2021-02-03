@@ -5,25 +5,26 @@ import MainControllerInterface from './mainControllerInterface';
 import MenuView from '../views/menuView';
 import GameModel from '../models/gameModel';
 import settingsConfig from '../configs/settingsConfig';
+import GameModelInterace from '../models/gameModelInteface';
 
 interface PlayerEvent extends Event {
   which: number;
 }
 
 class MainController implements MainControllerInterface {
-  menuView: MenuView;
+  private menuView: MenuView;
 
-  gameModel: GameModel;
+  private gameModel: GameModelInterace;
 
-  isSingleGameStart: boolean;
+  private isSingleGameStart: boolean;
 
   public isServerGameStart: boolean;
 
-  isGamePause: boolean;
+  private isGamePause: boolean;
 
-  isOpenChat: boolean;
+  private isOpenChat: boolean;
 
-  model: MainModelInterface;
+  private model: MainModelInterface;
 
   constructor() {
     this.model = new MainModel(this);
@@ -89,7 +90,6 @@ class MainController implements MainControllerInterface {
 
   public disconnect() {
     if (!this.isServerGameStart || this.gameModel.isLockPosition) {
-      console.log('mainController disconnect');
       this.model.disconnect();
       this.gameModel.destroyWorld();
       this.isServerGameStart = false;
@@ -121,6 +121,7 @@ class MainController implements MainControllerInterface {
   }
 
   closeSettingsMenu() {
+    localStorage.setItem('rscloneMinecraftSettings', JSON.stringify(settingsConfig));
     this.menuView.settingsMenu.removeMenu();
     this.menuView.mainMenu.attachMenu();
   }
@@ -152,10 +153,6 @@ class MainController implements MainControllerInterface {
     }
   }
 
-  // public getChatView() {
-  //   return this.menuView.chatView;
-  // }
-
   private prepareToStartGame() {
     this.model.setView(this.menuView);
     this.gameModel.setView(this.menuView);
@@ -180,6 +177,20 @@ class MainController implements MainControllerInterface {
         this.menuView.statsView.removeMenu();
       }
     });
+  }
+
+  private saveGame() {
+    localStorage.setItem(
+      'rscloneMinecraftSeed',
+      this.gameModel.seed,
+    );
+    localStorage.setItem(
+      'rscloneMinecraftCoordinates',
+      JSON.stringify({
+        x: this.gameModel.camera.position.x,
+        z: this.gameModel.camera.position.z,
+      }),
+    );
   }
 
   public playerControlsDown(event: PlayerEvent) {

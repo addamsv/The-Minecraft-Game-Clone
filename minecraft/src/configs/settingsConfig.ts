@@ -2,7 +2,7 @@ const settingsConfig = {
   music: {
     min: '0',
     max: '1',
-    cur: '0.5',
+    cur: '0.25',
   },
   brightness: {
     min: '0.1',
@@ -24,13 +24,11 @@ const settingsConfig = {
     max: '135',
     cur: '75',
   },
-  // gameSeed: '',
-  // gameMobs: '',
-  // coordinates: {
-  //   x: '0',
-  //   z: '0',
-  //   camera: '',
-  // },
+  gameSeed: '',
+  coordinates: {
+    x: '85',
+    z: '85',
+  },
   language: 'en',
 };
 
