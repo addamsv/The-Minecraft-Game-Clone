@@ -1,6 +1,6 @@
 import dbg from 'debug';
 import * as http from 'http';
-import { WebSocketModelInterface, WebSocketModel } from './soket/webSocketModel';
+import { WebSocketModelInterface, WebSocketModel } from './socket/webSocketModel';
 import { HttpServerModelInterface, HttpServerModel } from './express/httpServerModel';
 import AppServerInterface from './appServerInterface';
 

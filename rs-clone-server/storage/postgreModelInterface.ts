@@ -10,6 +10,10 @@ interface PostgreInterface {
 
   score(): any;
 
+  getUserScore(id: string);
+
+  saveUserScore(id: string, score: string);
+
   getLogin(userLogin: string): any;
 
   getById(id: string): any;

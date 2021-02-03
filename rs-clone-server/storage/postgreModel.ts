@@ -20,9 +20,7 @@ class Postgre implements PostgreInterface {
   }
 
   public async listAll() {
-    const list = await this.knex(appConfig.collectionName)
-      .select('players.login', 'players.nickname', 'player_statistics.player_values')
-      .from('players');
+    const list = await this.knex(appConfig.collectionName).select();
 
     return list;
   }
@@ -39,6 +37,24 @@ class Postgre implements PostgreInterface {
       .whereRaw('?? = ??', ['a.id', 'b.uuid']);
 
     return list;
+  }
+
+  public async getUserScore(uuid: string) {
+    const list = await this.knex(appConfig.collectionPlayerStatistics)
+      .select('player_values')
+      .where({ uuid });
+
+    return list[0];
+  }
+
+  // eslint-disable-next-line camelcase
+  public async saveUserScore(uuid: string, player_values: string) {
+    const list = await this.knex(appConfig.collectionPlayerStatistics)
+      .update({ player_values })
+      .where({ uuid })
+      .returning('*');
+
+    return list[0];
   }
 
   public async getLogin(userLogin: string) {

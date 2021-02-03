@@ -1,391 +1,56 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
 <head>
     <meta charset="UTF-8" />
-    <title>Simple Web-Socket Client</title>
-        <style type="text/css">
-
-        #chat-container {
-            width: 290px;
-            position: absolute;
-            bottom: 5px;
-            right: 45px;
-            background: #efefff44;
-            padding: 0px 0px 5px 0px; 
-            border-radius: 5px 5px 5px 5px;
-            -moz-border-radius: 4px 4px 4px 4px;
-            -webkit-border-radius: 4px 4px 4px 4px;
-            box-shadow: 0px 16px 16px #0005;
-
-        }
-
-        input#sock-msg {
-            width: 94%;
-            padding: 19px 19px;
-            margin:  14px 14px;
-            font-size: 1em;
-        }
-
-        textarea#sock-msg {
-            outline: none;
-            resize: none;
-            width: 94%;
-            height: 40px;
-            padding: 15px 15px;
-            margin: 5px 8px;
-            border: 1px solid #CCCCCC;
-            border-radius: 3px;
-            font-family: Arial, sans-serif;
-            font-size: 13px;
-            font-style: normal;
-            font-variant: normal;
-            color: #556D;
-            line-height: 14px;
-        }
-
-        #scroll-container {
-            height: 350px;
-            max-height: 350px;
-            overflow-y: auto;
-        }
-
-        #sock-container { 
-
-            display: table;
-            resize: none;
-            width: 100%;
-            background: #aaa1;
-            height: 350px;
-            max-height: 350px;
-            overflow-y: auto;
-        }
-
-        #sock-info {
-            display: table-cell;
-            vertical-align: bottom;
-            border: 0px solid #CCCCCC;
-            border-right-color: #CCCCCC;
-            border-bottom-color: #CCCCCC;
-            background: #fff;
-            width: 100%;
-        }
-
-
-
-        #scroll-container {
-            height: 350px;
-            max-height: 350px;
-            overflow-y: auto;
-        }
-
-        #scroll-container {
-            scrollbar-face-color: #367CD2;
-            scrollbar-shadow-color: #FFFFFF;
-            scrollbar-highlight-color: #FFFFFF;
-            scrollbar-3dlight-color: #FFFFFF;
-            scrollbar-darkshadow-color: #FFFFFF;
-            scrollbar-track-color: #FFFFFF;
-            scrollbar-arrow-color: #FFFFFF;
-        }
-
-        #scroll-container::-webkit-scrollbar-thumb {
-            background-color: #fff;
-            outline: 0px solid #fff;
-            border-radius: 10px;
-            background: #eee; 
-            -webkit-box-shadow: inset 0 0 0 rgba(0,0,0,0.5); 
-        }
-
-        #scroll-container::-webkit-scrollbar-track {
-            -webkit-border-radius: 10px;
-            border-radius: 10px;
-        }
-
-        #scroll-container::-webkit-scrollbar {
-            width: 0.7em;
-        }
-
-        .someone-sock-info {
-            font-family: tahoma;
-            font-size: 0.8em;
-            line-height: 1.5em;
-            margin: 0.1em 6em 1.2em 1.1em;
-            padding: 4px 10px 4px 16px;
-            -moz-border-radius: 15px 15px 15px 0px;
-            -moz-transition: background-color .2s ease-in-out;
-            -webkit-border-radius: 15px 15px 15px 0px;
-            -webkit-transition: background-color .2s ease-in-out;
-            background: #fff;
-            background-size: 6% 100%;
-            border-radius: 15px 15px 15px 0px;
-            box-shadow: 2px 2px 5px #0005;
-            color: #888c;
-            float: left;
-            clear: left;
-            font-weight: normal;
-            transition: background-color .2s ease-in-out;
-            max-width: 65%;
-        }
-        .user-sock-info {
-            font-family: tahoma;
-            font-size: 0.8em;
-            line-height: 1.5em;
-            margin: 0.1em 1em 1.2em 6em;
-            padding: 4px 10px 4px 16px;
-            -moz-border-radius: 15px 15px 0px 15px;
-            -moz-transition: background-color .2s ease-in-out;
-            -webkit-border-radius: 15px 15px 0px 15px;
-            -webkit-transition: background-color .2s ease-in-out;
-            background: #eee8;
-            background-size: 6% 100%;
-            border-radius: 15px 15px 0px 15px;
-            box-shadow: 2px 2px 5px #0005;
-            color: #888c;
-            float: right;
-            clear: right;
-            font-weight: normal;
-            transition: background-color .2s ease-in-out;
-            max-width: 65%;
-        }
-        .messInfo {
-            font-size: 0.3em;
-        }
-        .info {
-            font-family: tahoma;
-            font-size: 0.8em;
-            color: red;
-            margin: 0.1em 4em 0.1em 4em;
-            padding: 12px 10px 12px 16px;
-            float: left;
-            clear: left;
-            vertical-align: bottom;
-            background: #fff;
-            height: 15px;
-            width: 70%;
-        }
-    </style>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RS Clone Minecraft Statistics</title>
+    <link rel="stylesheet" type="text/css" href="./statistics/style.css" />
 </head>
 <body>
-    <h1>Minecraft</h1>
-    <div id='chat-container'>
-        <div id='scroll-container'>
-            <div id="sock-container">
-                <div id="sock-info"></div>
-            </div> 
+    <header class="header-container">
+        <div class="header-wrapper">
+            <h1 class="main-header">RS Clone Minecraft Statistics:</h1>
         </div>
-        <textarea id='sock-msg' placeholder="Введите сообщение и нажмите Enter"  ></textarea>
-    </div>
-    <script type="text/javascript">
-        "use strict";
-
-        class ChatView {
-            constructor() {
-                this.TEXTAREA_OBJ = document.getElementById('sock-msg');
-                this.SCROLL_CONTAINER = document.getElementById('scroll-container');
-                this.DATA_TO_APPEND = document.getElementById('sock-info');
-            }
-
-            appendSysMessage(textMessage) {
-                this.DATA_TO_APPEND.innerHTML += `<div class='info'>${textMessage}</div>`;
-                this.SCROLL_CONTAINER.scrollTop = this.SCROLL_CONTAINER.scrollHeight;
-            }
-
-            appendMessage(userName, textMessage, areYouMessageOwner) {
-                const NODE = this.getHTMLMessageContainer(userName, textMessage, areYouMessageOwner);
-
-                this.DATA_TO_APPEND.appendChild(NODE);
-
-                while (this.DATA_TO_APPEND.childNodes.length > 100) {
-                    this.DATA_TO_APPEND.removeChild(this.DATA_TO_APPEND.firstChild);
-                }
-
-                this.scrollMessagesContainerToTop();
-                this.removeMessageFromInputField();
-            }
-
-            scrollMessagesContainerToTop() {
-                this.SCROLL_CONTAINER.scrollTop = this.SCROLL_CONTAINER.scrollHeight;
-            }
-
-            removeMessageFromInputField() {
-                this.TEXTAREA_OBJ.value = '';
-            }
-
-            getHTMLMessageContainer(userName, textMessage, areMessageOwner) {
-                const TIME = new Date().toLocaleTimeString();
-                const CONTAINER = document.createElement('div');
-                const USER_INFO_CONTAINER = document.createElement('div');
-
-                USER_INFO_CONTAINER.innerHTML = (areMessageOwner ? '' : userName) + " " + TIME;
-                CONTAINER.className = areMessageOwner ? 'user-sock-info' : 'someone-sock-info';
-                USER_INFO_CONTAINER.className = 'messInfo';
-
-                CONTAINER.innerHTML = textMessage;
-                CONTAINER.appendChild(USER_INFO_CONTAINER);
-                
-                return CONTAINER;
-            }
-        }
-
-        class ChatController {    
-        }
-
-        class MCWebSocket {
-            constructor(userToken = "") {
-                // this.headers = new Headers();
-                this.chatView = new ChatView();
-                this.ws = null;
-                this.WS_TOKEN = '';
-                this.USER_NAME = '';
-                this.USER_TOKEN = userToken;
-                this.USER_MOUNT = '';
-
-                // this.HOST = location.origin.replace(/^http/, 'ws');
-                // // this.HOST = 'ws://rs-clone-server.herokuapp.com/';
-                this.TEXTAREA_OBJ = document.getElementById('sock-msg');
-            }
-            init() {
-                
-                // const myHeaders =  new Headers()
-                
-                /**you need to get the token and put it in myToken var.
-                 Where to store the token is the real question, you need
-                 to take care about the storage you choose beacause of
-                 the security risks*/
-                 
-                //  myHeaders.append('Content-Type','application/json; charset=utf-8');
-                //  myHeaders.append('Authorization', 'Bearer ' + this.USER_TOKEN);
-                 
-                 // fetch( '/myurl', {
-                     //     credentials: 'include',
-                     //     headers: myHeaders,
-                     //     method: 'GET'
-                     // }).then( res => {
-                         
-                         //     return res.json();
-                         
-                         // }).then( res => {
-                             
-                             //     /**your stuff*/
-                             
-                             // });
-                // document.cookie = 'X-Authorization=' + this.USER_TOKEN + '; path=/';
-                // this.ws = new WebSocket(`ws://${this.USER_TOKEN}@127.0.0.1:3001/`);
-                // this.ws = new WebSocket('ws://127.0.0.1:3001', null, { "headers": myHeaders});
-                this.ws = new WebSocket(`ws://${HOST}`);//
-                this.ws.onopen = this.connectionOpen.bind(this); 
-                this.ws.onmessage = this.messageReceived.bind(this); 
-                this.ws.onerror = this.connectionError.bind(this);
-                this.ws.onclose = this.connectionClose.bind(this);
-
-                this.chatMessageListener();
-            }
-
-            chatMessageListener() {
-                const CONTEXT = this;
-                this.TEXTAREA_OBJ.onkeydown = function(event) {
-                    if (event.keyCode == 13) {
-                        event.preventDefault();
-                        CONTEXT.sendMessage(CONTEXT.TEXTAREA_OBJ.value, 'chatMessage');
-                        // ws.send(`{"userName": "${CONTEXT.USER_NAME}", "wsToken": "${CONTEXT.WS_TOKEN}", "chatMessage": "${CONTEXT.TEXTAREA_OBJ.value}"}`);
-                    }
-                };    
-            }
-
-            sendMessage(textMessage, type) {
-                switch(type) {
-                    case 'chatMessage':
-                        this.ws.send(`{"userName": "${this.USER_NAME}", "wsToken": "${this.WS_TOKEN}", "chatMessage": "${textMessage}"}`);
-                    break;
-                    case 'gameMessage': break;
-                    case 'sysMessage': break;
-                    default: break;
-                }
-            }
-
-            connectionClose() {
-                this.ws.close();
-                this.chatView.appendSysMessage('connection closed');
-            }
-
-            messageReceived(message) {
-                const mess = JSON.parse(message.data);
-
- 
-                if (mess.setUserMount) {
-                    console.log('DOING SETTINGS USER MOUNT ' + mess.setUserMount);
-                    this.USER_MOUNT = mess.setUserMount;
-                }
-                if (mess.setUserName) {
-                    console.log('DOING SETTINGS USER NAME ' + mess.setUserName);
-                    this.USER_NAME = mess.setUserName;
-                }
-                if (mess.setWsToken) {
-                    console.log('DOING SETTINGS WS TOKEN ' + mess.setWsToken);
-                    this.WS_TOKEN = mess.setWsToken;
-                }
-                if (mess.chatMessage) {
-                    console.log(mess);
-                    this.chatView.appendMessage(mess.userName, mess.chatMessage, this.areYouMessageOwner(mess.wsToken));
-                }
-                if (mess.chatServerMessage) {
-                    console.log(mess);
-                    this.chatView.appendMessage("SERVER", mess.chatServerMessage, false);
-                }
-            }
-
-            connectionError() {
-                this.chatView.appendSysMessage('connection Error');
-            }
-
-            connectionOpen() {
-                // this.ws.send(`{"userToken": "${this.USER_TOKEN}"}`);
-            }
-
-            areYouMessageOwner(curWsToken) {
-                console.log(curWsToken+this.USER_NAME);
-                if (curWsToken === undefined || this.WS_TOKEN === undefined) {
-                    return  false;
-                }
-                return this.WS_TOKEN === curWsToken;
-            }
-        }
-
-
-        function auth(login, password) {
-            async function postData(url = '', data = {}) {
-                // Default options are marked with *
-                const response = await fetch(url, {
-                    method: 'POST', // *GET, POST, PUT, DELETE, etc.
-                    mode: 'no-cors', // no-cors, *cors, same-origin
-                    cache: 'no-cache', // *default, no-cache, reload, force-cache, only-if-cached
-                    credentials: 'same-origin', // include, *same-origin, omit
-                    headers: {
-                    'Content-Type': 'application/json'
-                    // 'Content-Type': 'application/x-www-form-urlencoded',
-                    },
-                    redirect: 'follow', // manual, *follow, error
-                    referrerPolicy: 'no-referrer', // no-referrer, *no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
-                    body: JSON.stringify(data) // body data type must match "Content-Type" header
-                });
-                console.log(response);
-                return response.json; // parses JSON response into native JavaScript objects
-            }
-            postData(`https://${HOST}/auth/login`, {login: login, password: password}).then(data => {
-                    new MCWebSocket(data.token).init();
-                    console.log(data.token);
-                });
-        }
-
-
-        const LOCAL_MODE = true;
-        const HOST = LOCAL_MODE ? '127.0.0.1:3001' : 'rs-clone-server.herokuapp.com';
-        if (LOCAL_MODE) {
-            new MCWebSocket('').init();
-        } else {
-            auth("User1", "Admin123");
-        }
-        
-    </script>
+    </header>
+    <main class="main-container">
+        <div class="main-wrapper">
+            <div class="statistics-container">
+                <div class="d-table statistics-data">
+                    <div class="d-tr">
+                    <div class="d-td td-header">User Name</div>
+                    <div class="d-td td-header">Score (Sec)</div>
+                    <div class="d-td td-header">Percent (%)</div>
+                    <div class="d-td td-header">Progress</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+    <footer class="footer-container">
+        <div class="footer-wrapper">
+            <div class="github-accounts-wrapper">
+                <div class="account">
+                    <img src="./images/github.png" alt="" class="github-img">
+                    <a class="footer-item footer-link" href="https://github.com/addamsv">addamsv</a>
+                </div>
+                <div class="account">
+                    <img src="./images/github.png" alt="" class="github-img">
+                    <a class="footer-item footer-link" href="https://github.com/tatsmaki">tatsmaki</a>
+                </div>
+                <div class="account">
+                    <img src="./images/github.png" alt="" class="github-img">
+                    <a class="footer-item footer-link" href="https://github.com/lilianna040">furi.kiri</a>
+                </div>
+                <div class="account">
+                    <img src="./images/github.png" alt="" class="github-img">
+                    <a class="footer-item footer-link" href="https://github.com/lesor9">lesor9</a>
+                </div>
+            </div>
+            <svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 552.8 205.3"><style>.st0{fill:#fff}.st1{clip-path:url(#SVGID_2_)}.st2{clip-path:url(#SVGID_4_)}.st3{clip-path:url(#SVGID_6_)}.st4{clip-path:url(#SVGID_8_)}.st5{fill:#fff;stroke:#000;stroke-width:4;stroke-miterlimit:10}.st6{clip-path:url(#SVGID_8_)}.st6,.st7{fill:none;stroke:#000;stroke-width:4;stroke-miterlimit:10}.st8,.st9{clip-path:url(#SVGID_10_)}.st9{fill:none;stroke:#000;stroke-width:4;stroke-miterlimit:10}</style><title>rs_school_js</title><path d="M285.4 68l26.3-1.7c.6 4.3 1.7 7.5 3.5 9.8 2.9 3.6 6.9 5.4 12.2 5.4 3.9 0 7-.9 9.1-2.8 2-1.5 3.2-3.9 3.2-6.4 0-2.4-1.1-4.7-3-6.2-2-1.8-6.7-3.6-14.1-5.2-12.1-2.7-20.8-6.3-25.9-10.9-5.1-4.3-8-10.6-7.8-17.3 0-4.6 1.4-9.2 4-13 3-4.3 7.1-7.7 12-9.6 5.3-2.3 12.7-3.5 22-3.5 11.4 0 20.1 2.1 26.1 6.4 6 4.2 9.6 11 10.7 20.3l-26 1.5c-.7-4-2.1-6.9-4.4-8.8s-5.3-2.8-9.2-2.8c-3.2 0-5.6.7-7.2 2-1.5 1.2-2.5 3-2.4 5 0 1.5.8 2.9 2 3.8 1.3 1.2 4.4 2.3 9.3 3.3 12.1 2.6 20.7 5.2 26 7.9 5.3 2.7 9.1 6 11.4 9.9 2.4 4 3.6 8.6 3.5 13.3 0 5.6-1.6 11.2-4.8 15.9-3.3 4.9-7.9 8.7-13.3 11-5.7 2.5-12.9 3.8-21.5 3.8-15.2 0-25.7-2.9-31.6-8.8S286.1 77 285.4 68zM6.3 97.6V8.2h46.1c8.5 0 15.1.7 19.6 2.2 4.4 1.4 8.3 4.3 10.9 8.2 2.9 4.3 4.3 9.3 4.2 14.5.3 8.8-4.2 17.2-11.9 21.6-3 1.7-6.3 2.9-9.7 3.5 2.5.7 5 1.9 7.2 3.3 1.7 1.4 3.1 3 4.4 4.7 1.5 1.7 2.8 3.6 3.9 5.6l13.4 25.9H63L48.2 70.2c-1.9-3.5-3.5-5.8-5-6.9-2-1.4-4.4-2.1-6.8-2.1H34v36.3H6.3zM34 44.4h11.7c2.5-.2 4.9-.6 7.3-1.2 1.8-.3 3.4-1.3 4.5-2.8 2.7-3.6 2.3-8.7-1-11.8-1.8-1.5-5.3-2.3-10.3-2.3H34v18.1zM0 174.2l26.3-1.7c.6 4.3 1.7 7.5 3.5 9.8 2.8 3.6 6.9 5.5 12.2 5.5 3.9 0 7-.9 9.1-2.8 2-1.6 3.2-3.9 3.2-6.4 0-2.4-1.1-4.7-3-6.2-2-1.8-6.7-3.6-14.2-5.2-12.1-2.7-20.8-6.3-25.9-10.9-5.1-4.3-8-10.6-7.8-17.3 0-4.6 1.4-9.2 4-13 3-4.3 7.1-7.7 12-9.6 5.3-2.3 12.7-3.5 22-3.5 11.4 0 20.1 2.1 26.1 6.4s9.5 11 10.6 20.3l-26 1.5c-.7-4-2.1-6.9-4.4-8.8-2.2-1.9-5.3-2.8-9.2-2.7-3.2 0-5.6.7-7.2 2.1-1.6 1.2-2.5 3-2.4 5 0 1.5.8 2.9 2 3.8 1.3 1.2 4.4 2.3 9.3 3.3 12.1 2.6 20.7 5.2 26 7.9 5.3 2.7 9.1 6 11.4 9.9 2.4 4 3.6 8.6 3.6 13.2 0 5.6-1.7 11.1-4.8 15.8-3.3 4.9-7.9 8.7-13.3 11-5.7 2.5-12.9 3.8-21.5 3.8-15.2 0-25.7-2.9-31.6-8.8-5.9-6-9.2-13.4-10-22.4z"/><path d="M133 167.2l24.2 7.3c-1.3 6.1-4 11.9-7.7 17-3.4 4.5-7.9 8-13 10.3-5.2 2.3-11.8 3.5-19.8 3.5-9.7 0-17.7-1.4-23.8-4.2-6.2-2.8-11.5-7.8-16-14.9-4.5-7.1-6.7-16.2-6.7-27.3 0-14.8 3.9-26.2 11.8-34.1s19-11.9 33.4-11.9c11.3 0 20.1 2.3 26.6 6.8 6.4 4.6 11.2 11.6 14.4 21l-24.4 5.4c-.6-2.1-1.5-4.2-2.7-6-1.5-2.1-3.4-3.7-5.7-4.9-2.3-1.2-4.9-1.7-7.5-1.7-6.3 0-11.1 2.5-14.4 7.6-2.5 3.7-3.8 9.6-3.8 17.6 0 9.9 1.5 16.7 4.5 20.4 3 3.7 7.2 5.5 12.7 5.5 5.3 0 9.3-1.5 12-4.4 2.7-3.1 4.7-7.4 5.9-13zm56.5-52.8h27.6v31.3h30.2v-31.3h27.8v89.4h-27.8v-36.2h-30.2v36.2h-27.6v-89.4z"/><path d="M271.3 159.1c0-14.6 4.1-26 12.2-34.1 8.1-8.1 19.5-12.2 34-12.2 14.9 0 26.3 4 34.4 12S364 144 364 158.4c0 10.5-1.8 19-5.3 25.7-3.4 6.6-8.7 12-15.2 15.6-6.7 3.7-15 5.6-24.9 5.6-10.1 0-18.4-1.6-25-4.8-6.8-3.4-12.4-8.7-16.1-15.2-4.1-7-6.2-15.7-6.2-26.2zm27.6.1c0 9 1.7 15.5 5 19.5 3.3 3.9 7.9 5.9 13.7 5.9 5.9 0 10.5-1.9 13.8-5.8s4.9-10.8 4.9-20.8c0-8.4-1.7-14.6-5.1-18.4-3.4-3.9-8-5.8-13.8-5.8-5.1-.2-10 2-13.4 5.9-3.4 3.9-5.1 10.4-5.1 19.5zm93.4-.1c0-14.6 4.1-26 12.2-34.1 8.1-8.1 19.5-12.2 34-12.2 14.9 0 26.4 4 34.4 12S485 144 485 158.4c0 10.5-1.8 19-5.3 25.7-3.4 6.6-8.7 12-15.2 15.6-6.7 3.7-15 5.6-24.9 5.6-10.1 0-18.4-1.6-25-4.8-6.8-3.4-12.4-8.7-16.1-15.2-4.1-7-6.2-15.7-6.2-26.2zm27.6.1c0 9 1.7 15.5 5 19.5 3.3 3.9 7.9 5.9 13.7 5.9 5.9 0 10.5-1.9 13.8-5.8 3.3-3.9 4.9-10.8 4.9-20.8 0-8.4-1.7-14.6-5.1-18.4-3.4-3.9-8-5.8-13.8-5.8-5.1-.2-10.1 2-13.4 5.9-3.4 3.9-5.1 10.4-5.1 19.5z"/><path d="M482.1 114.4h27.6v67.4h43.1v22H482v-89.4z"/><ellipse transform="rotate(-37.001 420.46 67.88)" class="st0" cx="420.5" cy="67.9" rx="63" ry="51.8"/><defs><ellipse id="SVGID_1_" transform="rotate(-37.001 420.46 67.88)" cx="420.5" cy="67.9" rx="63" ry="51.8"/></defs><clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" overflow="visible"/></clipPath><g class="st1"><path transform="rotate(-37.001 420.82 68.353)" class="st0" d="M330.9-14.2h179.8v165.1H330.9z"/><g id="Layer_2_1_"><defs><path id="SVGID_3_" transform="rotate(-37.001 420.82 68.353)" d="M330.9-14.2h179.8v165.1H330.9z"/></defs><clipPath id="SVGID_4_"><use xlink:href="#SVGID_3_" overflow="visible"/></clipPath><g id="Layer_1-2" class="st2"><ellipse transform="rotate(-37.001 420.46 67.88)" class="st0" cx="420.5" cy="67.9" rx="63" ry="51.8"/><defs><ellipse id="SVGID_5_" transform="rotate(-37.001 420.46 67.88)" cx="420.5" cy="67.9" rx="63" ry="51.8"/></defs><clipPath id="SVGID_6_"><use xlink:href="#SVGID_5_" overflow="visible"/></clipPath><g class="st3"><path transform="rotate(-37 420.799 68.802)" class="st0" d="M357.8 17h125.9v103.7H357.8z"/><defs><path id="SVGID_7_" transform="rotate(-37 420.799 68.802)" d="M357.8 17h125.9v103.7H357.8z"/></defs><clipPath id="SVGID_8_"><use xlink:href="#SVGID_7_" overflow="visible"/></clipPath><g class="st4"><ellipse transform="rotate(-37.001 420.46 67.88)" class="st5" cx="420.5" cy="67.9" rx="63" ry="51.8"/></g><path transform="rotate(-37 420.799 68.802)" class="st6" d="M357.8 17h125.9v103.7H357.8z"/><ellipse transform="rotate(-37.001 420.46 67.88)" class="st7" cx="420.5" cy="67.9" rx="63" ry="51.8"/><path transform="rotate(-37 420.799 68.802)" class="st0" d="M357.8 17h125.9v103.7H357.8z"/><defs><path id="SVGID_9_" transform="rotate(-37 420.799 68.802)" d="M357.8 17h125.9v103.7H357.8z"/></defs><clipPath id="SVGID_10_"><use xlink:href="#SVGID_9_" overflow="visible"/></clipPath><g class="st8"><ellipse transform="rotate(-37.001 420.46 67.88)" class="st5" cx="420.5" cy="67.9" rx="63" ry="51.8"/></g><path transform="rotate(-37 420.799 68.802)" class="st9" d="M357.8 17h125.9v103.7H357.8z"/><path transform="rotate(-37.001 420.82 68.353)" class="st7" d="M330.9-14.2h179.8v165.1H330.9z"/></g><ellipse transform="rotate(-37.001 420.46 67.88)" class="st7" cx="420.5" cy="67.9" rx="63" ry="51.8"/><path d="M392.4 61.3l10-7 12.3 17.5c2.1 2.8 3.7 5.8 4.9 9.1.7 2.5.5 5.2-.5 7.6-1.3 3-3.4 5.5-6.2 7.3-3.3 2.3-6.1 3.6-8.5 4-2.3.4-4.7 0-6.9-1-2.4-1.2-4.5-2.9-6.1-5.1l8.6-8c.7 1.1 1.6 2.1 2.6 2.9.7.5 1.5.8 2.4.8.7 0 1.4-.3 1.9-.7 1-.6 1.7-1.8 1.6-3-.3-1.7-1-3.4-2.1-4.7l-14-19.7zm30 11.1l9.1-7.2c1 1.2 2.3 2.1 3.7 2.6 2 .6 4.1.2 5.8-1.1 1.2-.8 2.2-1.9 2.6-3.3.6-1.8-.4-3.8-2.2-4.4-.3-.1-.6-.2-.9-.2-1.2-.1-3.3.4-6.4 1.7-5.1 2.1-9.1 2.9-12.1 2.6-2.9-.3-5.6-1.8-7.2-4.3-1.2-1.7-1.8-3.7-1.9-5.7 0-2.3.6-4.6 1.9-6.5 1.9-2.7 4.2-5 7-6.8 4.2-2.9 7.9-4.3 11.1-4.3 3.2 0 6.2 1.5 9 4.6l-9 7.1c-1.8-2.3-5.2-2.8-7.5-1l-.3.3c-1 .6-1.7 1.5-2.1 2.6-.3.8-.1 1.7.4 2.4.4.5 1 .9 1.7.9.8.1 2.2-.3 4.2-1.2 5-2.1 8.8-3.3 11.4-3.7 2.2-.4 4.5-.2 6.6.7 1.9.8 3.5 2.2 4.6 3.9 1.4 2 2.2 4.4 2.3 6.9.1 2.6-.6 5.1-2 7.3-1.8 2.7-4.1 5-6.8 6.8-5.5 3.8-10 5.4-13.6 4.8-3.9-.6-7.1-2.6-9.4-5.5z"/></g></g></g></svg>
+            <a class="footer-item footer-info" href="https://rs.school/js/">RSSchool2020Q3</a>
+            <div class="footer-item footer-year">2020 - 2021</div>
+        </div>
+    </footer>
+    <script src="./statistics/stat.js"></script>
 </body>
 </html>
 

@@ -28,8 +28,16 @@ class WebSocketModel implements WebSocketModelInterface {
       const websocket = ws;
 
       websocket.on('close', () => {
-        this.sendToEveryRegistered(wss.clients, `{"gameDisconnectedMessage": "${websocket.token}", "chatServerMessage": "the user ${websocket.userName} has disconnected  (connected: ${wss.clients.size})"}`);
+        console.log(
+          websocket.id,
+          Number(websocket.userTimeValue) + Date.now() - websocket.userTimeStart,
+        );
+        this.postgre.saveUserScore(
+          websocket.id,
+          String(Number(websocket.userTimeValue) + Date.now() - websocket.userTimeStart),
+        );
         console.log(`${websocket.token || 'guest\'s'} connection closed`);
+        this.sendToEveryRegistered(wss.clients, `{"gameDisconnectedMessage": "${websocket.token}", "chatServerMessage": "the user ${websocket.userName} has disconnected  (connected: ${wss.clients.size})"}`);
       });
 
       websocket.on('message', (websocketData) => {
@@ -162,6 +170,13 @@ class WebSocketModel implements WebSocketModelInterface {
     }
   }
 
+  private async setPlayerTimeValue(ws) {
+    const websocket = ws;
+    const item = await this.postgre.getUserScore(websocket.id);
+    websocket.userTimeValue = item.player_values || 0;
+    websocket.userTimeStart = Date.now();
+  }
+
   private async logOut(wss, ws) {
     const websocket = ws;
     const item = await this.postgre.logOutById(websocket.id);
@@ -191,6 +206,7 @@ class WebSocketModel implements WebSocketModelInterface {
             if (!this.isUserAlreadyRegistered(wss.clients, payload.id)) {
               this.onRegisterCommon(wss, ws, payload.login);
               websocket.id = payload.id;
+              this.setPlayerTimeValue(ws);
               const token = jwt.sign({ id: payload.id, login: payload.login }, appConfig.TOKEN_KEY, { expiresIn: '30d' });
               websocket.send(`{"chatServerMessage": "you are registered as ${payload.login}!", "login": "${payload.login}", "setToken": "${token}"}`);
               console.log('user was registered through token');
@@ -216,6 +232,7 @@ class WebSocketModel implements WebSocketModelInterface {
           if (!this.isUserAlreadyRegistered(wss.clients, id)) {
             this.onRegisterCommon(wss, ws, mess.login);
             websocket.id = id;
+            this.setPlayerTimeValue(ws);
             const token = jwt.sign({ id, login }, appConfig.TOKEN_KEY, { expiresIn: '30d' });
             this.postgre.setToken(id, token);
             websocket.send(`{"chatServerMessage": "you are registered as ${mess.login}!", "login": "${login}", "setToken": "${token}"}`);
