@@ -2,24 +2,19 @@ const path = require('path');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-// const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 
 module.exports = {
   mode: 'development',
   devtool: 'inline-source-map',
   entry: path.join(__dirname, './src/index.ts'),
-  // entry: {
-  //   bundle: path.join(__dirname, './src/index.ts'),
-  //   worker: path.join(__dirname, './src/views/mapWorker'),
-  // },
   resolve: {
     extensions: ['.tsx', '.ts', '.js'],
   },
   output: {
     path: path.join(__dirname, './dist'),
     filename: 'bundle.js',
-    // filename: '[name].js',
     publicPath: '',
   },
   module: {
@@ -48,10 +43,6 @@ module.exports = {
         use: [
           {
             loader: 'file-loader',
-            // options:
-            // {
-            //   outputPath: 'assets/meshes/',
-            // },
           },
         ],
       },
@@ -71,7 +62,7 @@ module.exports = {
         { from: './src/assets/', to: 'assets/' },
       ],
     }),
-    // new CleanWebpackPlugin(),
+    new CleanWebpackPlugin(),
   ],
   devServer: {
     contentBase: './src/public',

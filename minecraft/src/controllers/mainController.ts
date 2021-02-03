@@ -121,6 +121,7 @@ class MainController implements MainControllerInterface {
   }
 
   closeSettingsMenu() {
+    localStorage.setItem('rscloneMinecraftSettings', JSON.stringify(settingsConfig));
     this.menuView.settingsMenu.removeMenu();
     this.menuView.mainMenu.attachMenu();
   }
