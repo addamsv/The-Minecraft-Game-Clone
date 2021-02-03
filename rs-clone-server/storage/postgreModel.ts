@@ -1,4 +1,3 @@
-/* eslint-disable class-methods-use-this */
 import * as initKnex from 'knex';
 import appConfig from '../app-config';
 import PostgreInterface from './postgreModelInterface';
@@ -22,7 +21,22 @@ class Postgre implements PostgreInterface {
 
   public async listAll() {
     const list = await this.knex(appConfig.collectionName)
-      .select('login', 'nickname');
+      .select('players.login', 'players.nickname', 'player_statistics.player_values')
+      .from('players');
+
+    return list;
+  }
+
+  public async score() {
+    const list = await this.knex({
+      a: appConfig.collectionName,
+      b: appConfig.collectionPlayerStatistics,
+    })
+      .select({
+        'User Name': 'a.login',
+        Score: 'b.player_values',
+      })
+      .whereRaw('?? = ??', ['a.id', 'b.uuid']);
 
     return list;
   }
