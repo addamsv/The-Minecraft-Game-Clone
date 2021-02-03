@@ -1,4 +1,3 @@
-import { v4 as uuid } from 'uuid';
 import * as express from 'express';
 import * as bodyParser from 'body-parser';
 import { PostgreInterface, Postgre } from '../../../storage/postgreModel';
