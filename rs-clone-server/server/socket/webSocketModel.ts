@@ -232,7 +232,10 @@ class WebSocketModel implements WebSocketModelInterface {
           if (!this.isUserAlreadyRegistered(wss.clients, id)) {
             this.onRegisterCommon(wss, ws, mess.login);
             websocket.id = id;
+<<<<<<< HEAD:rs-clone-server/server/socket/webSocketModel.ts
             this.setPlayerTimeValue(ws);
+=======
+>>>>>>> ba6792411d4a0e786150d24efc3aa37f504b47bf:rs-clone-server/server/soket/webSocketModel.ts
             const token = jwt.sign({ id, login }, appConfig.TOKEN_KEY, { expiresIn: '30d' });
             this.postgre.setToken(id, token);
             websocket.send(`{"chatServerMessage": "you are registered as ${mess.login}!", "login": "${login}", "setToken": "${token}"}`);
