@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-/* eslint-disable class-methods-use-this */
 import { Server } from 'ws';
 import * as jwt from 'jsonwebtoken';
 import { v4 as uuid } from 'uuid';
@@ -30,8 +28,16 @@ class WebSocketModel implements WebSocketModelInterface {
       const websocket = ws;
 
       websocket.on('close', () => {
-        this.sendToEveryRegistered(wss.clients, `{"gameDisconnectedMessage": "${websocket.token}", "chatServerMessage": "the user ${websocket.userName} has disconnected  (connected: ${wss.clients.size})"}`);
+        console.log(
+          websocket.id,
+          Number(websocket.userTimeValue) + Date.now() - websocket.userTimeStart,
+        );
+        this.postgre.saveUserScore(
+          websocket.id,
+          String(Number(websocket.userTimeValue) + Date.now() - websocket.userTimeStart),
+        );
         console.log(`${websocket.token || 'guest\'s'} connection closed`);
+        this.sendToEveryRegistered(wss.clients, `{"gameDisconnectedMessage": "${websocket.token}", "chatServerMessage": "the user ${websocket.userName} has disconnected  (connected: ${wss.clients.size})"}`);
       });
 
       websocket.on('message', (websocketData) => {
@@ -104,7 +110,9 @@ class WebSocketModel implements WebSocketModelInterface {
       }
 
       case '3': {
-        // console.log('ping');
+        /**
+         * here should locate statistics code ('ping')
+         */
         break;
       }
       default: break;
@@ -114,7 +122,9 @@ class WebSocketModel implements WebSocketModelInterface {
   private onRegisterCommon(wss, ws, userName) {
     const websocket = ws;
     websocket.isRegistered = true;
-    // req.headers['sec-websocket-key'];
+    /**
+     * If you use your own domain name: req.headers['sec-websocket-key'];
+     */
     websocket.token = this.getUserID(wss.clients);
     websocket.userName = userName;
 
@@ -151,13 +161,20 @@ class WebSocketModel implements WebSocketModelInterface {
     if (mess.newPassword) {
       const item = await this.postgre.updatePassword(websocket.id, mess.newPassword);
       if (item) {
-        websocket.send('{"mesChangePassword": "passChanged"}'); // Password was successfully changed
+        websocket.send('{"mesChangePassword": "passChanged"}');
         console.log('Password was successfully changed');
       } else {
         websocket.send('{"failChangePassword": "wasWrongBD"}');
         console.log('Password was not unregistered: something was wrong with BD');
       }
     }
+  }
+
+  private async setPlayerTimeValue(ws) {
+    const websocket = ws;
+    const item = await this.postgre.getUserScore(websocket.id);
+    websocket.userTimeValue = item.player_values || 0;
+    websocket.userTimeStart = Date.now();
   }
 
   private async logOut(wss, ws) {
@@ -189,6 +206,7 @@ class WebSocketModel implements WebSocketModelInterface {
             if (!this.isUserAlreadyRegistered(wss.clients, payload.id)) {
               this.onRegisterCommon(wss, ws, payload.login);
               websocket.id = payload.id;
+              this.setPlayerTimeValue(ws);
               const token = jwt.sign({ id: payload.id, login: payload.login }, appConfig.TOKEN_KEY, { expiresIn: '30d' });
               websocket.send(`{"chatServerMessage": "you are registered as ${payload.login}!", "login": "${payload.login}", "setToken": "${token}"}`);
               console.log('user was registered through token');
@@ -211,12 +229,10 @@ class WebSocketModel implements WebSocketModelInterface {
         if (item.login === mess.login && item.password === mess.password) {
           const { id } = item;
           const { login } = item;
-          // console.log(`id ${id}`);
           if (!this.isUserAlreadyRegistered(wss.clients, id)) {
             this.onRegisterCommon(wss, ws, mess.login);
-            // websocket.isRegistered = true;
             websocket.id = id;
-            // websocket.userName = mess.login;
+            this.setPlayerTimeValue(ws);
             const token = jwt.sign({ id, login }, appConfig.TOKEN_KEY, { expiresIn: '30d' });
             this.postgre.setToken(id, token);
             websocket.send(`{"chatServerMessage": "you are registered as ${mess.login}!", "login": "${login}", "setToken": "${token}"}`);

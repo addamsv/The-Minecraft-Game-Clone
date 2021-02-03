@@ -1,5 +1,3 @@
-/* eslint-disable no-console */
-/* eslint-disable class-methods-use-this */
 import * as express from 'express';
 import * as logger from 'morgan';
 import * as cors from 'cors';

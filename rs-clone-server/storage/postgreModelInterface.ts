@@ -1,8 +1,18 @@
 /* eslint-disable no-unused-vars */
-import { ItemType } from '../types/item';
+type ItemType = {
+  id: string;
+  password: string;
+  login: string;
+}
 
 interface PostgreInterface {
   listAll(): any;
+
+  score(): any;
+
+  getUserScore(id: string);
+
+  saveUserScore(id: string, score: string);
 
   getLogin(userLogin: string): any;
 

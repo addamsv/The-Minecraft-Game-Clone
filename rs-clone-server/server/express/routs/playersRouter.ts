@@ -21,16 +21,21 @@ class PlayersRouter implements RoutesInterface {
   }
 
   private connectRouts() {
-    this.allPlayersLoginAndNickName();
-    // this.playerByItsID();
-    // this.createPlayerThroughItsLoginAndPassword();
-    // this.updatePlayersLoginAndPasswords();
-    // this.deletePlayerThroughItsID();
+    this.playerScore();
+    /**
+     * uncomment this lines in order to use RESTful API though HTTPS
+     */
+    /*
+    this.playerByItsID();
+    this.createPlayerThroughItsLoginAndPassword();
+    this.updatePlayersLoginAndPasswords();
+    this.deletePlayerThroughItsID();
+    */
   }
 
-  private allPlayersLoginAndNickName() {
+  private playerScore() {
     this.router.get('/', async (req, res) => {
-      const list = await this.postgre.listAll();
+      const list = await this.postgre.score();
 
       res.json(list);
     });
