@@ -1,16 +1,10 @@
 ## Rolling Scopes School Minecraft game clone
 
-
-![mainImage](https://user-images.githubusercontent.com/28826039/222919708-5b8b7f03-f51a-40b5-9596-41971c00a42c.mov)
-
-
 ![mainImage](./README_FILES/1.png)
 
 [Задание](https://github.com/rolling-scopes-school/tasks/blob/master/tasks/rsclone/rsclone.md)
 
 [Приложение](https://rsclone-minecraft.netlify.app)
-
-[Сервер](https://github.com/addamsv/The-Minecraft-Game-Clone-Server)
 
 [Статистика игры на сервере Хероку](https://rs-clone-server.herokuapp.com)
 
