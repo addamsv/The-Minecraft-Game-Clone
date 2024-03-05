@@ -1,6 +1,9 @@
-## Rolling Scopes School Minecraft game clone
+## Minecraft 3D Game (clone)
+<p>Rolling Scopes School</p>
 
-![mainImage](./README_FILES/1.png)
+![mainImage](./.github/1.png)
+
+<img width="200px" height="120px" src="./.github/2.png"><img width="200px" height="120px" src="./.github/3.png"><img width="200px" height="120px" src="./.github/4.png">
 
 [Задание](https://github.com/rolling-scopes-school/tasks/blob/master/tasks/rsclone/rsclone.md)
 
