@@ -37,6 +37,7 @@ class HttpServerModel implements HttpServerModelInterface {
 
   private staticViews() {
     this.app.use(express.static('view'));
+
     this.app.use((req, res) => {
       res.sendFile('./view/index.html', { root: __dirname });
     });
@@ -63,6 +64,7 @@ class HttpServerModel implements HttpServerModelInterface {
 
   private routes() {
     this.app.use('/auth', this.authRouter.getRouts());
+
     this.app.use('/players', this.playersRouter.getRouts());
   }
 }

@@ -1,4 +1,4 @@
-import dbg from 'debug';
+// import dbg from 'debug';
 import * as http from 'http';
 import { WebSocketModelInterface, WebSocketModel } from './socket/webSocketModel';
 import { HttpServerModelInterface, HttpServerModel } from './express/httpServerModel';
@@ -53,12 +53,15 @@ class AppServer implements AppServerInterface {
   }
 
   private onListening() {
-    const debug = dbg('rs-clone-server:server');
+    // const debug = dbg('rs-clone-server:server');
     const addr = this.server.address();
+
     const bind = typeof addr === 'string'
       ? `pipe ${addr}`
       : `port ${addr.port}`;
-    debug(`Listening on ${bind}`);
+
+    console.log(`Listening On ${bind}`);
+    // debug(`Listening on ${bind}`);
   }
 
   private normalizePort(val: any) {

@@ -82,6 +82,7 @@ function getStat() {
     const response = await fetch(url);
     return response.json();
   }
-  getStatData('https://rs-clone-server.herokuapp.com/players/').then((data) => makeStatisticsContent(data));
+  // getStatData('https://rs-clone-server.herokuapp.com/players/').then((data) => makeStatisticsContent(data));
+  getStatData('http://localhost:3001/players/').then((data) => makeStatisticsContent(data));
 }
 getStat();
