@@ -28,14 +28,14 @@ function getProgressContainer(percents) {
 
 function getTotalSum(jsonData) {
   let total = 0;
-  jsonData.forEach((element) => {
+  jsonData.data.forEach((element) => {
     total += Number(element.Score) || 0;
   });
   return total;
 }
 
 function getSortedData(jsonData) {
-  jsonData.sort((a, b) => (Number(a.Score || 0) > Number(b.Score || 0) ? -1 : 1));
+  jsonData.data.sort((a, b) => (Number(a.Score || 0) > Number(b.Score || 0) ? -1 : 1));
 }
 
 function getRoundedScore(score) {
@@ -63,7 +63,7 @@ async function makeStatisticsContent(jsonData) {
   let percent;
   const total = getTotalSum(jsonData) || 1;
   getSortedData(jsonData);
-  jsonData.forEach((element) => {
+  jsonData.data.forEach((element) => {
     score = getRoundedScore(Number(element.Score) || 0);
     percent = getRoundedPercent(Number(element.Score) || 0, total);
     wrapper = getContainerWrapper();

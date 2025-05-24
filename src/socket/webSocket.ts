@@ -1,9 +1,10 @@
 import { Server } from 'ws';
+import * as http from 'http';
 import * as jwt from 'jsonwebtoken';
 import { v4 as uuid } from 'uuid';
 import appConfig from '../../app-config';
-import WebSocketModelInterface from './webSocketModelInterface';
-import { PostgreInterface, Postgre } from '../../storage/postgreModel';
+import Postgre from '../model/postgreModel';
+import getUUID from '../utils/getUUID';
 
 interface PayloadInterface extends Object {
   id: string;
@@ -11,32 +12,27 @@ interface PayloadInterface extends Object {
   password: String;
 }
 
-class WebSocketModel implements WebSocketModelInterface {
-  private postgre: PostgreInterface;
-
-  constructor() {
-    this.postgre = new Postgre();
-  }
-
-  public wssInit(server: any) {
+export default class MinecraftWebSocket {
+  public wssInit(server: http.Server) {
     const wss: Server = new Server({
       server,
       perMessageDeflate: false,
     });
 
-    wss.on('connection', (ws) => {
-      const websocket = ws;
-
+    wss.on('connection', (websocket) => {
       websocket.on('close', () => {
         console.log(
           websocket.id,
           Number(websocket.userTimeValue) + Date.now() - websocket.userTimeStart,
         );
-        this.postgre.saveUserScore(
+
+        Postgre.saveUserScore(
           websocket.id,
           String(Number(websocket.userTimeValue) + Date.now() - websocket.userTimeStart),
         );
+
         console.log(`${websocket.token || 'guest\'s'} connection closed`);
+
         this.sendToEveryRegistered(wss.clients, `{"gameDisconnectedMessage": "${websocket.token}", "chatServerMessage": "the user ${websocket.userName} has disconnected  (connected: ${wss.clients.size})"}`);
       });
 
@@ -45,6 +41,7 @@ class WebSocketModel implements WebSocketModelInterface {
           this.onMessageWithCode(wss, websocket, websocketData);
           return;
         }
+
         this.sendToEveryone(wss.clients, websocketData);
       });
     });
@@ -52,7 +49,9 @@ class WebSocketModel implements WebSocketModelInterface {
 
   private onMessageWithCode(wss, currSocketConnection, websocketData) {
     const websocket = currSocketConnection;
+
     const newWebsocketData = websocketData.substr(1);
+
     switch (websocketData[0]) {
       case '0': {
         try {
@@ -106,21 +105,22 @@ class WebSocketModel implements WebSocketModelInterface {
         if (websocket.isRegistered) {
           this.logOut(wss, websocket);
         }
+
         break;
       }
 
       case '3': {
-        /**
-         * here should locate statistics code ('ping')
-         */
+        /** here should locate statistics code ('ping') */
         break;
       }
+
       default: break;
     }
   }
 
   private onRegisterCommon(wss, ws, userName) {
     const websocket = ws;
+
     websocket.isRegistered = true;
     /**
      * If you use your own domain name: req.headers['sec-websocket-key'];
@@ -129,8 +129,10 @@ class WebSocketModel implements WebSocketModelInterface {
     websocket.userName = userName;
 
     const amountRegisteredUsers = this.getAmountOfRegisteredUsers(wss.clients);
+
     websocket.isHost = this.isHost(amountRegisteredUsers, wss);
     websocket.seed = this.getSeed(amountRegisteredUsers, wss.clients);
+
     console.log(`seed: ${websocket.seed}, isHost: ${websocket.isHost}`);
 
     this.sendOnlyToYou(websocket, `{"setUserAsRegistered": "true", "setHost": "${websocket.isHost}", "setSeed": "${websocket.seed}", "setUserMount": "${amountRegisteredUsers}", "setWsToken": "${websocket.token}", "setUserName": "${userName}", "chatServerMessage": "You are connected  (connected: ${amountRegisteredUsers})"}`);
@@ -140,12 +142,16 @@ class WebSocketModel implements WebSocketModelInterface {
 
   private async signUp(wss, mess, ws) {
     const websocket = ws;
-    const items = await this.postgre.getLogin(mess.login);
+
+    const items = await Postgre.getByLogin(mess.login);
+
     if (items === undefined && mess.login && mess.password) {
       const body = { login: mess.login, password: mess.password, id: uuid() };
-      const pgResp = await this.postgre.create(body);
+      const pgResp = await Postgre.create(body);
+
       if (pgResp) {
         websocket.send(`{"mesSignIn": "signed", "login": "${body.login}"}`);
+
         console.log('user was signed-Up');
       } else {
         websocket.send('{"failSignIn": "wasWrongBD"}');
@@ -158,8 +164,10 @@ class WebSocketModel implements WebSocketModelInterface {
 
   private async changePassword(wss, ws, mess) {
     const websocket = ws;
+
     if (mess.newPassword) {
-      const item = await this.postgre.updatePassword(websocket.id, mess.newPassword);
+      const item = await Postgre.updatePassword(websocket.id, mess.newPassword);
+
       if (item) {
         websocket.send('{"mesChangePassword": "passChanged"}');
         console.log('Password was successfully changed');
@@ -172,14 +180,18 @@ class WebSocketModel implements WebSocketModelInterface {
 
   private async setPlayerTimeValue(ws) {
     const websocket = ws;
-    const item = await this.postgre.getUserScore(websocket.id);
+
+    const item = await Postgre.getUserScore(websocket.id);
+
     websocket.userTimeValue = item.player_values || 0;
     websocket.userTimeStart = Date.now();
   }
 
   private async logOut(wss, ws) {
     const websocket = ws;
-    const item = await this.postgre.logOutById(websocket.id);
+
+    const item = await Postgre.logOutById(websocket.id);
+
     if (item) {
       websocket.isRegistered = false;
       websocket.send('{"logOutMessage": "logOut"}');
@@ -187,12 +199,14 @@ class WebSocketModel implements WebSocketModelInterface {
       console.log('user was successfully unregistered');
     } else {
       websocket.send('{"failLogOut": "wasWrongBD"}');
+
       console.log('user was not unregistered: something was wrong with BD');
     }
   }
 
   private login(wss, mess, ws) {
     const websocket = ws;
+
     jwt.verify(
       mess.userToken,
       appConfig.TOKEN_KEY,
@@ -200,15 +214,20 @@ class WebSocketModel implements WebSocketModelInterface {
         if (err) {
           websocket.send('{"failLogin": "wrongOrExpiredToken"}');
         }
+
         if (payload) {
-          const item = await this.postgre.getById(payload.id);
+          const item = await Postgre.getById(payload.id);
+
           if (item) {
             if (!this.isUserAlreadyRegistered(wss.clients, payload.id)) {
               this.onRegisterCommon(wss, ws, payload.login);
               websocket.id = payload.id;
               this.setPlayerTimeValue(ws);
+
               const token = jwt.sign({ id: payload.id, login: payload.login }, appConfig.TOKEN_KEY, { expiresIn: '30d' });
+
               websocket.send(`{"chatServerMessage": "you are registered as ${payload.login}!", "login": "${payload.login}", "setToken": "${token}"}`);
+
               console.log('user was registered through token');
             } else {
               websocket.send('{"failLogin": "userIsAlreadyRegistered"}');
@@ -223,12 +242,16 @@ class WebSocketModel implements WebSocketModelInterface {
 
   private async loginThroughPass(wss, mess, ws) {
     const websocket = ws;
+
     if (mess.login && mess.password) {
-      const item = await this.postgre.getLogin(mess.login);
+      const item = await Postgre.getByLogin(mess.login);
+
       if (item) {
         if (item.login === mess.login && item.password === mess.password) {
           const { id } = item;
+
           const { login } = item;
+
           if (!this.isUserAlreadyRegistered(wss.clients, id)) {
             this.onRegisterCommon(wss, ws, mess.login);
             websocket.id = id;
@@ -236,8 +259,10 @@ class WebSocketModel implements WebSocketModelInterface {
             this.setPlayerTimeValue(ws);
 
             const token = jwt.sign({ id, login }, appConfig.TOKEN_KEY, { expiresIn: '30d' });
-            this.postgre.setToken(id, token);
+
+            Postgre.setToken(id, token);
             websocket.send(`{"chatServerMessage": "you are registered as ${mess.login}!", "login": "${login}", "setToken": "${token}"}`);
+
             console.log('user was registered through password');
           } else {
             websocket.send('{"failLogin": "userIsAlreadyRegistered"}');
@@ -255,16 +280,19 @@ class WebSocketModel implements WebSocketModelInterface {
     if (amountRegisteredUsers === 1) {
       return 'host';
     }
+
     return this.isThereHosts(wss.clients) ? 'notHost' : 'host';
   }
 
   private isThereHosts(clients) {
     let isThereHost = false;
+
     clients.forEach((client) => {
       if (client.isRegistered && client.isHost) {
         isThereHost = true;
       }
     });
+
     return isThereHost;
   }
 
@@ -282,15 +310,13 @@ class WebSocketModel implements WebSocketModelInterface {
   }
 
   private getUserID(clients) {
-    let UID = this.getUUID();
-    while (this.isUserIDExist(clients, UID)) {
-      UID = this.getUUID();
-    }
-    return UID;
-  }
+    let UID = getUUID();
 
-  private getUUID() {
-    return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
+    while (this.isUserIDExist(clients, UID)) {
+      UID = getUUID();
+    }
+
+    return UID;
   }
 
   private getAmountOfRegisteredUsers(clients) {
@@ -305,31 +331,37 @@ class WebSocketModel implements WebSocketModelInterface {
 
   private isUserIDExist(clients, id) {
     let isExist = false;
+
     clients.forEach((client) => {
       if (client.token === id) {
         isExist = true;
       }
     });
+
     return isExist;
   }
 
   private isUserAlreadyRegistered(clients, id) {
     let isExist = false;
+
     clients.forEach((client) => {
       if (client.id === id) {
         isExist = true;
       }
     });
+
     return isExist;
   }
 
   private getWSTokensString(clients) {
     const tokens = [];
+
     clients.forEach((client) => {
       if (client.isRegistered) {
         tokens.push(client.token);
       }
     });
+
     return tokens.join('___');
   }
 
@@ -359,4 +391,3 @@ class WebSocketModel implements WebSocketModelInterface {
     });
   }
 }
-export { WebSocketModelInterface, WebSocketModel };
