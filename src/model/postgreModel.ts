@@ -158,6 +158,6 @@ class Postgres {
   }
 }
 
-const Postge = new Postgres();
+const Persistence = new Postgres();
 
-export default Postge;
+export default Persistence;

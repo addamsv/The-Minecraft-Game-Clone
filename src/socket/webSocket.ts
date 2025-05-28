@@ -3,14 +3,38 @@ import * as http from 'http';
 import * as jwt from 'jsonwebtoken';
 import { v4 as uuid } from 'uuid';
 import appConfig from '../../app-config';
-import Postgre from '../model/postgreModel';
+import Persistence from '../model/postgreModel';
 import getUUID from '../utils/getUUID';
 
-interface PayloadInterface extends Object {
+interface IPayload extends Object {
   id: string;
   login: String;
   password: String;
 }
+
+interface IWebSocketServer extends Server {
+  id: string;
+  userName: string;
+  token: string;
+  isRegistered: boolean;
+  isHost: string;
+  seed: string;
+  userTimeValue: string;
+  userTimeStart: number;
+  // eslint-disable-next-line no-unused-vars
+  send: (mess: string) => void;
+}
+
+interface IUserMessage {
+  userToken: string;
+  login: string;
+  password: string;
+  newPassword: string;
+}
+
+// interface IWebsocketData {
+
+// }
 
 export default class MinecraftWebSocket {
   public wssInit(server: http.Server) {
@@ -19,26 +43,31 @@ export default class MinecraftWebSocket {
       perMessageDeflate: false,
     });
 
-    wss.on('connection', (websocket) => {
-      websocket.on('close', () => {
+    wss.on('connection', (wsConnection: IWebSocketServer) => {
+      wsConnection.on('close', () => {
         console.log(
-          websocket.id,
-          Number(websocket.userTimeValue) + Date.now() - websocket.userTimeStart,
+          wsConnection.id,
+          Number(wsConnection.userTimeValue) + Date.now() - wsConnection.userTimeStart,
         );
 
-        Postgre.saveUserScore(
-          websocket.id,
-          String(Number(websocket.userTimeValue) + Date.now() - websocket.userTimeStart),
+        Persistence.saveUserScore(
+          wsConnection.id,
+          String(
+            Number(wsConnection.userTimeValue) + Date.now() - wsConnection.userTimeStart,
+          ),
         );
 
-        console.log(`${websocket.token || 'guest\'s'} connection closed`);
+        console.log(`${wsConnection.token || 'guest\'s'} connection closed`);
 
-        this.sendToEveryRegistered(wss.clients, `{"gameDisconnectedMessage": "${websocket.token}", "chatServerMessage": "the user ${websocket.userName} has disconnected  (connected: ${wss.clients.size})"}`);
+        this.sendToEveryRegistered(
+          wss.clients,
+          `{"gameDisconnectedMessage": "${wsConnection.token}", "chatServerMessage": "the user ${wsConnection.userName} has disconnected  (connected: ${wss.clients.size})"}`,
+        );
       });
 
-      websocket.on('message', (websocketData) => {
+      wsConnection.on('message', (websocketData: string) => {
         if (websocketData[0] !== '{') {
-          this.onMessageWithCode(wss, websocket, websocketData);
+          this.onMessageWithCode(wss, wsConnection, websocketData);
           return;
         }
 
@@ -47,7 +76,11 @@ export default class MinecraftWebSocket {
     });
   }
 
-  private onMessageWithCode(wss, currSocketConnection, websocketData) {
+  private onMessageWithCode(
+    wss: Server,
+    currSocketConnection: IWebSocketServer,
+    websocketData: string,
+  ) {
     const websocket = currSocketConnection;
 
     const newWebsocketData = websocketData.substr(1);
@@ -56,6 +89,7 @@ export default class MinecraftWebSocket {
       case '0': {
         try {
           const mess = JSON.parse(newWebsocketData);
+
           switch (mess.ask) {
             case 'signUp': {
               this.signUp(wss, mess, websocket);
@@ -118,13 +152,12 @@ export default class MinecraftWebSocket {
     }
   }
 
-  private onRegisterCommon(wss, ws, userName) {
+  private onRegisterCommon(wss: Server, ws: IWebSocketServer, userName: string) {
     const websocket = ws;
 
     websocket.isRegistered = true;
-    /**
-     * If you use your own domain name: req.headers['sec-websocket-key'];
-     */
+
+    /** If you use your own domain name: req.headers['sec-websocket-key']; */
     websocket.token = this.getUserID(wss.clients);
     websocket.userName = userName;
 
@@ -140,87 +173,94 @@ export default class MinecraftWebSocket {
     this.sendToEveryRegistered(wss.clients, `{"setNewWsToken": "${this.getWSTokensString(wss.clients)}"}`);
   }
 
-  private async signUp(wss, mess, ws) {
+  private async signUp(wss, mess: IUserMessage, ws: IWebSocketServer) {
     const websocket = ws;
 
-    const items = await Postgre.getByLogin(mess.login);
+    const items = await Persistence.getByLogin(mess.login);
 
-    if (items === undefined && mess.login && mess.password) {
-      const body = { login: mess.login, password: mess.password, id: uuid() };
-      const pgResp = await Postgre.create(body);
-
-      if (pgResp) {
-        websocket.send(`{"mesSignIn": "signed", "login": "${body.login}"}`);
-
-        console.log('user was signed-Up');
-      } else {
-        websocket.send('{"failSignIn": "wasWrongBD"}');
-        console.log('Password was not registered: something was wrong with BD');
-      }
-    } else {
+    if (items || mess.login || mess.password) {
       websocket.send('{"failSignIn": "userIsAlreadyRegistered"}');
+      return;
     }
+
+    const player = { login: mess.login, password: mess.password, id: uuid() };
+
+    const newPlayer = await Persistence.create(player);
+
+    if (!newPlayer) {
+      websocket.send('{"failSignIn": "wasWrongBD"}');
+      console.log('Password was not registered: something was wrong with BD');
+      return;
+    }
+
+    websocket.send(`{"mesSignIn": "signed", "login": "${player.login}"}`);
+    console.log('user was signed-Up');
   }
 
-  private async changePassword(wss, ws, mess) {
+  private async changePassword(wss, ws: IWebSocketServer, mess: IUserMessage) {
     const websocket = ws;
 
-    if (mess.newPassword) {
-      const item = await Postgre.updatePassword(websocket.id, mess.newPassword);
-
-      if (item) {
-        websocket.send('{"mesChangePassword": "passChanged"}');
-        console.log('Password was successfully changed');
-      } else {
-        websocket.send('{"failChangePassword": "wasWrongBD"}');
-        console.log('Password was not unregistered: something was wrong with BD');
-      }
+    if (!mess.newPassword) {
+      return;
     }
+
+    const item = await Persistence.updatePassword(websocket.id, mess.newPassword);
+
+    if (!item) {
+      websocket.send('{"failChangePassword": "wasWrongBD"}');
+      console.log('Password was not unregistered: something was wrong with BD');
+      return;
+    }
+
+    websocket.send('{"mesChangePassword": "passChanged"}');
+    console.log('Password was successfully changed');
   }
 
-  private async setPlayerTimeValue(ws) {
+  private async setPlayerTimeValue(ws: IWebSocketServer) {
     const websocket = ws;
 
-    const item = await Postgre.getUserScore(websocket.id);
+    const item = await Persistence.getUserScore(websocket.id);
 
     websocket.userTimeValue = item.player_values || 0;
     websocket.userTimeStart = Date.now();
   }
 
-  private async logOut(wss, ws) {
+  private async logOut(wss, ws: IWebSocketServer) {
     const websocket = ws;
 
-    const item = await Postgre.logOutById(websocket.id);
+    const item = await Persistence.logOutById(websocket.id);
 
-    if (item) {
-      websocket.isRegistered = false;
-      websocket.send('{"logOutMessage": "logOut"}');
-      websocket.send(`{"chatServerMessage": "you are unregistered as ${websocket.login}!"}`);
-      console.log('user was successfully unregistered');
-    } else {
+    if (!item) {
       websocket.send('{"failLogOut": "wasWrongBD"}');
 
       console.log('user was not unregistered: something was wrong with BD');
+      return;
     }
+
+    websocket.isRegistered = false;
+    websocket.send('{"logOutMessage": "logOut"}');
+    websocket.send(`{"chatServerMessage": "you are unregistered as ${websocket.userName}!"}`);
+
+    console.log('user was successfully unregistered');
   }
 
-  private login(wss, mess, ws) {
+  private login(wss: Server, mess: IUserMessage, ws: IWebSocketServer) {
     const websocket = ws;
 
     jwt.verify(
       mess.userToken,
       appConfig.TOKEN_KEY,
-      async (err, payload: PayloadInterface) => {
+      async (err, payload: IPayload) => {
         if (err) {
           websocket.send('{"failLogin": "wrongOrExpiredToken"}');
         }
 
         if (payload) {
-          const item = await Postgre.getById(payload.id);
+          const item = await Persistence.getById(payload.id);
 
           if (item) {
             if (!this.isUserAlreadyRegistered(wss.clients, payload.id)) {
-              this.onRegisterCommon(wss, ws, payload.login);
+              this.onRegisterCommon(wss, ws, payload.login.toString());
               websocket.id = payload.id;
               this.setPlayerTimeValue(ws);
 
@@ -240,11 +280,11 @@ export default class MinecraftWebSocket {
     );
   }
 
-  private async loginThroughPass(wss, mess, ws) {
+  private async loginThroughPass(wss: Server, mess: IUserMessage, ws: IWebSocketServer) {
     const websocket = ws;
 
     if (mess.login && mess.password) {
-      const item = await Postgre.getByLogin(mess.login);
+      const item = await Persistence.getByLogin(mess.login);
 
       if (item) {
         if (item.login === mess.login && item.password === mess.password) {
@@ -260,7 +300,7 @@ export default class MinecraftWebSocket {
 
             const token = jwt.sign({ id, login }, appConfig.TOKEN_KEY, { expiresIn: '30d' });
 
-            Postgre.setToken(id, token);
+            Persistence.setToken(id, token);
             websocket.send(`{"chatServerMessage": "you are registered as ${mess.login}!", "login": "${login}", "setToken": "${token}"}`);
 
             console.log('user was registered through password');
@@ -276,7 +316,7 @@ export default class MinecraftWebSocket {
     }
   }
 
-  private isHost(amountRegisteredUsers, wss) {
+  private isHost(amountRegisteredUsers, wss: Server) {
     if (amountRegisteredUsers === 1) {
       return 'host';
     }
@@ -296,16 +336,19 @@ export default class MinecraftWebSocket {
     return isThereHost;
   }
 
-  private getSeed(amountRegisteredUsers, clients) {
+  private getSeed(amountRegisteredUsers, clients): string {
     if (amountRegisteredUsers === 1) {
       return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1);
     }
-    let seed;
+
+    let seed = '';
+
     clients.forEach((client) => {
       if (client.isRegistered && client.seed) {
         seed = client.seed;
       }
     });
+
     return seed;
   }
 
@@ -321,15 +364,17 @@ export default class MinecraftWebSocket {
 
   private getAmountOfRegisteredUsers(clients) {
     let registered = 0;
+
     clients.forEach((client) => {
       if (client.isRegistered) {
         registered += 1;
       }
     });
+
     return registered;
   }
 
-  private isUserIDExist(clients, id) {
+  private isUserIDExist(clients, id: string) {
     let isExist = false;
 
     clients.forEach((client) => {
@@ -341,7 +386,7 @@ export default class MinecraftWebSocket {
     return isExist;
   }
 
-  private isUserAlreadyRegistered(clients, id) {
+  private isUserAlreadyRegistered(clients, id: string) {
     let isExist = false;
 
     clients.forEach((client) => {
@@ -365,28 +410,28 @@ export default class MinecraftWebSocket {
     return tokens.join('___');
   }
 
-  private sendOnlyToYou(websocket, string) {
-    websocket.send(string);
+  private sendOnlyToYou(websocket: IWebSocketServer, mes: string) {
+    websocket.send(mes);
   }
 
-  private sendToEveryRegistered(clients, string) {
+  private sendToEveryRegistered(clients, mes: string) {
     clients.forEach((client) => {
       if (client.isRegistered) {
-        client.send(string);
+        client.send(mes);
       }
     });
   }
 
-  private sendToEveryone(clients, string) {
+  private sendToEveryone(clients, mes: string) {
     clients.forEach((client) => {
-      client.send(string);
+      client.send(mes);
     });
   }
 
-  private sendToAllButNotYou(websocket, clients, string) {
+  private sendToAllButNotYou(websocket: IWebSocketServer, clients, mes: string) {
     clients.forEach((client) => {
       if (client.token !== websocket.token && client.isRegistered) {
-        client.send(string);
+        client.send(mes);
       }
     });
   }
