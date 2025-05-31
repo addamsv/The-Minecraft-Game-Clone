@@ -1,3 +1,5 @@
+import 'dotenv/config';
+
 export default {
   debugMode: false,
   dbName: 'rs-clone-server',

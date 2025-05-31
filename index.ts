@@ -2,6 +2,7 @@ import * as http from 'http';
 import getExpressApp from './src/endpoints';
 import MinecraftWebSocket from './src/socket/webSocket';
 import { normalizePort } from './src/utils/normalizePort';
+import 'dotenv/config';
 
 const port = normalizePort(process.env.PORT || '3001');
 
